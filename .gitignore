@@ -62,3 +62,7 @@ venv.bak/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Binaries & CLI tools
+tools/
+*.exe
