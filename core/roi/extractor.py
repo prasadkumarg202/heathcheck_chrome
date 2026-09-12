@@ -1,7 +1,7 @@
 """
 Dynamic Region of Interest (ROI) Extraction Engine for AuraPulse.
-Extracts landmark-anchored polygonal ROIs for Forehead, Left Cheek, and Right Cheek,
-applies skin segmentation masks, and computes robust spatial statistics (mean, median, std).
+Extracts landmark-anchored polygonal ROIs for Forehead and Malar/Cheekbones,
+optimized for vascular density and beard/hair rejection.
 """
 
 from __future__ import annotations
@@ -29,10 +29,10 @@ class ROIData:
 class ROIExtractor:
     """
     Extracts dynamic polygon ROIs anchored to facial landmarks and computes
-    skin-masked color statistics.
+    skin-masked color statistics. Optimized for malar prominence and beard avoidance.
     """
 
-    def __init__(self, min_skin_pct: float = 30.0, min_pixels: int = 100):
+    def __init__(self, min_skin_pct: float = 25.0, min_pixels: int = 60):
         self.min_skin_pct = min_skin_pct
         self.min_pixels = min_pixels
         self.skin_segmenter = SkinSegmenter()
@@ -43,52 +43,55 @@ class ROIExtractor:
         landmarks: FaceLandmarks
     ) -> Dict[str, ROIData]:
         """
-        Extracts Forehead, Left Cheek, and Right Cheek dynamic polygon ROIs.
+        Extracts high-perfusion ROIs: Expanded Forehead, Upper Left Malar Cheek, Upper Right Malar Cheek.
         """
         h, w = frame.shape[:2]
         bx, by, bw, bh = landmarks.bbox
         rois: Dict[str, ROIData] = {}
 
-        # 1. FOREHEAD POLYGON (Trapezoid above eyebrows, below hairline)
-        # Scaled relative to eye positions and face bounding box
         lex, ley = landmarks.left_eye
         rex, rey = landmarks.right_eye
-        eye_dist = abs(rex - lex)
+        nose_x, nose_y = landmarks.nose_tip
+        eye_dist = max(10.0, float(np.hypot(lex - rex, ley - rey)))
 
-        fh_top_y = max(0, int(by + bh * 0.04))
-        fh_bot_y = max(0, int(min(ley, rey) - bh * 0.12))
-        fh_left_x = max(0, int(bx + bw * 0.25))
-        fh_right_x = min(w, int(bx + bw * 0.75))
+        # 1. FOREHEAD POLYGON (Trapezoid: expanded across frontal bone, avoiding brows and hair)
+        fh_top_y = max(0, int(min(ley, rey) - eye_dist * 0.72))
+        fh_bot_y = max(0, int(min(ley, rey) - eye_dist * 0.22))
+        fh_mid_x = (lex + rex) / 2.0
+        fh_half_w = eye_dist * 0.55
 
         forehead_poly = np.array([
-            [fh_left_x, fh_bot_y],
-            [int(bx + bw * 0.28), fh_top_y],
-            [int(bx + bw * 0.72), fh_top_y],
-            [fh_right_x, fh_bot_y],
+            [int(fh_mid_x - fh_half_w * 1.1), fh_bot_y],
+            [int(fh_mid_x - fh_half_w * 0.85), fh_top_y],
+            [int(fh_mid_x + fh_half_w * 0.85), fh_top_y],
+            [int(fh_mid_x + fh_half_w * 1.1), fh_bot_y],
         ], dtype=np.int32)
 
-        # 2. LEFT CHEEK POLYGON (Below left eye, left of nose, avoiding lips and beard)
-        lc_x, lc_y = landmarks.left_cheek
-        lc_half_w = int(eye_dist * 0.28)
-        lc_half_h = int(bh * 0.10)
+        # 2. UPPER LEFT CHEEK (Malar / Zygomatic bone: high on cheekbone, well above beard/mouth)
+        # Positioned directly below eye and lateral to nose
+        lc_x = lex + eye_dist * 0.08
+        lc_y = ley + (nose_y - ley) * 0.45
+        lc_w = eye_dist * 0.28
+        lc_h = (nose_y - ley) * 0.40
 
         left_cheek_poly = np.array([
-            [int(lc_x - lc_half_w), int(lc_y - lc_half_h)],
-            [int(lc_x + lc_half_w), int(lc_y - lc_half_h)],
-            [int(lc_x + lc_half_w * 0.9), int(lc_y + lc_half_h)],
-            [int(lc_x - lc_half_w * 0.9), int(lc_y + lc_half_h)],
+            [int(lc_x - lc_w * 0.8), int(lc_y - lc_h * 0.5)],
+            [int(lc_x + lc_w * 0.8), int(lc_y - lc_h * 0.5)],
+            [int(lc_x + lc_w * 0.7), int(lc_y + lc_h * 0.5)],
+            [int(lc_x - lc_w * 0.7), int(lc_y + lc_h * 0.5)],
         ], dtype=np.int32)
 
-        # 3. RIGHT CHEEK POLYGON (Below right eye, right of nose)
-        rc_x, rc_y = landmarks.right_cheek
-        rc_half_w = int(eye_dist * 0.28)
-        rc_half_h = int(bh * 0.10)
+        # 3. UPPER RIGHT CHEEK (Malar / Zygomatic bone)
+        rc_x = rex - eye_dist * 0.08
+        rc_y = rey + (nose_y - rey) * 0.45
+        rc_w = eye_dist * 0.28
+        rc_h = (nose_y - rey) * 0.40
 
         right_cheek_poly = np.array([
-            [int(rc_x - rc_half_w), int(rc_y - rc_half_h)],
-            [int(rc_x + rc_half_w), int(rc_y - rc_half_h)],
-            [int(rc_x + rc_half_w * 0.9), int(rc_y + rc_half_h)],
-            [int(rc_x - rc_half_w * 0.9), int(rc_y + rc_half_h)],
+            [int(rc_x - rc_w * 0.8), int(rc_y - rc_h * 0.5)],
+            [int(rc_x + rc_w * 0.8), int(rc_y - rc_h * 0.5)],
+            [int(rc_x + rc_w * 0.7), int(rc_y + rc_h * 0.5)],
+            [int(rc_x - rc_w * 0.7), int(rc_y + rc_h * 0.5)],
         ], dtype=np.int32)
 
         candidate_polys = {
@@ -111,14 +114,12 @@ class ROIExtractor:
     ) -> ROIData:
         h, w = frame.shape[:2]
 
-        # Bounding box of the polygon
         x, y, pw, ph = cv2.boundingRect(poly)
         x = max(0, min(w - 1, x))
         y = max(0, min(h - 1, y))
         pw = max(1, min(w - x, pw))
         ph = max(1, min(h - y, ph))
 
-        # Crop sub-image
         crop = frame[y:y+ph, x:x+pw]
         if crop.size == 0 or crop.shape[0] == 0 or crop.shape[1] == 0:
             return ROIData(
@@ -132,15 +133,11 @@ class ROIExtractor:
                 is_valid=False
             )
 
-        # Polygon mask relative to the crop
         poly_relative = poly - np.array([x, y])
         poly_mask = np.zeros((ph, pw), dtype=np.uint8)
         cv2.fillPoly(poly_mask, [poly_relative], 255)
 
-        # Skin segmentation mask on the crop
         skin_mask, _ = self.skin_segmenter.segment(crop)
-
-        # Combined mask: polygon boundary AND valid skin pixels
         combined_mask = cv2.bitwise_and(poly_mask, skin_mask)
 
         poly_pixels = np.count_nonzero(poly_mask)
@@ -149,7 +146,6 @@ class ROIExtractor:
         skin_pct = (skin_pixels / max(poly_pixels, 1)) * 100.0
         is_valid = (skin_pct >= self.min_skin_pct) and (skin_pixels >= self.min_pixels)
 
-        # Convert crop from BGR to RGB
         crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
 
         if is_valid:
