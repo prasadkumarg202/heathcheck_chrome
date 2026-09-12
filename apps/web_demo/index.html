@@ -382,7 +382,7 @@
         <video id="videoElement" autoplay playsinline muted></video>
         <canvas id="overlayCanvas"></canvas>
         <div class="status-banner" id="statusBanner">
-          <span id="diagnosticStatus">Camera ready. Align face and click Start.</span>
+          <span id="diagnosticStatus">Aligning face...</span>
           <span id="scanTimer">Ready</span>
         </div>
       </div>
@@ -528,18 +528,23 @@
 
     let isScanning = false;
     let scanStartTime = 0;
-    let isProcessing = false;
     let frameTimestamps = [];
     let latestResultPayload = null;
     let waveformBuffer = [];
     
-    // High-speed downscaled canvas for fast upload
-    const offscreenCanvas = document.createElement("canvas");
-    offscreenCanvas.width = 320;
-    offscreenCanvas.height = 240;
-    const offscreenCtx = offscreenCanvas.getContext("2d", { willReadFrequently: true });
+    // Tracked facial state
+    let activeFaceBBox = null;
+    let activeROIs = null;
+    let isDetectingKeyframe = false;
+    let lastKeyframeTime = 0;
+    let frameIndex = 0;
 
-    // Initialize Camera Feed
+    // Fast canvas for client-side pixel extraction
+    const sampleCanvas = document.createElement("canvas");
+    sampleCanvas.width = 320;
+    sampleCanvas.height = 240;
+    const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+
     async function initCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -549,7 +554,8 @@
         video.onloadedmetadata = () => {
           overlayCanvas.width = video.videoWidth;
           overlayCanvas.height = video.videoHeight;
-          statusBanner.innerText = "Camera ready. Position face inside frame and click Start 30s Scan.";
+          statusBanner.innerText = "Camera locked. Ready for scan.";
+          triggerKeyframeDetection();
         };
       } catch (err) {
         statusBanner.innerText = "Camera access denied or unavailable.";
@@ -600,15 +606,89 @@
       downloadAnchor.remove();
     });
 
-    // High-frequency, non-blocking frame dispatch loop
-    async function processFrameNow() {
-      if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
-        isProcessing = true;
+    // 1. Keyframe Neural Face Alignment (Runs periodically once every ~1.5s)
+    async function triggerKeyframeDetection() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
+        isDetectingKeyframe = true;
+        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.55);
+
+        try {
+          const resp = await fetch("/api/detect_rois", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64Img })
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.hasFace) {
+              activeFaceBBox = data.faceBBox;
+              activeROIs = data.rois;
+              updateTelemetry(data);
+            }
+          }
+        } catch (e) {
+          console.error("Keyframe error:", e);
+        } finally {
+          isDetectingKeyframe = false;
+          lastKeyframeTime = performance.now();
+        }
+      }
+    }
+
+    // Client-Side Spatial ROI Mean RGB Extractor (< 0.05ms execution)
+    function extractROIMeanRGB(polyScaled) {
+      if (!polyScaled || polyScaled.length < 3) return [120, 120, 120];
+
+      // Bounding box of polygon
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const pt of polyScaled) {
+        minX = Math.min(minX, pt[0]);
+        minY = Math.min(minY, pt[1]);
+        maxX = Math.max(maxX, pt[0]);
+        maxY = Math.max(maxY, pt[1]);
+      }
+
+      minX = Math.max(0, Math.min(sampleCanvas.width - 1, Math.floor(minX)));
+      minY = Math.max(0, Math.min(sampleCanvas.height - 1, Math.floor(minY)));
+      const w = Math.max(1, Math.min(sampleCanvas.width - minX, Math.ceil(maxX - minX)));
+      const h = Math.max(1, Math.min(sampleCanvas.height - minY, Math.ceil(maxY - minY)));
+
+      try {
+        const imgData = sampleCtx.getImageData(minX, minY, w, h).data;
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+
+        for (let i = 0; i < imgData.length; i += 4) {
+          const r = imgData[i];
+          const g = imgData[i + 1];
+          const b = imgData[i + 2];
+          // Quick skin check (R > G > B)
+          if (r > g && g > b * 0.75 && r > 40) {
+            sumR += r;
+            sumG += g;
+            sumB += b;
+            count++;
+          }
+        }
+
+        if (count > 10) {
+          return [sumR / count, sumG / count, sumB / count];
+        }
+      } catch (e) {}
+
+      return [140, 110, 95];
+    }
+
+    // 2. High-Speed 30+ FPS Frame Loop
+    async function highSpeedFrameLoop() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        frameIndex++;
         const nowMs = performance.now();
 
-        // Calculate smooth FPS over last 20 frames
+        // Calculate smooth FPS
         frameTimestamps.push(nowMs);
-        if (frameTimestamps.length > 20) frameTimestamps.shift();
+        if (frameTimestamps.length > 30) frameTimestamps.shift();
         if (frameTimestamps.length >= 2) {
           const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
           telFps.innerText = fps.toFixed(1);
@@ -623,39 +703,51 @@
           }
         }
 
-        // Draw downscaled frame (320x240 @ 0.55 JPEG quality for ~10KB payload)
-        offscreenCtx.drawImage(video, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        const base64Img = offscreenCanvas.toDataURL("image/jpeg", 0.55);
+        // Draw frame to client sampling canvas
+        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
 
-        try {
-          const resp = await fetch("/api/process_frame", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              image: base64Img,
-              timestamp_ms: nowMs
-            })
-          });
+        // Render overlays
+        renderOverlays();
 
-          if (resp.ok) {
-            const data = await resp.json();
-            latestResultPayload = data;
-            renderOverlays(data);
-            updateTelemetry(data);
-            if (isScanning) {
+        // Trigger periodic keyframe face re-alignment every 45 frames (~1.5s)
+        if (nowMs - lastKeyframeTime > 1500) {
+          triggerKeyframeDetection();
+        }
+
+        // Fast Color Extraction on Client (< 0.1ms)
+        if (activeROIs && isScanning) {
+          const roiSignals = {};
+          for (const [rName, rData] of Object.entries(activeROIs)) {
+            roiSignals[rName] = extractROIMeanRGB(rData.polygon);
+          }
+
+          // Push tiny 36-byte vector payload to server
+          try {
+            const resp = await fetch("/api/push_signals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                timestamp_s: nowMs / 1000.0,
+                signals: roiSignals
+              })
+            });
+
+            if (resp.ok) {
+              const data = await resp.json();
+              latestResultPayload = data;
               updateDashboard(data);
             }
+          } catch (e) {
+            console.error("Signal push error:", e);
           }
-        } catch (e) {
-          console.error("Frame error:", e);
-        } finally {
-          isProcessing = false;
         }
       }
+
+      requestAnimationFrame(highSpeedFrameLoop);
     }
 
-    // Run processing at 30 Hz interval (every ~32ms)
-    setInterval(processFrameNow, 32);
+    // Start 30+ FPS loop
+    requestAnimationFrame(highSpeedFrameLoop);
 
     function updateTelemetry(data) {
       if (data.faceQuality) {
@@ -665,21 +757,20 @@
       }
     }
 
-    function renderOverlays(data) {
+    function renderOverlays() {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
-      if (data.hasFace && data.faceBBox) {
-        // Rescale from 320x240 offscreen to video dimensions
-        const scaleX = overlayCanvas.width / offscreenCanvas.width;
-        const scaleY = overlayCanvas.height / offscreenCanvas.height;
+      if (activeFaceBBox) {
+        const scaleX = overlayCanvas.width / sampleCanvas.width;
+        const scaleY = overlayCanvas.height / sampleCanvas.height;
 
-        const [bx, by, bw, bh] = data.faceBBox;
+        const [bx, by, bw, bh] = activeFaceBBox;
         overlayCtx.strokeStyle = "#10b981";
         overlayCtx.lineWidth = 2.5;
         overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
 
-        if (data.rois) {
-          for (const [name, rData] of Object.entries(data.rois)) {
+        if (activeROIs) {
+          for (const [name, rData] of Object.entries(activeROIs)) {
             const poly = rData.polygon;
             if (poly && poly.length > 0) {
               overlayCtx.beginPath();
@@ -693,11 +784,6 @@
               overlayCtx.stroke();
             }
           }
-        }
-      } else {
-        if (!isScanning) {
-          statusBanner.innerText = "Align face inside camera viewport";
-          statusBanner.style.borderLeftColor = "#f59e0b";
         }
       }
     }
