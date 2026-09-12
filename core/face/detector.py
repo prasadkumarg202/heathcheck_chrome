@@ -182,11 +182,28 @@ class FaceDetector:
             sy = int(self.tracking_alpha * fy + (1 - self.tracking_alpha) * ly)
             sw = int(self.tracking_alpha * fw + (1 - self.tracking_alpha) * lw)
             sh = int(self.tracking_alpha * fh + (1 - self.tracking_alpha) * lh)
-            bbox = (sx, sy, sw, sh)
+            raw_bx, raw_by, raw_bw, raw_bh = sx, sy, sw, sh
         else:
-            bbox = (int(fx), int(fy), int(fw), int(fh))
+            raw_bx, raw_by, raw_bw, raw_bh = int(fx), int(fy), int(fw), int(fh)
 
-        self.last_bbox = bbox
+        # Center horizontally on eyes and extend upward by 22% to encompass full forehead
+        if raw_landmarks:
+            rex, rey = raw_landmarks["right_eye"]
+            lex, ley = raw_landmarks["left_eye"]
+            mid_x = (lex + rex) / 2.0
+            adj_bx = max(0, int(mid_x - raw_bw * 0.54))
+            adj_by = max(0, raw_by - int(raw_bh * 0.22))
+            adj_bw = min(w - adj_bx, int(raw_bw * 1.08))
+            adj_bh = min(h - adj_by, int(raw_bh * 1.20))
+            bbox = (adj_bx, adj_by, adj_bw, adj_bh)
+        else:
+            adj_bx = max(0, raw_bx - int(raw_bw * 0.05))
+            adj_by = max(0, raw_by - int(raw_bh * 0.22))
+            adj_bw = min(w - adj_bx, int(raw_bw * 1.08))
+            adj_bh = min(h - adj_by, int(raw_bh * 1.20))
+            bbox = (adj_bx, adj_by, adj_bw, adj_bh)
+
+        self.last_bbox = (raw_bx, raw_by, raw_bw, raw_bh)
         bx, by, bw, bh = bbox
 
         face_area = bw * bh
