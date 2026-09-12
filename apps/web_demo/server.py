@@ -51,6 +51,7 @@ cached_vitals = engine.compute_vitals(user_profile)
 last_vitals_compute_time = 0.0
 
 html_path = Path(__file__).parent / "index.html"
+thresholds_path = Path(__file__).parent / "thresholds.js"
 
 
 def convert_to_serializable(obj):
@@ -73,6 +74,13 @@ async def homepage(request):
     with open(html_path, "r", encoding="utf-8") as f:
         content = f.read()
     return HTMLResponse(content)
+
+
+async def serve_thresholds(request):
+    from starlette.responses import Response
+    with open(thresholds_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return Response(content, media_type="application/javascript")
 
 
 async def reset_session(request):
@@ -305,6 +313,7 @@ async def websocket_signals_endpoint(websocket: WebSocket):
 
 routes = [
     Route("/", homepage),
+    Route("/thresholds.js", serve_thresholds),
     Route("/api/reset", reset_session, methods=["POST"]),
     Route("/api/update_profile", update_profile_api, methods=["POST"]),
     Route("/api/detect_rois", detect_rois_keyframe, methods=["POST"]),

@@ -12,7 +12,7 @@
       --border-color: #1e293b;
       --accent-cyan: #06b6d4;
       --accent-green: #10b981;
-      --accent-yellow: #f59e0b;
+      --accent-yellow: #eab308;
       --accent-red: #ef4444;
       --accent-purple: #8b5cf6;
       --accent-blue: #3b82f6;
@@ -314,6 +314,7 @@
       justify-content: space-between;
       position: relative;
       overflow: hidden;
+      transition: border-color 0.3s ease;
     }
 
     .vital-card::before {
@@ -323,14 +324,8 @@
       left: 0;
       width: 4px;
       height: 100%;
+      background: var(--accent-cyan);
     }
-
-    .card-hr::before { background: var(--accent-red); }
-    .card-rr::before { background: var(--accent-cyan); }
-    .card-bp::before { background: var(--accent-blue); }
-    .card-spo2::before { background: var(--accent-green); }
-    .card-prv::before { background: var(--accent-purple); }
-    .card-workload::before { background: var(--accent-yellow); }
 
     .card-header-row {
       display: flex;
@@ -346,17 +341,37 @@
       font-weight: 700;
     }
 
-    .badge-status {
+    /* Pill Badges */
+    .badge-pill {
       font-size: 10px;
       font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .badge-pill.optimal {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+    }
+    .badge-pill.warning {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+    .badge-pill.critical {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+    }
+    .badge-pill.neutral {
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid #475569;
       color: var(--text-muted);
     }
-    .badge-optimal { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
-    .badge-alert { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
-    .badge-warn { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
 
     .card-value-group {
       margin: 10px 0;
@@ -369,6 +384,7 @@
       font-size: 34px;
       font-weight: 800;
       color: #fff;
+      transition: color 0.3s ease;
     }
 
     .card-unit {
@@ -377,11 +393,23 @@
       font-weight: 500;
     }
 
+    .card-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+      line-height: 1.3;
+      transition: color 0.3s ease;
+    }
+
     .card-meta {
       font-size: 11px;
       color: var(--text-muted);
       display: flex;
       justify-content: space-between;
+      margin-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 6px;
     }
 
     /* Risk & Body Comp Cards */
@@ -407,7 +435,7 @@
     }
 
     .risk-score-badge.moderate {
-      background: rgba(245, 158, 11, 0.15);
+      background: rgba(234, 179, 8, 0.15);
       border-color: var(--accent-yellow);
       color: var(--accent-yellow);
     }
@@ -517,6 +545,7 @@
       opacity: 0.9;
     }
   </style>
+  <script src="/thresholds.js"></script>
 </head>
 <body>
   <header>
@@ -583,79 +612,84 @@
       <div class="tab-content active" id="tab-vitals">
         <div class="grid-vitals">
           <!-- Heart Rate -->
-          <div class="vital-card card-hr">
+          <div class="vital-card card-hr" id="cardHr">
             <div class="card-header-row">
               <span class="card-title">Heart Rate (rPPG)</span>
-              <span class="badge-status" id="hrBadge">Optimal</span>
+              <span class="badge-pill neutral" id="hrBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="hrValue">--</span>
               <span class="card-unit">BPM</span>
             </div>
+            <div class="card-subtext" id="hrSubtext">Normal resting baseline (60-100 BPM)</div>
             <div class="card-meta">
               <span>Confidence: <strong id="hrConf">--%</strong></span>
-              <span>Normal: 60-100</span>
+              <span>Harmonic Multi-ROI</span>
             </div>
           </div>
 
           <!-- Respiration Rate -->
-          <div class="vital-card card-rr">
+          <div class="vital-card card-rr" id="cardRr">
             <div class="card-header-row">
               <span class="card-title">Respiration Rate</span>
-              <span class="badge-status" id="rrBadge">Optimal</span>
+              <span class="badge-pill neutral" id="rrBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="rrValue">--</span>
               <span class="card-unit">RPM</span>
             </div>
+            <div class="card-subtext" id="rrSubtext">Healthy eupnea range (12-20 RPM)</div>
             <div class="card-meta">
               <span>Confidence: <strong id="rrConf">--%</strong></span>
-              <span>Normal: 12-20</span>
+              <span>AM/FM Demodulation</span>
             </div>
           </div>
 
           <!-- Blood Pressure -->
-          <div class="vital-card card-bp">
+          <div class="vital-card card-bp" id="cardBp">
             <div class="card-header-row">
               <span class="card-title">Blood Pressure (SDPPG)</span>
-              <span class="badge-status" id="bpBadge">Normal</span>
+              <span class="badge-pill neutral" id="bpBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="bpValue">-- / --</span>
               <span class="card-unit">mmHg</span>
             </div>
+            <div class="card-subtext" id="bpSubtext">AHA Clinical Guideline Stratification</div>
             <div class="card-meta">
               <span>MAP: <strong id="mapValue">--</strong> mmHg</span>
-              <span>AHA Guidelines</span>
+              <span>Stiffness Index</span>
             </div>
           </div>
 
           <!-- SpO2 -->
-          <div class="vital-card card-spo2">
+          <div class="vital-card card-spo2" id="cardSpo2">
             <div class="card-header-row">
               <span class="card-title">Oxygen Saturation</span>
-              <span class="badge-status" id="spo2Badge">Normal</span>
+              <span class="badge-pill neutral" id="spo2Badge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="spo2Value">--</span>
               <span class="card-unit">% SpO2</span>
             </div>
+            <div class="card-subtext" id="spo2Subtext">Chromatic Ratio-of-Ratios Calibration</div>
             <div class="card-meta">
               <span>Ratio (R): <strong id="spo2Ratio">--</strong></span>
-              <span>Normal: 95-100%</span>
+              <span>Norm: 95-100%</span>
             </div>
           </div>
 
           <!-- HRV RMSSD / SDNN -->
-          <div class="vital-card card-prv">
+          <div class="vital-card card-prv" id="cardPrv">
             <div class="card-header-row">
               <span class="card-title">Heart Rate Variability</span>
-              <span class="badge-status" id="prvBadge">Active</span>
+              <span class="badge-pill neutral" id="prvBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="prvValue">--</span>
               <span class="card-unit">ms (RMSSD)</span>
             </div>
+            <div class="card-subtext" id="prvSubtext">Autonomic vagal recovery indicator</div>
             <div class="card-meta">
               <span>SDNN: <strong id="sdnnValue">--</strong> ms</span>
               <span>pNN50: <strong id="pnn50Value">--%</strong></span>
@@ -663,18 +697,19 @@
           </div>
 
           <!-- Cardiac Workload -->
-          <div class="vital-card card-workload">
+          <div class="vital-card card-workload" id="cardWorkload">
             <div class="card-header-row">
               <span class="card-title">Cardiac Workload (RPP)</span>
-              <span class="badge-status" id="workloadBadge">Normal</span>
+              <span class="badge-pill neutral" id="workloadBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="rppValue">--</span>
               <span class="card-unit">RPP</span>
             </div>
+            <div class="card-subtext" id="workloadSubtext">Rate-Pressure Product (HR × SBP / 100)</div>
             <div class="card-meta">
               <span>Myocardial Load</span>
-              <span>HR × SBP / 100</span>
+              <span>Norm: ≤100</span>
             </div>
           </div>
         </div>
@@ -684,66 +719,70 @@
       <div class="tab-content" id="tab-wellness">
         <div class="grid-vitals">
           <!-- Baevsky Stress Index -->
-          <div class="vital-card card-hr">
+          <div class="vital-card card-hr" id="cardBaevsky">
             <div class="card-header-row">
               <span class="card-title">Baevsky Stress Index</span>
-              <span class="badge-status" id="baevskyBadge">Norm</span>
+              <span class="badge-pill neutral" id="baevskyBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="baevskyValue">--</span>
               <span class="card-unit">SI</span>
             </div>
+            <div class="card-subtext" id="baevskySubtext">Sympathetic tension & mobilization</div>
             <div class="card-meta">
               <span>Autonomic Tension</span>
-              <span>Reference: 50-150</span>
+              <span>Norm: 50-150</span>
             </div>
           </div>
 
           <!-- Parasympathetic Tone -->
-          <div class="vital-card card-spo2">
+          <div class="vital-card card-spo2" id="cardPns">
             <div class="card-header-row">
               <span class="card-title">Parasympathetic Recovery</span>
-              <span class="badge-status" id="pnsBadge">Good</span>
+              <span class="badge-pill neutral" id="pnsBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="pnsValue">--</span>
               <span class="card-unit">/ 100</span>
             </div>
+            <div class="card-subtext" id="pnsSubtext">Vagal tone & physiological resilience</div>
             <div class="card-meta">
-              <span>Vagal Tone & Recovery</span>
+              <span>Vagal Tone</span>
               <span>PNS Index</span>
             </div>
           </div>
 
           <!-- Pulse-Respiration Quotient -->
-          <div class="vital-card card-rr">
+          <div class="vital-card card-rr" id="cardPrq">
             <div class="card-header-row">
               <span class="card-title">Pulse-Respiration Ratio</span>
-              <span class="badge-status" id="prqBadge">Balanced</span>
+              <span class="badge-pill neutral" id="prqBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="prqValue">--</span>
               <span class="card-unit">PRQ</span>
             </div>
+            <div class="card-subtext" id="prqSubtext">Cardiopulmonary coupling index</div>
             <div class="card-meta">
-              <span>Cardiopulmonary Ratio</span>
+              <span>Coupling Ratio</span>
               <span>Norm: 4.0 - 5.0</span>
             </div>
           </div>
 
           <!-- Composite Stress Score -->
-          <div class="vital-card card-workload">
+          <div class="vital-card card-workload" id="cardStress">
             <div class="card-header-row">
               <span class="card-title">Composite Stress Load</span>
-              <span class="badge-status" id="stressLevelBadge">Low</span>
+              <span class="badge-pill neutral" id="stressLevelBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="stressValue">--</span>
               <span class="card-unit">/ 100</span>
             </div>
+            <div class="card-subtext" id="stressSubtext">Multi-biomarker arousal score</div>
             <div class="card-meta">
               <span>Sympathovagal Balance</span>
-              <span>Arousal Index</span>
+              <span>Research Scale</span>
             </div>
           </div>
         </div>
@@ -755,38 +794,40 @@
           <div>
             <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">10-Year Cardiovascular (CVD) & Stroke Projection</div>
             <div style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="cvdCatLabel">Low Risk (<10%)</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Framingham / WHO-ISH Hemodynamic-Metabolic Calibration</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="cvdSubtext">Framingham / WHO-ISH Hemodynamic-Metabolic Calibration</div>
           </div>
           <div class="risk-score-badge" id="cvdRiskScore">--%</div>
         </div>
 
         <div class="grid-vitals">
           <!-- Vascular Age -->
-          <div class="vital-card card-bp">
+          <div class="vital-card card-bp" id="cardVasc">
             <div class="card-header-row">
               <span class="card-title">Vascular Biological Age</span>
-              <span class="badge-status" id="vascStatusBadge">Optimal</span>
+              <span class="badge-pill neutral" id="vascStatusBadge">Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="vascAgeValue">--</span>
               <span class="card-unit">Years</span>
             </div>
+            <div class="card-subtext" id="vascSubtext">Arterial compliance & Aging Index (AGI)</div>
             <div class="card-meta">
               <span>Delta: <strong id="vascDeltaValue">-- yrs</strong></span>
-              <span>Arterial Compliance</span>
+              <span>Arterial Stiffness</span>
             </div>
           </div>
 
           <!-- Body Composition -->
-          <div class="vital-card card-workload">
+          <div class="vital-card card-workload" id="cardBmi">
             <div class="card-header-row">
               <span class="card-title">Body Composition (BMI & BRI)</span>
-              <span class="badge-status" id="bmiBadge">Normal</span>
+              <span class="badge-pill neutral" id="bmiBadge">Normal</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="bmiValue">--</span>
               <span class="card-unit">kg/m² (BMI)</span>
             </div>
+            <div class="card-subtext" id="bmiSubtext">Anthropometric body roundness analysis</div>
             <div class="card-meta">
               <span>BRI: <strong id="briValue">--</strong></span>
               <span>WHtR: <strong id="whtrValue">--</strong></span>
@@ -912,37 +953,63 @@
     const hrValue = document.getElementById("hrValue");
     const hrConf = document.getElementById("hrConf");
     const hrBadge = document.getElementById("hrBadge");
+    const hrSubtext = document.getElementById("hrSubtext");
+
     const rrValue = document.getElementById("rrValue");
     const rrConf = document.getElementById("rrConf");
     const rrBadge = document.getElementById("rrBadge");
+    const rrSubtext = document.getElementById("rrSubtext");
+
     const bpValue = document.getElementById("bpValue");
     const bpBadge = document.getElementById("bpBadge");
+    const bpSubtext = document.getElementById("bpSubtext");
     const mapValue = document.getElementById("mapValue");
+
     const spo2Value = document.getElementById("spo2Value");
     const spo2Badge = document.getElementById("spo2Badge");
+    const spo2Subtext = document.getElementById("spo2Subtext");
     const spo2Ratio = document.getElementById("spo2Ratio");
+
     const prvValue = document.getElementById("prvValue");
+    const prvBadge = document.getElementById("prvBadge");
+    const prvSubtext = document.getElementById("prvSubtext");
     const sdnnValue = document.getElementById("sdnnValue");
     const pnn50Value = document.getElementById("pnn50Value");
+
     const rppValue = document.getElementById("rppValue");
     const workloadBadge = document.getElementById("workloadBadge");
+    const workloadSubtext = document.getElementById("workloadSubtext");
 
     // Stress Elements
     const baevskyValue = document.getElementById("baevskyValue");
     const baevskyBadge = document.getElementById("baevskyBadge");
+    const baevskySubtext = document.getElementById("baevskySubtext");
+
     const pnsValue = document.getElementById("pnsValue");
+    const pnsBadge = document.getElementById("pnsBadge");
+    const pnsSubtext = document.getElementById("pnsSubtext");
+
     const prqValue = document.getElementById("prqValue");
+    const prqBadge = document.getElementById("prqBadge");
+    const prqSubtext = document.getElementById("prqSubtext");
+
     const stressValue = document.getElementById("stressValue");
     const stressLevelBadge = document.getElementById("stressLevelBadge");
+    const stressSubtext = document.getElementById("stressSubtext");
 
     // Risk Elements
     const cvdRiskScore = document.getElementById("cvdRiskScore");
     const cvdCatLabel = document.getElementById("cvdCatLabel");
+    const cvdSubtext = document.getElementById("cvdSubtext");
+
     const vascAgeValue = document.getElementById("vascAgeValue");
     const vascDeltaValue = document.getElementById("vascDeltaValue");
     const vascStatusBadge = document.getElementById("vascStatusBadge");
+    const vascSubtext = document.getElementById("vascSubtext");
+
     const bmiValue = document.getElementById("bmiValue");
     const bmiBadge = document.getElementById("bmiBadge");
+    const bmiSubtext = document.getElementById("bmiSubtext");
     const briValue = document.getElementById("briValue");
     const whtrValue = document.getElementById("whtrValue");
 
@@ -1043,20 +1110,37 @@
       statusBanner.innerText = "Starting comprehensive health measurement...";
       statusBanner.style.borderLeftColor = "#06b6d4";
 
-      // Reset displayed values
+      // Reset values
       hrValue.innerText = "--";
+      hrValue.style.color = "#fff";
+      hrBadge.className = "badge-pill neutral";
+      hrBadge.innerText = "Measuring";
+      hrSubtext.innerText = "Analyzing harmonic rPPG...";
+
       rrValue.innerText = "--";
+      rrValue.style.color = "#fff";
+      rrBadge.className = "badge-pill neutral";
+      rrBadge.innerText = "Measuring";
+
       bpValue.innerText = "-- / --";
+      bpValue.style.color = "#fff";
+      bpBadge.className = "badge-pill neutral";
+      bpBadge.innerText = "Measuring";
+
       spo2Value.innerText = "--";
+      spo2Value.style.color = "#fff";
+      spo2Badge.className = "badge-pill neutral";
+      spo2Badge.innerText = "Measuring";
+
       prvValue.innerText = "--";
+      prvValue.style.color = "#fff";
+      prvBadge.className = "badge-pill neutral";
+      prvBadge.innerText = "Measuring";
+
       rppValue.innerText = "--";
-      baevskyValue.innerText = "--";
-      pnsValue.innerText = "--";
-      prqValue.innerText = "--";
-      stressValue.innerText = "--";
-      cvdRiskScore.innerText = "--%";
-      vascAgeValue.innerText = "--";
-      bmiValue.innerText = "--";
+      rppValue.style.color = "#fff";
+      workloadBadge.className = "badge-pill neutral";
+
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
 
@@ -1172,7 +1256,7 @@
           if (frameTimestamps.length >= 2) {
             const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
             telFps.innerText = `${fps.toFixed(1)} FPS`;
-            telFps.style.color = fps >= 25 ? "#10b981" : (fps >= 18 ? "#f59e0b" : "#ef4444");
+            telFps.style.color = fps >= 25 ? "#10b981" : (fps >= 18 ? "#eab308" : "#ef4444");
           }
         }
 
@@ -1289,76 +1373,182 @@
         statusBanner.innerText = `● Pulse Signal Locked (Quality: ${v.quality_category})`;
         statusBanner.style.borderLeftColor = "#10b981";
 
-        // Heart Rate
+        const CT = window.CLINICAL_THRESHOLDS || {};
+
+        // 1. Heart Rate
         if (v.heart_rate && v.heart_rate.value) {
-          hrValue.innerText = v.heart_rate.value.toFixed(1);
+          const hrVal = v.heart_rate.value;
+          hrValue.innerText = hrVal.toFixed(1);
           hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
-          hrBadge.innerText = v.heart_rate.status || "Optimal";
-          hrBadge.className = "badge-status " + (v.heart_rate.status === "Optimal" ? "badge-optimal" : "badge-warn");
+
+          if (CT.heartRate) {
+            const evalHr = CT.heartRate.evaluate(hrVal);
+            hrBadge.innerText = evalHr.label;
+            hrBadge.className = `badge-pill ${evalHr.state}`;
+            hrValue.style.color = evalHr.state === "optimal" ? "#fff" : evalHr.color;
+            hrSubtext.innerText = evalHr.subtext;
+            hrSubtext.style.color = evalHr.state === "optimal" ? "var(--text-muted)" : evalHr.color;
+          }
         }
 
-        // Respiration Rate
+        // 2. Respiration Rate
         if (v.respiration_rate && v.respiration_rate.value) {
-          rrValue.innerText = v.respiration_rate.value.toFixed(1);
+          const rrVal = v.respiration_rate.value;
+          rrValue.innerText = rrVal.toFixed(1);
           rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
-          rrBadge.innerText = v.respiration_rate.status || "Optimal";
+
+          if (CT.respirationRate) {
+            const evalRr = CT.respirationRate.evaluate(rrVal);
+            rrBadge.innerText = evalRr.label;
+            rrBadge.className = `badge-pill ${evalRr.state}`;
+            rrValue.style.color = evalRr.state === "optimal" ? "#fff" : evalRr.color;
+            rrSubtext.innerText = evalRr.subtext;
+            rrSubtext.style.color = evalRr.state === "optimal" ? "var(--text-muted)" : evalRr.color;
+          }
         }
 
-        // Blood Pressure
+        // 3. Blood Pressure
         if (v.blood_pressure && v.blood_pressure.systolic) {
-          bpValue.innerText = `${Math.round(v.blood_pressure.systolic)} / ${Math.round(v.blood_pressure.diastolic)}`;
+          const sbp = v.blood_pressure.systolic;
+          const dbp = v.blood_pressure.diastolic;
+          bpValue.innerText = `${Math.round(sbp)} / ${Math.round(dbp)}`;
           mapValue.innerText = Math.round(v.blood_pressure.map);
-          bpBadge.innerText = v.blood_pressure.category || "Normal";
-          bpBadge.className = "badge-status " + (v.blood_pressure.category === "Normal" ? "badge-optimal" : "badge-warn");
+
+          if (CT.bloodPressure) {
+            const evalBp = CT.bloodPressure.evaluate(sbp, dbp);
+            bpBadge.innerText = evalBp.label;
+            bpBadge.className = `badge-pill ${evalBp.state}`;
+            bpValue.style.color = evalBp.state === "optimal" ? "#fff" : evalBp.color;
+            bpSubtext.innerText = evalBp.subtext;
+            bpSubtext.style.color = evalBp.state === "optimal" ? "var(--text-muted)" : evalBp.color;
+          }
         }
 
-        // SpO2
+        // 4. Oxygen Saturation (SpO2)
         if (v.spo2 && v.spo2.value) {
-          spo2Value.innerText = v.spo2.value.toFixed(1);
+          const spo2Val = v.spo2.value;
+          spo2Value.innerText = spo2Val.toFixed(1);
           spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
-          spo2Badge.innerText = v.spo2.category || "Normal";
-          spo2Badge.className = "badge-status " + (v.spo2.category === "Normal" ? "badge-optimal" : "badge-alert");
+
+          if (CT.spo2) {
+            const evalSpo2 = CT.spo2.evaluate(spo2Val);
+            spo2Badge.innerText = evalSpo2.label;
+            spo2Badge.className = `badge-pill ${evalSpo2.state}`;
+            spo2Value.style.color = evalSpo2.state === "optimal" ? "#fff" : evalSpo2.color;
+            spo2Subtext.innerText = evalSpo2.subtext;
+            spo2Subtext.style.color = evalSpo2.state === "optimal" ? "var(--text-muted)" : evalSpo2.color;
+          }
         }
 
-        // PRV
+        // 5. HRV (RMSSD)
         if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
-          prvValue.innerText = v.pulse_rate_variability.rmssd.toFixed(1);
+          const rmssdVal = v.pulse_rate_variability.rmssd;
+          prvValue.innerText = rmssdVal.toFixed(1);
           sdnnValue.innerText = v.pulse_rate_variability.sdnn ? v.pulse_rate_variability.sdnn.toFixed(1) : "--";
           pnn50Value.innerText = v.pulse_rate_variability.pnn50 ? `${Math.round(v.pulse_rate_variability.pnn50)}%` : "--%";
+
+          if (CT.rmssd) {
+            const evalRmssd = CT.rmssd.evaluate(rmssdVal);
+            prvBadge.innerText = evalRmssd.label;
+            prvBadge.className = `badge-pill ${evalRmssd.state}`;
+            prvValue.style.color = evalRmssd.state === "optimal" ? "#fff" : evalRmssd.color;
+            prvSubtext.innerText = evalRmssd.subtext;
+            prvSubtext.style.color = evalRmssd.state === "optimal" ? "var(--text-muted)" : evalRmssd.color;
+          }
         }
 
-        // Cardiac Workload
+        // 6. Cardiac Workload
         if (v.cardiac_workload && v.cardiac_workload.rpp) {
-          rppValue.innerText = v.cardiac_workload.rpp.toFixed(1);
-          workloadBadge.innerText = v.cardiac_workload.category || "Normal";
+          const rppVal = v.cardiac_workload.rpp;
+          rppValue.innerText = rppVal.toFixed(1);
+
+          if (CT.cardiacWorkload) {
+            const evalRpp = CT.cardiacWorkload.evaluate(rppVal);
+            workloadBadge.innerText = evalRpp.label;
+            workloadBadge.className = `badge-pill ${evalRpp.state}`;
+            rppValue.style.color = evalRpp.state === "optimal" ? "#fff" : evalRpp.color;
+            workloadSubtext.innerText = evalRpp.subtext;
+            workloadSubtext.style.color = evalRpp.state === "optimal" ? "var(--text-muted)" : evalRpp.color;
+          }
         }
 
-        // Stress & Autonomic Indices
+        // 7. Stress & Autonomic Indices
         if (v.stress_index) {
-          stressValue.innerText = v.stress_index.score ? v.stress_index.score.toFixed(0) : "--";
-          stressLevelBadge.innerText = v.stress_index.level || "Low";
-          baevskyValue.innerText = v.stress_index.baevskyIndex ? v.stress_index.baevskyIndex.toFixed(0) : "--";
-          pnsValue.innerText = v.stress_index.parasympatheticScore ? v.stress_index.parasympatheticScore.toFixed(0) : "--";
-          prqValue.innerText = v.stress_index.prq ? v.stress_index.prq.toFixed(2) : "--";
+          const sVal = v.stress_index.score;
+          stressValue.innerText = sVal ? sVal.toFixed(0) : "--";
+          if (CT.stressIndex && sVal !== null && sVal !== undefined) {
+            const evalStress = CT.stressIndex.evaluate(sVal);
+            stressLevelBadge.innerText = evalStress.label;
+            stressLevelBadge.className = `badge-pill ${evalStress.state}`;
+            stressValue.style.color = evalStress.state === "optimal" ? "#fff" : evalStress.color;
+            stressSubtext.innerText = evalStress.subtext;
+            stressSubtext.style.color = evalStress.state === "optimal" ? "var(--text-muted)" : evalStress.color;
+          }
+
+          if (v.stress_index.baevskyIndex) {
+            const bVal = v.stress_index.baevskyIndex;
+            baevskyValue.innerText = bVal.toFixed(0);
+            if (bVal > 250) {
+              baevskyBadge.innerText = "🔴 High Tension";
+              baevskyBadge.className = "badge-pill critical";
+              baevskyValue.style.color = "#ef4444";
+              baevskySubtext.innerText = "Elevated central sympathovagal regulation";
+            } else if (bVal > 150) {
+              baevskyBadge.innerText = "🟡 Moderate";
+              baevskyBadge.className = "badge-pill warning";
+              baevskyValue.style.color = "#eab308";
+              baevskySubtext.innerText = "Mild compensatory strain";
+            } else {
+              baevskyBadge.innerText = "🟢 Normotension";
+              baevskyBadge.className = "badge-pill optimal";
+              baevskyValue.style.color = "#fff";
+              baevskySubtext.innerText = "Optimal homeostatic equilibrium (50-150)";
+            }
+          }
+
+          if (v.stress_index.parasympatheticScore) {
+            const pVal = v.stress_index.parasympatheticScore;
+            pnsValue.innerText = pVal.toFixed(0);
+            pnsBadge.innerText = pVal >= 50 ? "🟢 Good" : "🟡 Low";
+            pnsBadge.className = `badge-pill ${pVal >= 50 ? "optimal" : "warning"}`;
+          }
+
+          if (v.stress_index.prq) {
+            const prq = v.stress_index.prq;
+            prqValue.innerText = prq.toFixed(2);
+            const isNormPrq = prq >= 3.8 && prq <= 5.2;
+            prqBadge.innerText = isNormPrq ? "🟢 Balanced" : "🟡 Deviated";
+            prqBadge.className = `badge-pill ${isNormPrq ? "optimal" : "warning"}`;
+          }
         }
 
-        // Cardiovascular & Metabolic Risks
+        // 8. Cardiovascular & Metabolic Risks
         if (v.cvd_risk) {
-          cvdRiskScore.innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)}%`;
+          const cvdVal = v.cvd_risk.tenYearRiskPct;
+          cvdRiskScore.innerText = `${cvdVal.toFixed(1)}%`;
           cvdCatLabel.innerText = `${v.cvd_risk.category} Risk`;
-          cvdRiskScore.className = "risk-score-badge " + (v.cvd_risk.tenYearRiskPct > 20.0 ? "high" : (v.cvd_risk.tenYearRiskPct > 10.0 ? "moderate" : ""));
+          if (CT.cvdRisk) {
+            const evalCvd = CT.cvdRisk.evaluate(cvdVal);
+            cvdRiskScore.className = "risk-score-badge " + (evalCvd.state === "critical" ? "high" : (evalCvd.state === "warning" ? "moderate" : ""));
+            cvdSubtext.innerText = evalCvd.subtext;
+          }
         }
 
         if (v.vascular_age) {
           vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
-          vascDeltaValue.innerText = `${v.vascular_age.ageDelta > 0 ? "+" : ""}${v.vascular_age.ageDelta.toFixed(1)} yrs`;
-          vascStatusBadge.innerText = v.vascular_age.status;
-          vascStatusBadge.className = "badge-status " + (v.vascular_age.status === "Optimal" ? "badge-optimal" : "badge-warn");
+          const delta = v.vascular_age.ageDelta;
+          vascDeltaValue.innerText = `${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs`;
+          const isAcc = delta > 4.0;
+          vascStatusBadge.innerText = isAcc ? "🟡 Stiffening" : "🟢 Optimal";
+          vascStatusBadge.className = `badge-pill ${isAcc ? "warning" : "optimal"}`;
         }
 
         if (v.body_composition) {
-          bmiValue.innerText = v.body_composition.bmi.toFixed(1);
-          bmiBadge.innerText = v.body_composition.bmiCategory;
+          const bmi = v.body_composition.bmi;
+          bmiValue.innerText = bmi.toFixed(1);
+          const isBmiNorm = bmi >= 18.5 && bmi < 25.0;
+          bmiBadge.innerText = isBmiNorm ? "🟢 Normal" : (bmi < 30 ? "🟡 Overweight" : "🔴 Obese");
+          bmiBadge.className = `badge-pill ${isBmiNorm ? "optimal" : (bmi < 30 ? "warning" : "critical")}`;
           briValue.innerText = v.body_composition.bri.toFixed(1);
           whtrValue.innerText = v.body_composition.whtr.toFixed(2);
         }
@@ -1376,7 +1566,7 @@
         } else {
           statusBanner.innerText = v.reason || "Analyzing multi-spectral facial signal...";
         }
-        statusBanner.style.borderLeftColor = "#f59e0b";
+        statusBanner.style.borderLeftColor = "#eab308";
         sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
       }
     }
