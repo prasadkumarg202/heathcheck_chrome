@@ -377,13 +377,12 @@
   </header>
 
   <div class="container">
-    <!-- Left Column: Video & Diagnostics -->
     <div class="video-panel">
       <div class="video-viewport">
         <video id="videoElement" autoplay playsinline muted></video>
         <canvas id="overlayCanvas"></canvas>
         <div class="status-banner" id="statusBanner">
-          <span id="diagnosticStatus">Camera initialized. Ready for scan.</span>
+          <span id="diagnosticStatus">Camera ready. Align face and click Start.</span>
           <span id="scanTimer">Ready</span>
         </div>
       </div>
@@ -530,24 +529,26 @@
     let isScanning = false;
     let scanStartTime = 0;
     let isProcessing = false;
-    let lastFrameTime = performance.now();
+    let frameTimestamps = [];
     let latestResultPayload = null;
     let waveformBuffer = [];
+    
+    // High-speed downscaled canvas for fast upload
     const offscreenCanvas = document.createElement("canvas");
-    const offscreenCtx = offscreenCanvas.getContext("2d");
+    offscreenCanvas.width = 320;
+    offscreenCanvas.height = 240;
+    const offscreenCtx = offscreenCanvas.getContext("2d", { willReadFrequently: true });
 
     // Initialize Camera Feed
     async function initCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }
+          video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30, min: 25 } }
         });
         video.srcObject = stream;
         video.onloadedmetadata = () => {
           overlayCanvas.width = video.videoWidth;
           overlayCanvas.height = video.videoHeight;
-          offscreenCanvas.width = video.videoWidth;
-          offscreenCanvas.height = video.videoHeight;
           statusBanner.innerText = "Camera ready. Position face inside frame and click Start 30s Scan.";
         };
       } catch (err) {
@@ -599,20 +600,18 @@
       downloadAnchor.remove();
     });
 
-    // Continuous Frame Ingestion Loop
-    async function frameLoop() {
+    // High-frequency, non-blocking frame dispatch loop
+    async function processFrameNow() {
       if (video.readyState === video.HAVE_ENOUGH_DATA && !isProcessing) {
-        offscreenCtx.drawImage(video, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        const base64Img = offscreenCanvas.toDataURL("image/jpeg", 0.70);
-
         isProcessing = true;
         const nowMs = performance.now();
 
-        // Calculate dynamic client FPS
-        const dt = (nowMs - lastFrameTime) / 1000.0;
-        lastFrameTime = nowMs;
-        if (dt > 0) {
-          telFps.innerText = (1.0 / dt).toFixed(1);
+        // Calculate smooth FPS over last 20 frames
+        frameTimestamps.push(nowMs);
+        if (frameTimestamps.length > 20) frameTimestamps.shift();
+        if (frameTimestamps.length >= 2) {
+          const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
+          telFps.innerText = fps.toFixed(1);
         }
 
         if (isScanning) {
@@ -623,6 +622,10 @@
             startBtn.innerText = "Restart Scan";
           }
         }
+
+        // Draw downscaled frame (320x240 @ 0.55 JPEG quality for ~10KB payload)
+        offscreenCtx.drawImage(video, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+        const base64Img = offscreenCanvas.toDataURL("image/jpeg", 0.55);
 
         try {
           const resp = await fetch("/api/process_frame", {
@@ -649,10 +652,10 @@
           isProcessing = false;
         }
       }
-      requestAnimationFrame(frameLoop);
     }
 
-    requestAnimationFrame(frameLoop);
+    // Run processing at 30 Hz interval (every ~32ms)
+    setInterval(processFrameNow, 32);
 
     function updateTelemetry(data) {
       if (data.faceQuality) {
@@ -666,22 +669,23 @@
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
 
       if (data.hasFace && data.faceBBox) {
+        // Rescale from 320x240 offscreen to video dimensions
+        const scaleX = overlayCanvas.width / offscreenCanvas.width;
+        const scaleY = overlayCanvas.height / offscreenCanvas.height;
+
         const [bx, by, bw, bh] = data.faceBBox;
-
-        // Draw Face Bounding Box
         overlayCtx.strokeStyle = "#10b981";
-        overlayCtx.lineWidth = 2;
-        overlayCtx.strokeRect(bx, by, bw, bh);
+        overlayCtx.lineWidth = 2.5;
+        overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
 
-        // Draw Dynamic Polygon ROIs
         if (data.rois) {
           for (const [name, rData] of Object.entries(data.rois)) {
             const poly = rData.polygon;
             if (poly && poly.length > 0) {
               overlayCtx.beginPath();
-              overlayCtx.moveTo(poly[0][0], poly[0][1]);
+              overlayCtx.moveTo(poly[0][0] * scaleX, poly[0][1] * scaleY);
               for (let i = 1; i < poly.length; i++) {
-                overlayCtx.lineTo(poly[i][0], poly[i][1]);
+                overlayCtx.lineTo(poly[i][0] * scaleX, poly[i][1] * scaleY);
               }
               overlayCtx.closePath();
               overlayCtx.strokeStyle = rData.isValid ? "#06b6d4" : "#ef4444";
@@ -708,7 +712,6 @@
           hrValue.innerText = v.heart_rate.value.toFixed(1);
           hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
           
-          // Animate pulsing heart
           pulseHeart.style.transform = "scale(1.35)";
           setTimeout(() => { pulseHeart.style.transform = "scale(1.0)"; }, 120);
         }
@@ -749,7 +752,6 @@
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
       if (points.length < 2) return;
 
-      // Draw zero baseline
       waveCtx.strokeStyle = "rgba(31, 41, 61, 0.8)";
       waveCtx.lineWidth = 1;
       waveCtx.setLineDash([4, 4]);
