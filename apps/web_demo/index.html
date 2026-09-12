@@ -608,6 +608,7 @@
     initCamera();
 
     let scanCompleted = false;
+    let scanFramesCount = 0;
 
     startBtn.addEventListener("click", async () => {
       if (wsReady && ws.readyState === WebSocket.OPEN) {
@@ -617,6 +618,7 @@
       }
       isScanning = true;
       scanCompleted = false;
+      scanFramesCount = 0;
       scanStartTime = performance.now();
       waveformBuffer = [];
       startBtn.disabled = true;
@@ -646,9 +648,11 @@
       }
       isScanning = false;
       scanCompleted = false;
+      scanFramesCount = 0;
       startBtn.disabled = false;
       startBtn.innerText = "Start 30s Scan";
       scanTimer.innerText = "Ready";
+      telFps.innerText = "--";
       statusBanner.innerText = "Session reset. Ready for scan.";
       statusBanner.style.borderLeftColor = "#06b6d4";
       hrValue.innerText = "--";
@@ -756,26 +760,32 @@
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         const nowMs = performance.now();
 
-        // Calculate smooth rolling FPS
-        frameTimestamps.push(nowMs);
-        if (frameTimestamps.length > 30) frameTimestamps.shift();
-        if (frameTimestamps.length >= 2) {
-          const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
-          telFps.innerText = fps.toFixed(1);
-          if (fps >= 25) {
-            telFps.style.color = "#10b981";
-          } else if (fps >= 18) {
-            telFps.style.color = "#f59e0b";
-          } else {
-            telFps.style.color = "#ef4444";
+        // Calculate smooth rolling FPS only when not locked after scan completion
+        if (!scanCompleted) {
+          frameTimestamps.push(nowMs);
+          if (frameTimestamps.length > 30) frameTimestamps.shift();
+          if (frameTimestamps.length >= 2) {
+            const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
+            telFps.innerText = `${fps.toFixed(1)} FPS`;
+            if (fps >= 25) {
+              telFps.style.color = "#10b981";
+            } else if (fps >= 18) {
+              telFps.style.color = "#f59e0b";
+            } else {
+              telFps.style.color = "#ef4444";
+            }
           }
         }
 
         if (isScanning) {
-          const elapsed = (nowMs - scanStartTime) / 1000;
+          scanFramesCount++;
+          const elapsed = (nowMs - scanStartTime) / 1000.0;
           if (elapsed >= 30.0) {
             isScanning = false;
             scanCompleted = true;
+            const sustainedScanFps = (scanFramesCount / elapsed);
+            telFps.innerText = `${sustainedScanFps.toFixed(1)} FPS (Locked)`;
+            telFps.style.color = "#10b981";
             scanTimer.innerText = "30s / 30s (Completed)";
             startBtn.disabled = false;
             startBtn.innerText = "Start New 30s Scan";

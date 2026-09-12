@@ -213,22 +213,22 @@ class FaceDetector:
             chin_x = mouth_x
             chin_y = by + bh * 0.95
         else:
-            lex = bx + bw * 0.32
-            ley = by + bh * 0.37
-            rex = bx + bw * 0.68
+            rex = bx + bw * 0.32  # Subject right eye (viewer left)
             rey = by + bh * 0.37
+            lex = bx + bw * 0.68  # Subject left eye (viewer right)
+            ley = by + bh * 0.37
             forehead_x = bx + bw * 0.5
-            forehead_y = by + bh * 0.18
+            forehead_y = by + bh * 0.16
             nose_x = bx + bw * 0.5
-            nose_y = by + bh * 0.58
-            l_cheek_x = bx + bw * 0.26
-            l_cheek_y = by + bh * 0.64
-            r_cheek_x = bx + bw * 0.74
-            r_cheek_y = by + bh * 0.64
+            nose_y = by + bh * 0.55
+            r_cheek_x = bx + bw * 0.28
+            r_cheek_y = by + bh * 0.60
+            l_cheek_x = bx + bw * 0.72
+            l_cheek_y = by + bh * 0.60
             chin_x = bx + bw * 0.5
             chin_y = by + bh * 0.92
             mouth_x = bx + bw * 0.5
-            mouth_y = by + bh * 0.78
+            mouth_y = by + bh * 0.76
 
         dx = rex - lex
         dy = rey - ley

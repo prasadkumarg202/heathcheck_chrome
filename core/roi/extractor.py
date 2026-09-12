@@ -52,46 +52,49 @@ class ROIExtractor:
         lex, ley = landmarks.left_eye
         rex, rey = landmarks.right_eye
         nose_x, nose_y = landmarks.nose_tip
+
+        # Establish invariant viewer-left (smaller X) and viewer-right (larger X)
+        eye_left_x = min(lex, rex)
+        eye_right_x = max(lex, rex)
+        eye_y = (ley + rey) / 2.0
         eye_dist = max(10.0, float(np.hypot(lex - rex, ley - rey)))
 
-        # 1. FOREHEAD POLYGON (Trapezoid: expanded across frontal bone, avoiding brows and hair)
-        fh_top_y = max(0, int(min(ley, rey) - eye_dist * 0.72))
-        fh_bot_y = max(0, int(min(ley, rey) - eye_dist * 0.22))
-        fh_mid_x = (lex + rex) / 2.0
-        fh_half_w = eye_dist * 0.55
+        # 1. FOREHEAD POLYGON (Trapezoid high on frontal bone, strictly above eyebrows and below hairline)
+        fh_mid_x = (eye_left_x + eye_right_x) / 2.0
+        fh_bot_y = int(eye_y - eye_dist * 0.38)  # High above eyebrow ridge
+        fh_top_y = max(int(by + bh * 0.05), int(eye_y - eye_dist * 0.85))
+        if fh_top_y >= fh_bot_y:
+            fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.40))
+        fh_half_w = eye_dist * 0.48
 
         forehead_poly = np.array([
-            [int(fh_mid_x - fh_half_w * 1.1), fh_bot_y],
-            [int(fh_mid_x - fh_half_w * 0.85), fh_top_y],
-            [int(fh_mid_x + fh_half_w * 0.85), fh_top_y],
-            [int(fh_mid_x + fh_half_w * 1.1), fh_bot_y],
+            [int(fh_mid_x - fh_half_w * 1.05), fh_bot_y],
+            [int(fh_mid_x - fh_half_w * 0.80), fh_top_y],
+            [int(fh_mid_x + fh_half_w * 0.80), fh_top_y],
+            [int(fh_mid_x + fh_half_w * 1.05), fh_bot_y],
         ], dtype=np.int32)
 
-        # 2. UPPER LEFT CHEEK (Malar / Zygomatic bone: high on cheekbone, well above beard/mouth)
-        # Positioned directly below eye and lateral to nose
-        lc_x = lex + eye_dist * 0.08
-        lc_y = ley + (nose_y - ley) * 0.45
-        lc_w = eye_dist * 0.28
-        lc_h = (nose_y - ley) * 0.40
+        # 2. MALAR CHEEKBONES (Zygomatic prominence: directly below ocular orbit, strictly above nostrils & beard)
+        cheek_y = eye_y + max(12.0, (nose_y - eye_y) * 0.45)
+        cheek_w = eye_dist * 0.32
+        cheek_h = max(10.0, (nose_y - eye_y) * 0.42)
 
+        # Viewer's left cheek (subject's right malar bone)
+        lc_x = eye_left_x - eye_dist * 0.05
         left_cheek_poly = np.array([
-            [int(lc_x - lc_w * 0.8), int(lc_y - lc_h * 0.5)],
-            [int(lc_x + lc_w * 0.8), int(lc_y - lc_h * 0.5)],
-            [int(lc_x + lc_w * 0.7), int(lc_y + lc_h * 0.5)],
-            [int(lc_x - lc_w * 0.7), int(lc_y + lc_h * 0.5)],
+            [int(lc_x - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(lc_x + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(lc_x + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(lc_x - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
-        # 3. UPPER RIGHT CHEEK (Malar / Zygomatic bone)
-        rc_x = rex - eye_dist * 0.08
-        rc_y = rey + (nose_y - rey) * 0.45
-        rc_w = eye_dist * 0.28
-        rc_h = (nose_y - rey) * 0.40
-
+        # Viewer's right cheek (subject's left malar bone)
+        rc_x = eye_right_x + eye_dist * 0.05
         right_cheek_poly = np.array([
-            [int(rc_x - rc_w * 0.8), int(rc_y - rc_h * 0.5)],
-            [int(rc_x + rc_w * 0.8), int(rc_y - rc_h * 0.5)],
-            [int(rc_x + rc_w * 0.7), int(rc_y + rc_h * 0.5)],
-            [int(rc_x - rc_w * 0.7), int(rc_y + rc_h * 0.5)],
+            [int(rc_x - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(rc_x + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(rc_x + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(rc_x - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
         candidate_polys = {
