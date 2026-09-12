@@ -1,0 +1,13 @@
+{
+  "name": "@aurapulse/sdk",
+  "version": "0.2.0",
+  "description": "AuraPulse Contactless Physiological Vitals Measurement Client & Web SDK",
+  "main": "dist/aurapulse.js",
+  "types": "dist/aurapulse.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": ["rppg", "contactless", "vitals", "heart-rate", "respiration", "biometrics", "health"],
+  "author": "AuraPulse Core Architecture Team",
+  "license": "Proprietary"
+}
