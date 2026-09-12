@@ -85,7 +85,7 @@ class AuraPulseEngine:
 
     def __init__(
         self,
-        min_measurement_duration_s: float = 8.0,
+        min_measurement_duration_s: float = 3.5,
         window_duration_s: float = 20.0,
         target_fs: float = 30.0,
         min_sqi_threshold: float = 35.0,

@@ -224,9 +224,9 @@ class FaceDetector:
             nose_x = bx + bw * 0.5
             nose_y = by + bh * 0.55
             r_cheek_x = bx + bw * 0.28
-            r_cheek_y = by + bh * 0.60
+            r_cheek_y = by + bh * 0.45
             l_cheek_x = bx + bw * 0.72
-            l_cheek_y = by + bh * 0.60
+            l_cheek_y = by + bh * 0.45
             chin_x = bx + bw * 0.5
             chin_y = by + bh * 0.92
             mouth_x = bx + bw * 0.5
@@ -282,8 +282,8 @@ class FaceDetector:
         rejection_reason = None
         user_guidance = None
         if num_faces > 1:
-            rejection_reason = "MULTIPLE_FACES_DETECTED"
-            user_guidance = "Only one person should be visible during the scan."
+            # Non-blocking guidance for primary foreground subject
+            user_guidance = "Multiple people visible; focusing on primary subject."
         elif face_size_ratio < self.min_face_size_ratio:
             rejection_reason = "FACE_TOO_SMALL"
             user_guidance = "Move slightly closer to the camera."

@@ -75,9 +75,9 @@ class ROIExtractor:
         ], dtype=np.int32)
 
         # 2. MALAR CHEEKBONES
-        cheek_y = eye_y + max(12.0, (nose_y - eye_y) * 0.45)
-        cheek_w = eye_dist * 0.32
-        cheek_h = max(10.0, (nose_y - eye_y) * 0.42)
+        cheek_y = eye_y + (nose_y - eye_y) * 0.42
+        cheek_w = eye_dist * 0.34
+        cheek_h = max(6.0, (nose_y - eye_y) * 0.45)
 
         left_cheek_poly = np.array([
             [int(eye_left_x - eye_dist * 0.05 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],

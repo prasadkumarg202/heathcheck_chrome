@@ -2065,7 +2065,7 @@
       const v = data.vitals;
       const CT = window.CLINICAL_THRESHOLDS || {};
 
-      if (v.status === "VALID" || v.status === "valid") {
+      if (v.status === "VALID" || v.status === "valid" || (v.heart_rate && v.heart_rate.value !== null)) {
         statusBanner.innerHTML = `<span>ΓùÅ Signal Quality: ${v.quality_category} (${Math.round(v.signal_quality)}%)</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
 
         
