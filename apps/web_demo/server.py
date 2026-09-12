@@ -35,7 +35,19 @@ engine.start_session()
 face_detector = FaceDetector(detection_interval=1)
 roi_extractor = ROIExtractor()
 
-cached_vitals = engine.compute_vitals()
+# User profile state
+user_profile = {
+    "age": 35.0,
+    "is_male": True,
+    "height_cm": 175.0,
+    "weight_kg": 72.0,
+    "waist_cm": 84.0,
+    "is_smoker": False,
+    "is_diabetic": False,
+    "bmi": 23.5,
+}
+
+cached_vitals = engine.compute_vitals(user_profile)
 last_vitals_compute_time = 0.0
 
 html_path = Path(__file__).parent / "index.html"
@@ -66,9 +78,32 @@ async def homepage(request):
 async def reset_session(request):
     global cached_vitals, last_vitals_compute_time
     engine.start_session()
-    cached_vitals = engine.compute_vitals()
+    cached_vitals = engine.compute_vitals(user_profile)
     last_vitals_compute_time = 0.0
     return JSONResponse({ "status": "SESSION_RESET", "timestamp": time.time() })
+
+
+async def update_profile_api(request):
+    global user_profile, cached_vitals, last_vitals_compute_time
+    try:
+        data = await request.json()
+        for k in ["age", "is_male", "height_cm", "weight_kg", "waist_cm", "is_smoker", "is_diabetic"]:
+            if k in data:
+                user_profile[k] = data[k]
+        
+        # Recalculate BMI
+        h_m = max(0.5, float(user_profile["height_cm"]) / 100.0)
+        w_kg = max(20.0, float(user_profile["weight_kg"]))
+        user_profile["bmi"] = round(w_kg / (h_m * h_m), 1)
+
+        cached_vitals = engine.compute_vitals(user_profile)
+        return JSONResponse(convert_to_serializable({
+            "status": "PROFILE_UPDATED",
+            "profile": user_profile,
+            "vitals": cached_vitals.to_dict()
+        }))
+    except Exception as e:
+        return JSONResponse({ "error": str(e) }, status_code=400)
 
 
 async def detect_rois_keyframe(request):
@@ -163,12 +198,13 @@ async def push_signals_api(request):
         data = await request.json()
         timestamp_s = float(data.get("timestamp_s", time.time()))
         roi_signals = data.get("signals", {})
+        meta = data.get("profile", user_profile)
 
         _ingest_roi_signals(timestamp_s, roi_signals)
 
         now = time.perf_counter()
         if (now - last_vitals_compute_time) >= 0.25:
-            cached_vitals = engine.compute_vitals()
+            cached_vitals = engine.compute_vitals(meta)
             last_vitals_compute_time = now
 
         return JSONResponse(convert_to_serializable({
@@ -189,6 +225,7 @@ async def push_signals_batch_api(request):
     try:
         data = await request.json()
         frames = data.get("frames", [])
+        meta = data.get("profile", user_profile)
         for f in frames:
             ts = float(f.get("timestamp_s", time.time()))
             sigs = f.get("signals", {})
@@ -196,7 +233,7 @@ async def push_signals_batch_api(request):
 
         now = time.perf_counter()
         if (now - last_vitals_compute_time) >= 0.20:
-            cached_vitals = engine.compute_vitals()
+            cached_vitals = engine.compute_vitals(meta)
             last_vitals_compute_time = now
 
         return JSONResponse(convert_to_serializable({
@@ -212,7 +249,7 @@ async def websocket_signals_endpoint(websocket: WebSocket):
     WebSocket Telemetry Stream:
     Microsecond bidirectional vector pipeline running at 30-60 Hz without HTTP latency.
     """
-    global cached_vitals, last_vitals_compute_time
+    global cached_vitals, last_vitals_compute_time, user_profile
     await websocket.accept()
     try:
         while True:
@@ -221,9 +258,25 @@ async def websocket_signals_endpoint(websocket: WebSocket):
             
             if data.get("type") == "reset":
                 engine.start_session()
-                cached_vitals = engine.compute_vitals()
+                cached_vitals = engine.compute_vitals(user_profile)
                 last_vitals_compute_time = 0.0
                 await websocket.send_text(json.dumps({ "status": "SESSION_RESET" }))
+                continue
+
+            if data.get("type") == "update_profile":
+                prof = data.get("profile", {})
+                for k in ["age", "is_male", "height_cm", "weight_kg", "waist_cm", "is_smoker", "is_diabetic"]:
+                    if k in prof:
+                        user_profile[k] = prof[k]
+                h_m = max(0.5, float(user_profile["height_cm"]) / 100.0)
+                w_kg = max(20.0, float(user_profile["weight_kg"]))
+                user_profile["bmi"] = round(w_kg / (h_m * h_m), 1)
+                cached_vitals = engine.compute_vitals(user_profile)
+                await websocket.send_text(json.dumps(convert_to_serializable({
+                    "status": "PROFILE_UPDATED",
+                    "profile": user_profile,
+                    "vitals": cached_vitals.to_dict()
+                })))
                 continue
 
             ts = float(data.get("timestamp_s", time.time()))
@@ -232,7 +285,7 @@ async def websocket_signals_endpoint(websocket: WebSocket):
 
             now = time.perf_counter()
             if (now - last_vitals_compute_time) >= 0.15:  # Update vitals ~6 times per second
-                cached_vitals = engine.compute_vitals()
+                cached_vitals = engine.compute_vitals(user_profile)
                 last_vitals_compute_time = now
 
                 payload = convert_to_serializable({
@@ -253,6 +306,7 @@ async def websocket_signals_endpoint(websocket: WebSocket):
 routes = [
     Route("/", homepage),
     Route("/api/reset", reset_session, methods=["POST"]),
+    Route("/api/update_profile", update_profile_api, methods=["POST"]),
     Route("/api/detect_rois", detect_rois_keyframe, methods=["POST"]),
     Route("/api/push_signals", push_signals_api, methods=["POST"]),
     Route("/api/push_signals_batch", push_signals_batch_api, methods=["POST"]),

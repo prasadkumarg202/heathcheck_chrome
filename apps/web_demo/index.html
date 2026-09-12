@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AuraPulse — On-Device Contactless Physiological Vitals Monitor</title>
+  <title>AuraPulse Enterprise — Contactless Health & Risk Analytics Platform</title>
   <style>
     :root {
-      --bg-dark: #080c14;
-      --panel-bg: #111827;
-      --card-bg: rgba(17, 24, 39, 0.90);
-      --border-color: #1f293d;
+      --bg-dark: #070b12;
+      --panel-bg: #0f172a;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --border-color: #1e293b;
       --accent-cyan: #06b6d4;
       --accent-green: #10b981;
       --accent-yellow: #f59e0b;
       --accent-red: #ef4444;
       --accent-purple: #8b5cf6;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
+      --accent-blue: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
     * {
@@ -38,10 +39,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 16px 32px;
-      background: rgba(17, 24, 39, 0.95);
+      padding: 14px 28px;
+      background: rgba(15, 23, 42, 0.95);
       border-bottom: 1px solid var(--border-color);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
     }
 
     .brand {
@@ -54,16 +55,16 @@
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
       color: #000;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
       padding: 6px 12px;
       border-radius: 8px;
       letter-spacing: 0.8px;
     }
 
     .brand h1 {
-      font-size: 20px;
+      font-size: 19px;
       font-weight: 700;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.4px;
     }
 
     .brand span {
@@ -73,13 +74,13 @@
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
 
     .privacy-tag {
-      font-size: 12px;
-      padding: 4px 12px;
-      background: rgba(16, 185, 129, 0.15);
+      font-size: 11px;
+      padding: 5px 12px;
+      background: rgba(16, 185, 129, 0.12);
       border: 1px solid var(--accent-green);
       color: var(--accent-green);
       border-radius: 20px;
@@ -89,25 +90,49 @@
       gap: 6px;
     }
 
+    .btn-profile-toggle {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-profile-toggle:hover {
+      background: #334155;
+    }
+
     .container {
       display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 24px;
-      padding: 24px 32px;
-      max-width: 1440px;
+      grid-template-columns: 1.05fr 1.25fr;
+      gap: 20px;
+      padding: 20px 28px;
+      max-width: 1560px;
       margin: 0 auto;
       width: 100%;
       flex: 1;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .video-panel {
       background: var(--panel-bg);
       border-radius: 16px;
       border: 1px solid var(--border-color);
-      padding: 20px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
 
     .video-viewport {
@@ -120,7 +145,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
     }
 
     video {
@@ -141,17 +166,17 @@
 
     .status-banner {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      right: 16px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
       background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(8px);
-      padding: 10px 16px;
+      padding: 8px 14px;
       border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       border-left: 4px solid var(--accent-cyan);
       z-index: 10;
@@ -159,15 +184,15 @@
 
     .controls-row {
       display: flex;
-      gap: 12px;
+      gap: 10px;
     }
 
-    button {
+    button.btn-ctrl {
       flex: 1;
-      padding: 14px 20px;
+      padding: 12px 16px;
       border-radius: 10px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
       border: none;
       transition: all 0.2s ease;
@@ -183,20 +208,20 @@
     }
 
     .btn-secondary {
-      background: #1f293d;
+      background: #1e293b;
       color: var(--text-main);
       border: 1px solid var(--border-color);
     }
     .btn-secondary:hover {
-      background: #27354f;
+      background: #334155;
     }
 
     .telemetry-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
-      background: #0b1120;
-      padding: 10px 14px;
+      background: #090e17;
+      padding: 10px 12px;
       border-radius: 10px;
       border: 1px solid var(--border-color);
       font-size: 11px;
@@ -207,23 +232,83 @@
       color: var(--text-main);
     }
 
-    .metrics-panel {
+    .chart-container {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 8px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    canvas#waveformCanvas {
+      width: 100%;
+      height: 90px;
+      background: #090e17;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Right Metrics Panel */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent-cyan);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-content.active {
+      display: flex;
     }
 
     .grid-vitals {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      gap: 14px;
     }
 
     .vital-card {
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
       border-radius: 14px;
-      padding: 18px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -242,8 +327,10 @@
 
     .card-hr::before { background: var(--accent-red); }
     .card-rr::before { background: var(--accent-cyan); }
+    .card-bp::before { background: var(--accent-blue); }
+    .card-spo2::before { background: var(--accent-green); }
     .card-prv::before { background: var(--accent-purple); }
-    .card-stress::before { background: var(--accent-yellow); }
+    .card-workload::before { background: var(--accent-yellow); }
 
     .card-header-row {
       display: flex;
@@ -252,35 +339,40 @@
     }
 
     .card-title {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       color: var(--text-muted);
       font-weight: 700;
     }
 
-    .pulse-heart {
-      display: inline-block;
-      color: var(--accent-red);
-      font-size: 16px;
-      transition: transform 0.1s ease;
+    .badge-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
     }
+    .badge-optimal { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+    .badge-alert { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+    .badge-warn { background: rgba(245, 158, 11, 0.2); color: var(--accent-yellow); }
 
     .card-value-group {
-      margin: 12px 0;
+      margin: 10px 0;
       display: flex;
       align-items: baseline;
       gap: 6px;
     }
 
     .card-value {
-      font-size: 40px;
+      font-size: 34px;
       font-weight: 800;
       color: #fff;
     }
 
     .card-unit {
-      font-size: 14px;
+      font-size: 13px;
       color: var(--text-muted);
       font-weight: 500;
     }
@@ -292,211 +384,518 @@
       justify-content: space-between;
     }
 
-    .chart-container {
+    /* Risk & Body Comp Cards */
+    .risk-banner-card {
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
       border-radius: 14px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .chart-header {
+      padding: 18px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
+    }
+
+    .risk-score-badge {
+      font-size: 28px;
+      font-weight: 800;
+      padding: 8px 18px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      text-align: center;
+    }
+
+    .risk-score-badge.moderate {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+    .risk-score-badge.high {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-group label {
+      font-size: 11px;
       color: var(--text-muted);
       font-weight: 600;
     }
-
-    canvas#waveformCanvas {
-      width: 100%;
-      height: 115px;
-      background: #0b1120;
+    .form-group input, .form-group select {
+      background: #090e17;
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-    }
-
-    .quality-bar-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .progress-bar-bg {
-      width: 100%;
-      height: 6px;
-      background: #1f293d;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--accent-green);
-      transition: width 0.3s ease;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 13px;
     }
 
     footer {
-      padding: 16px 32px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
-      color: var(--text-muted);
+      padding: 14px 28px;
+      background: rgba(15, 23, 42, 0.95);
       border-top: 1px solid var(--border-color);
-      background: var(--panel-bg);
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
-    .btn-download {
-      padding: 6px 14px;
-      background: #1f293d;
-      color: var(--accent-cyan);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
+    .btn-export {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
       font-size: 12px;
-      font-weight: 600;
       cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-export:hover {
+      opacity: 0.9;
     }
   </style>
 </head>
 <body>
-
   <header>
     <div class="brand">
-      <div class="logo-badge">PROPRIETARY ON-DEVICE CORE</div>
-      <h1>Aura<span>Pulse</span> Contactless Vitals</h1>
+      <span class="logo-badge">AURAPULSE CLINICAL-EDGE</span>
+      <h1>Contactless <span>Health & Risk</span> Analytics</h1>
     </div>
     <div class="header-actions">
-      <div class="privacy-tag">
-        <span>●</span> 100% On-Device Local Processing (Zero Cloud Upload)
-      </div>
+      <span class="privacy-tag">🔒 100% On-Device Neural Core • Zero Server Storage</span>
+      <button class="btn-profile-toggle" id="profileToggleBtn">⚙️ Patient Profile</button>
     </div>
   </header>
 
   <div class="container">
-    <div class="video-panel">
-      <div class="video-viewport">
-        <video id="videoElement" autoplay playsinline muted></video>
-        <canvas id="overlayCanvas"></canvas>
-        <div class="status-banner" id="statusBanner">
-          <span id="diagnosticStatus">Aligning face...</span>
-          <span id="scanTimer">Ready</span>
-        </div>
-      </div>
-
-      <div class="controls-row">
-        <button class="btn-primary" id="startBtn">Start 30s Scan</button>
-        <button class="btn-secondary" id="resetBtn">Reset Session</button>
-      </div>
-
-      <!-- Real-Time Hardware & Optical Telemetry -->
-      <div class="telemetry-bar">
-        <div class="telemetry-item">Face: <strong id="telFaceQuality">--%</strong></div>
-        <div class="telemetry-item">Lighting: <strong id="telLighting">--%</strong></div>
-        <div class="telemetry-item">Pose: <strong id="telPose">Aligned</strong></div>
-        <div class="telemetry-item">FPS: <strong id="telFps">30.0</strong></div>
-      </div>
-
-      <!-- Signal Quality Bar -->
-      <div class="quality-bar-group">
-        <div style="display: flex; justify-content: space-between; font-size: 12px;">
-          <span>Signal Quality Index (SQI)</span>
-          <span id="sqiValue">0 / 100 (Waiting)</span>
-        </div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="sqiProgress"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Right Column: Vital Sign Dashboard Cards -->
-    <div class="metrics-panel">
-      <div class="grid-vitals">
-        <!-- Heart Rate -->
-        <div class="vital-card card-hr">
-          <div class="card-header-row">
-            <span class="card-title">Heart Rate (rPPG)</span>
-            <span class="pulse-heart" id="pulseHeart">❤️</span>
-          </div>
-          <div class="card-value-group">
-            <span class="card-value" id="hrValue">--</span>
-            <span class="card-unit">BPM</span>
-          </div>
-          <div class="card-meta">
-            <span>Confidence: <strong id="hrConf">--%</strong></span>
-            <span>POS / CHROM Ensemble</span>
-          </div>
+    <!-- Left Column: Video & Telemetry -->
+    <div class="left-panel">
+      <div class="video-panel">
+        <div class="video-viewport">
+          <div class="status-banner" id="diagnosticStatus">Initializing AuraPulse biomedical stream...</div>
+          <video id="videoElement" autoplay playsinline muted></video>
+          <canvas id="overlayCanvas"></canvas>
         </div>
 
-        <!-- Respiration Rate -->
-        <div class="vital-card card-rr">
-          <div class="card-header-row">
-            <span class="card-title">Respiration Rate</span>
-            <span style="font-size: 14px;">🫁</span>
-          </div>
-          <div class="card-value-group">
-            <span class="card-value" id="rrValue">--</span>
-            <span class="card-unit">RPM</span>
-          </div>
-          <div class="card-meta">
-            <span>Confidence: <strong id="rrConf">--%</strong></span>
-            <span>RIBV Modulation</span>
-          </div>
+        <div class="controls-row">
+          <button class="btn-ctrl btn-primary" id="startBtn">Start 30s Scan</button>
+          <button class="btn-ctrl btn-secondary" id="resetBtn">Reset</button>
         </div>
 
-        <!-- Pulse Rate Variability -->
-        <div class="vital-card card-prv">
-          <div class="card-header-row">
-            <span class="card-title">Pulse Rate Variability</span>
-            <span style="font-size: 14px;">⚡</span>
+        <div class="telemetry-bar">
+          <div class="telemetry-item">
+            <div>Timer: <strong id="scanTimer">Ready</strong></div>
           </div>
-          <div class="card-value-group">
-            <span class="card-value" id="prvValue">--</span>
-            <span class="card-unit">ms (RMSSD)</span>
+          <div class="telemetry-item">
+            <div>SQI: <strong id="sqiValue">--/100</strong></div>
           </div>
-          <div class="card-meta">
-            <span>SDNN: <strong id="sdnnValue">--</strong> ms</span>
-            <span>Sub-Sample PPI</span>
+          <div class="telemetry-item">
+            <div>Lighting: <strong id="telLighting">--%</strong></div>
           </div>
-        </div>
-
-        <!-- Physiological Stress -->
-        <div class="vital-card card-stress">
-          <div class="card-header-row">
-            <span class="card-title">Physiological Stress</span>
-            <span style="font-size: 14px;">🧠</span>
-          </div>
-          <div class="card-value-group">
-            <span class="card-value" id="stressValue">--</span>
-            <span class="card-unit" id="stressLevel">Unknown</span>
-          </div>
-          <div class="card-meta">
-            <span>Autonomic Balance</span>
-            <span>Research Index</span>
+          <div class="telemetry-item">
+            <div>FPS: <strong id="telFps">--</strong></div>
           </div>
         </div>
       </div>
 
-      <!-- Real-Time Pulse Waveform (BVP) -->
+      <!-- Real-Time Waveform -->
       <div class="chart-container">
         <div class="chart-header">
           <span>REAL-TIME PHOTOPLETHYSMOGRAM PULSE WAVEFORM (BVP)</span>
           <span id="algoLabel">Plane-Orthogonal-to-Skin (POS)</span>
         </div>
-        <canvas id="waveformCanvas" width="600" height="120"></canvas>
+        <canvas id="waveformCanvas" width="600" height="90"></canvas>
+      </div>
+    </div>
+
+    <!-- Right Column: Multi-Tab Metrics -->
+    <div class="right-panel">
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-vitals">Core Vitals</button>
+        <button class="tab-btn" data-tab="tab-wellness">Stress & Autonomic</button>
+        <button class="tab-btn" data-tab="tab-risks">Cardiovascular & Metabolic Risk</button>
+      </div>
+
+      <!-- TAB 1: CORE VITALS -->
+      <div class="tab-content active" id="tab-vitals">
+        <div class="grid-vitals">
+          <!-- Heart Rate -->
+          <div class="vital-card card-hr">
+            <div class="card-header-row">
+              <span class="card-title">Heart Rate (rPPG)</span>
+              <span class="badge-status" id="hrBadge">Optimal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="hrValue">--</span>
+              <span class="card-unit">BPM</span>
+            </div>
+            <div class="card-meta">
+              <span>Confidence: <strong id="hrConf">--%</strong></span>
+              <span>Normal: 60-100</span>
+            </div>
+          </div>
+
+          <!-- Respiration Rate -->
+          <div class="vital-card card-rr">
+            <div class="card-header-row">
+              <span class="card-title">Respiration Rate</span>
+              <span class="badge-status" id="rrBadge">Optimal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="rrValue">--</span>
+              <span class="card-unit">RPM</span>
+            </div>
+            <div class="card-meta">
+              <span>Confidence: <strong id="rrConf">--%</strong></span>
+              <span>Normal: 12-20</span>
+            </div>
+          </div>
+
+          <!-- Blood Pressure -->
+          <div class="vital-card card-bp">
+            <div class="card-header-row">
+              <span class="card-title">Blood Pressure (SDPPG)</span>
+              <span class="badge-status" id="bpBadge">Normal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="bpValue">-- / --</span>
+              <span class="card-unit">mmHg</span>
+            </div>
+            <div class="card-meta">
+              <span>MAP: <strong id="mapValue">--</strong> mmHg</span>
+              <span>AHA Guidelines</span>
+            </div>
+          </div>
+
+          <!-- SpO2 -->
+          <div class="vital-card card-spo2">
+            <div class="card-header-row">
+              <span class="card-title">Oxygen Saturation</span>
+              <span class="badge-status" id="spo2Badge">Normal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="spo2Value">--</span>
+              <span class="card-unit">% SpO2</span>
+            </div>
+            <div class="card-meta">
+              <span>Ratio (R): <strong id="spo2Ratio">--</strong></span>
+              <span>Normal: 95-100%</span>
+            </div>
+          </div>
+
+          <!-- HRV RMSSD / SDNN -->
+          <div class="vital-card card-prv">
+            <div class="card-header-row">
+              <span class="card-title">Heart Rate Variability</span>
+              <span class="badge-status" id="prvBadge">Active</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="prvValue">--</span>
+              <span class="card-unit">ms (RMSSD)</span>
+            </div>
+            <div class="card-meta">
+              <span>SDNN: <strong id="sdnnValue">--</strong> ms</span>
+              <span>pNN50: <strong id="pnn50Value">--%</strong></span>
+            </div>
+          </div>
+
+          <!-- Cardiac Workload -->
+          <div class="vital-card card-workload">
+            <div class="card-header-row">
+              <span class="card-title">Cardiac Workload (RPP)</span>
+              <span class="badge-status" id="workloadBadge">Normal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="rppValue">--</span>
+              <span class="card-unit">RPP</span>
+            </div>
+            <div class="card-meta">
+              <span>Myocardial Load</span>
+              <span>HR × SBP / 100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: STRESS & AUTONOMIC -->
+      <div class="tab-content" id="tab-wellness">
+        <div class="grid-vitals">
+          <!-- Baevsky Stress Index -->
+          <div class="vital-card card-hr">
+            <div class="card-header-row">
+              <span class="card-title">Baevsky Stress Index</span>
+              <span class="badge-status" id="baevskyBadge">Norm</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="baevskyValue">--</span>
+              <span class="card-unit">SI</span>
+            </div>
+            <div class="card-meta">
+              <span>Autonomic Tension</span>
+              <span>Reference: 50-150</span>
+            </div>
+          </div>
+
+          <!-- Parasympathetic Tone -->
+          <div class="vital-card card-spo2">
+            <div class="card-header-row">
+              <span class="card-title">Parasympathetic Recovery</span>
+              <span class="badge-status" id="pnsBadge">Good</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="pnsValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-meta">
+              <span>Vagal Tone & Recovery</span>
+              <span>PNS Index</span>
+            </div>
+          </div>
+
+          <!-- Pulse-Respiration Quotient -->
+          <div class="vital-card card-rr">
+            <div class="card-header-row">
+              <span class="card-title">Pulse-Respiration Ratio</span>
+              <span class="badge-status" id="prqBadge">Balanced</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="prqValue">--</span>
+              <span class="card-unit">PRQ</span>
+            </div>
+            <div class="card-meta">
+              <span>Cardiopulmonary Ratio</span>
+              <span>Norm: 4.0 - 5.0</span>
+            </div>
+          </div>
+
+          <!-- Composite Stress Score -->
+          <div class="vital-card card-workload">
+            <div class="card-header-row">
+              <span class="card-title">Composite Stress Load</span>
+              <span class="badge-status" id="stressLevelBadge">Low</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="stressValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-meta">
+              <span>Sympathovagal Balance</span>
+              <span>Arousal Index</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: CARDIOVASCULAR & METABOLIC RISKS -->
+      <div class="tab-content" id="tab-risks">
+        <div class="risk-banner-card">
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">10-Year Cardiovascular (CVD) & Stroke Projection</div>
+            <div style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="cvdCatLabel">Low Risk (<10%)</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Framingham / WHO-ISH Hemodynamic-Metabolic Calibration</div>
+          </div>
+          <div class="risk-score-badge" id="cvdRiskScore">--%</div>
+        </div>
+
+        <div class="grid-vitals">
+          <!-- Vascular Age -->
+          <div class="vital-card card-bp">
+            <div class="card-header-row">
+              <span class="card-title">Vascular Biological Age</span>
+              <span class="badge-status" id="vascStatusBadge">Optimal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="vascAgeValue">--</span>
+              <span class="card-unit">Years</span>
+            </div>
+            <div class="card-meta">
+              <span>Delta: <strong id="vascDeltaValue">-- yrs</strong></span>
+              <span>Arterial Compliance</span>
+            </div>
+          </div>
+
+          <!-- Body Composition -->
+          <div class="vital-card card-workload">
+            <div class="card-header-row">
+              <span class="card-title">Body Composition (BMI & BRI)</span>
+              <span class="badge-status" id="bmiBadge">Normal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="bmiValue">--</span>
+              <span class="card-unit">kg/m² (BMI)</span>
+            </div>
+            <div class="card-meta">
+              <span>BRI: <strong id="briValue">--</strong></span>
+              <span>WHtR: <strong id="whtrValue">--</strong></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Patient Metadata Modal -->
+  <div class="modal-backdrop" id="profileModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Patient Profile & Demographic Priors</h3>
+        <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Age (Years)</label>
+          <input type="number" id="inputAge" value="35" min="18" max="100" />
+        </div>
+        <div class="form-group">
+          <label>Biological Sex</label>
+          <select id="inputSex">
+            <option value="male" selected>Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Height (cm)</label>
+          <input type="number" id="inputHeight" value="175" min="100" max="230" />
+        </div>
+        <div class="form-group">
+          <label>Weight (kg)</label>
+          <input type="number" id="inputWeight" value="72" min="30" max="250" />
+        </div>
+        <div class="form-group">
+          <label>Waist Circumference (cm)</label>
+          <input type="number" id="inputWaist" value="84" min="40" max="180" />
+        </div>
+        <div class="form-group">
+          <label>Smoking Status</label>
+          <select id="inputSmoker">
+            <option value="no" selected>Non-Smoker</option>
+            <option value="yes">Smoker</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-ctrl btn-primary" id="saveProfileBtn">Save Profile & Recalculate Risks</button>
+    </div>
+  </div>
+
   <footer>
-    <span><strong>AuraPulse Biomedical AI</strong> — General Wellness & Research Engine. Not intended for clinical diagnosis.</span>
-    <button class="btn-download" id="downloadBtn">Export Session JSON</button>
+    <span><strong>AuraPulse Clinical-Edge AI</strong> — Contactless Photoplethysmography & Hemodynamic Risk Synthesis. General wellness & research analytics.</span>
+    <button class="btn-export" id="downloadBtn">Export Session JSON Report</button>
   </footer>
 
   <script>
+    // Tab Switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+        const tabId = btn.getAttribute("data-tab");
+        document.getElementById(tabId).classList.add("active");
+      });
+    });
+
+    // Profile Modal
+    const profileModal = document.getElementById("profileModal");
+    const profileToggleBtn = document.getElementById("profileToggleBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const saveProfileBtn = document.getElementById("saveProfileBtn");
+
+    profileToggleBtn.addEventListener("click", () => profileModal.classList.add("open"));
+    closeModalBtn.addEventListener("click", () => profileModal.classList.remove("open"));
+
+    let userProfile = {
+      age: 35,
+      is_male: true,
+      height_cm: 175,
+      weight_kg: 72,
+      waist_cm: 84,
+      is_smoker: false,
+      is_diabetic: false
+    };
+
+    saveProfileBtn.addEventListener("click", async () => {
+      userProfile.age = parseFloat(document.getElementById("inputAge").value) || 35;
+      userProfile.is_male = document.getElementById("inputSex").value === "male";
+      userProfile.height_cm = parseFloat(document.getElementById("inputHeight").value) || 175;
+      userProfile.weight_kg = parseFloat(document.getElementById("inputWeight").value) || 72;
+      userProfile.waist_cm = parseFloat(document.getElementById("inputWaist").value) || 84;
+      userProfile.is_smoker = document.getElementById("inputSmoker").value === "yes";
+
+      if (wsReady && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "update_profile", profile: userProfile }));
+      } else {
+        await fetch("/api/update_profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userProfile)
+        });
+      }
+      profileModal.classList.remove("open");
+    });
+
     const video = document.getElementById("videoElement");
     const overlayCanvas = document.getElementById("overlayCanvas");
     const overlayCtx = overlayCanvas.getContext("2d");
@@ -509,42 +908,66 @@
     const statusBanner = document.getElementById("diagnosticStatus");
     const scanTimer = document.getElementById("scanTimer");
 
+    // Vitals Elements
     const hrValue = document.getElementById("hrValue");
     const hrConf = document.getElementById("hrConf");
+    const hrBadge = document.getElementById("hrBadge");
     const rrValue = document.getElementById("rrValue");
     const rrConf = document.getElementById("rrConf");
+    const rrBadge = document.getElementById("rrBadge");
+    const bpValue = document.getElementById("bpValue");
+    const bpBadge = document.getElementById("bpBadge");
+    const mapValue = document.getElementById("mapValue");
+    const spo2Value = document.getElementById("spo2Value");
+    const spo2Badge = document.getElementById("spo2Badge");
+    const spo2Ratio = document.getElementById("spo2Ratio");
     const prvValue = document.getElementById("prvValue");
     const sdnnValue = document.getElementById("sdnnValue");
-    const stressValue = document.getElementById("stressValue");
-    const stressLevel = document.getElementById("stressLevel");
-    const sqiValue = document.getElementById("sqiValue");
-    const sqiProgress = document.getElementById("sqiProgress");
-    const pulseHeart = document.getElementById("pulseHeart");
+    const pnn50Value = document.getElementById("pnn50Value");
+    const rppValue = document.getElementById("rppValue");
+    const workloadBadge = document.getElementById("workloadBadge");
 
-    const telFaceQuality = document.getElementById("telFaceQuality");
+    // Stress Elements
+    const baevskyValue = document.getElementById("baevskyValue");
+    const baevskyBadge = document.getElementById("baevskyBadge");
+    const pnsValue = document.getElementById("pnsValue");
+    const prqValue = document.getElementById("prqValue");
+    const stressValue = document.getElementById("stressValue");
+    const stressLevelBadge = document.getElementById("stressLevelBadge");
+
+    // Risk Elements
+    const cvdRiskScore = document.getElementById("cvdRiskScore");
+    const cvdCatLabel = document.getElementById("cvdCatLabel");
+    const vascAgeValue = document.getElementById("vascAgeValue");
+    const vascDeltaValue = document.getElementById("vascDeltaValue");
+    const vascStatusBadge = document.getElementById("vascStatusBadge");
+    const bmiValue = document.getElementById("bmiValue");
+    const bmiBadge = document.getElementById("bmiBadge");
+    const briValue = document.getElementById("briValue");
+    const whtrValue = document.getElementById("whtrValue");
+
+    const sqiValue = document.getElementById("sqiValue");
     const telLighting = document.getElementById("telLighting");
-    const telPose = document.getElementById("telPose");
     const telFps = document.getElementById("telFps");
 
     let isScanning = false;
+    let scanCompleted = false;
     let scanStartTime = 0;
+    let scanFramesCount = 0;
     let frameTimestamps = [];
     let latestResultPayload = null;
     let waveformBuffer = [];
-    
-    // Tracked facial state
+
     let activeFaceBBox = null;
     let activeROIs = null;
     let isDetectingKeyframe = false;
     let lastKeyframeTime = 0;
 
-    // Fast canvas for client-side pixel extraction
     const sampleCanvas = document.createElement("canvas");
     sampleCanvas.width = 320;
     sampleCanvas.height = 240;
     const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
 
-    // WebSocket Telemetry Connection
     let ws = null;
     let wsReady = false;
 
@@ -556,7 +979,7 @@
         ws = new WebSocket(wsUrl);
         ws.onopen = () => {
           wsReady = true;
-          console.log("[AuraPulse] High-speed WebSocket telemetry stream established.");
+          console.log("[AuraPulse] High-speed clinical WebSocket established.");
         };
 
         ws.onmessage = (event) => {
@@ -573,10 +996,7 @@
           wsReady = false;
           setTimeout(connectWebSocket, 2000);
         };
-
-        ws.onerror = () => {
-          wsReady = false;
-        };
+        ws.onerror = () => { wsReady = false; };
       } catch (err) {
         wsReady = false;
       }
@@ -607,9 +1027,6 @@
 
     initCamera();
 
-    let scanCompleted = false;
-    let scanFramesCount = 0;
-
     startBtn.addEventListener("click", async () => {
       if (wsReady && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "reset" }));
@@ -623,20 +1040,23 @@
       waveformBuffer = [];
       startBtn.disabled = true;
       startBtn.innerText = "Scanning in Progress (30s)...";
-      statusBanner.innerText = "Starting new measurement scan...";
+      statusBanner.innerText = "Starting comprehensive health measurement...";
       statusBanner.style.borderLeftColor = "#06b6d4";
 
-      // Reset displayed values for fresh scan
+      // Reset displayed values
       hrValue.innerText = "--";
-      hrConf.innerText = "--%";
       rrValue.innerText = "--";
-      rrConf.innerText = "--%";
+      bpValue.innerText = "-- / --";
+      spo2Value.innerText = "--";
       prvValue.innerText = "--";
-      sdnnValue.innerText = "--";
+      rppValue.innerText = "--";
+      baevskyValue.innerText = "--";
+      pnsValue.innerText = "--";
+      prqValue.innerText = "--";
       stressValue.innerText = "--";
-      stressLevel.innerText = "Analyzing...";
-      sqiValue.innerText = "0 / 100 (Acquiring)";
-      sqiProgress.style.width = "0%";
+      cvdRiskScore.innerText = "--%";
+      vascAgeValue.innerText = "--";
+      bmiValue.innerText = "--";
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
 
@@ -655,16 +1075,6 @@
       telFps.innerText = "--";
       statusBanner.innerText = "Session reset. Ready for scan.";
       statusBanner.style.borderLeftColor = "#06b6d4";
-      hrValue.innerText = "--";
-      hrConf.innerText = "--%";
-      rrValue.innerText = "--";
-      rrConf.innerText = "--%";
-      prvValue.innerText = "--";
-      sdnnValue.innerText = "--";
-      stressValue.innerText = "--";
-      stressLevel.innerText = "Unknown";
-      sqiValue.innerText = "0 / 100 (Waiting)";
-      sqiProgress.style.width = "0%";
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
@@ -675,15 +1085,14 @@
         return;
       }
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(latestResultPayload, null, 2));
-      const downloadAnchor = document.createElement('a');
+      const downloadAnchor = document.createElement("a");
       downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `AuraPulse_Report_${Date.now()}.json`);
+      downloadAnchor.setAttribute("download", `AuraPulse_Clinical_Report_${Date.now()}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
     });
 
-    // 1. Keyframe Neural Face Alignment (Non-blocking async)
     async function triggerKeyframeDetection() {
       if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
         isDetectingKeyframe = true;
@@ -702,7 +1111,9 @@
             if (data.hasFace) {
               activeFaceBBox = data.faceBBox;
               activeROIs = data.rois;
-              updateTelemetry(data);
+              if (data.faceQuality) {
+                telLighting.innerText = `${Math.round(data.faceQuality.illumination)}%`;
+              }
             }
           }
         } catch (e) {} finally {
@@ -712,7 +1123,6 @@
       }
     }
 
-    // High-Speed Spatial ROI Color Extractor (< 0.03ms execution)
     function extractROIMeanRGB(polyScaled) {
       if (!polyScaled || polyScaled.length < 3) return [125, 110, 100];
 
@@ -733,7 +1143,7 @@
       try {
         const imgData = sampleCtx.getImageData(minX, minY, w, h).data;
         let sumR = 0, sumG = 0, sumB = 0, count = 0;
-        const step = 8; // Ultra-fast stride sampling
+        const step = 8;
 
         for (let i = 0; i < imgData.length; i += step) {
           const r = imgData[i];
@@ -746,34 +1156,23 @@
             count++;
           }
         }
-
-        if (count > 0) {
-          return [sumR / count, sumG / count, sumB / count];
-        }
+        if (count > 0) return [sumR / count, sumG / count, sumB / count];
       } catch (e) {}
 
       return [130, 105, 95];
     }
 
-    // 2. High-Speed 30+ FPS Frame Loop (Strictly Non-Blocking Synchronous RAF)
     function highSpeedFrameLoop() {
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         const nowMs = performance.now();
 
-        // Calculate smooth rolling FPS only when not locked after scan completion
         if (!scanCompleted) {
           frameTimestamps.push(nowMs);
           if (frameTimestamps.length > 30) frameTimestamps.shift();
           if (frameTimestamps.length >= 2) {
             const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
             telFps.innerText = `${fps.toFixed(1)} FPS`;
-            if (fps >= 25) {
-              telFps.style.color = "#10b981";
-            } else if (fps >= 18) {
-              telFps.style.color = "#f59e0b";
-            } else {
-              telFps.style.color = "#ef4444";
-            }
+            telFps.style.color = fps >= 25 ? "#10b981" : (fps >= 18 ? "#f59e0b" : "#ef4444");
           }
         }
 
@@ -789,25 +1188,20 @@
             scanTimer.innerText = "30s / 30s (Completed)";
             startBtn.disabled = false;
             startBtn.innerText = "Start New 30s Scan";
-            statusBanner.innerText = "✅ 30s Scan Completed — Final Report Locked";
+            statusBanner.innerText = "✅ 30s Scan Completed — Comprehensive Health Report Locked";
             statusBanner.style.borderLeftColor = "#10b981";
           } else {
             scanTimer.innerText = `${Math.floor(elapsed)}s / 30s`;
           }
         }
 
-        // Draw video frame to fast 320x240 sampling canvas
         sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
-
-        // Render UI Overlays & Facial Guide
         renderOverlays();
 
-        // Trigger periodic keyframe face re-alignment every ~1.5s
         if (nowMs - lastKeyframeTime > 1500) {
           triggerKeyframeDetection();
         }
 
-        // Extract ROI Signals & Stream via non-blocking WebSocket ONLY while actively scanning
         if (activeROIs && isScanning) {
           const roiSignals = {};
           for (const [rName, rData] of Object.entries(activeROIs)) {
@@ -816,14 +1210,13 @@
 
           const payload = {
             timestamp_s: nowMs / 1000.0,
-            signals: roiSignals
+            signals: roiSignals,
+            profile: userProfile
           };
 
           if (wsReady && ws.readyState === WebSocket.OPEN) {
-            // Instant non-blocking microsecond vector send
             ws.send(JSON.stringify(payload));
           } else {
-            // Asynchronous non-blocking HTTP push
             fetch("/api/push_signals", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -841,24 +1234,13 @@
       requestAnimationFrame(highSpeedFrameLoop);
     }
 
-    // Launch RAF Loop
     requestAnimationFrame(highSpeedFrameLoop);
-
-    function updateTelemetry(data) {
-      if (data.faceQuality) {
-        telFaceQuality.innerText = `${Math.round(data.faceQuality.overall)}%`;
-        telLighting.innerText = `${Math.round(data.faceQuality.illumination)}%`;
-        telPose.innerText = data.faceQuality.pose > 70 ? "Optimal" : "Adjust";
-      }
-    }
 
     function renderOverlays() {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
       const scaleX = overlayCanvas.width / sampleCanvas.width;
       const scaleY = overlayCanvas.height / sampleCanvas.height;
 
-      // Draw subtle biometric face guide ellipse when idle
       if (!isScanning) {
         overlayCtx.save();
         overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
@@ -907,28 +1289,81 @@
         statusBanner.innerText = `● Pulse Signal Locked (Quality: ${v.quality_category})`;
         statusBanner.style.borderLeftColor = "#10b981";
 
+        // Heart Rate
         if (v.heart_rate && v.heart_rate.value) {
           hrValue.innerText = v.heart_rate.value.toFixed(1);
           hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
-          
-          pulseHeart.style.transform = "scale(1.35)";
-          setTimeout(() => { pulseHeart.style.transform = "scale(1.0)"; }, 120);
-        }
-        if (v.respiration_rate && v.respiration_rate.status === "VALID") {
-          rrValue.innerText = v.respiration_rate.value.toFixed(1);
-          rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
-        }
-        if (v.pulse_rate_variability && v.pulse_rate_variability.status === "VALID") {
-          prvValue.innerText = v.pulse_rate_variability.rmssd ? v.pulse_rate_variability.rmssd.toFixed(1) : "--";
-          sdnnValue.innerText = v.pulse_rate_variability.sdnn ? v.pulse_rate_variability.sdnn.toFixed(1) : "--";
-        }
-        if (v.stress_index && v.stress_index.score !== null) {
-          stressValue.innerText = v.stress_index.score.toFixed(0);
-          stressLevel.innerText = v.stress_index.level;
+          hrBadge.innerText = v.heart_rate.status || "Optimal";
+          hrBadge.className = "badge-status " + (v.heart_rate.status === "Optimal" ? "badge-optimal" : "badge-warn");
         }
 
-        sqiValue.innerText = `${Math.round(v.signal_quality)} / 100 (${v.quality_category})`;
-        sqiProgress.style.width = `${Math.min(100, Math.max(0, v.signal_quality))}%`;
+        // Respiration Rate
+        if (v.respiration_rate && v.respiration_rate.value) {
+          rrValue.innerText = v.respiration_rate.value.toFixed(1);
+          rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
+          rrBadge.innerText = v.respiration_rate.status || "Optimal";
+        }
+
+        // Blood Pressure
+        if (v.blood_pressure && v.blood_pressure.systolic) {
+          bpValue.innerText = `${Math.round(v.blood_pressure.systolic)} / ${Math.round(v.blood_pressure.diastolic)}`;
+          mapValue.innerText = Math.round(v.blood_pressure.map);
+          bpBadge.innerText = v.blood_pressure.category || "Normal";
+          bpBadge.className = "badge-status " + (v.blood_pressure.category === "Normal" ? "badge-optimal" : "badge-warn");
+        }
+
+        // SpO2
+        if (v.spo2 && v.spo2.value) {
+          spo2Value.innerText = v.spo2.value.toFixed(1);
+          spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
+          spo2Badge.innerText = v.spo2.category || "Normal";
+          spo2Badge.className = "badge-status " + (v.spo2.category === "Normal" ? "badge-optimal" : "badge-alert");
+        }
+
+        // PRV
+        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
+          prvValue.innerText = v.pulse_rate_variability.rmssd.toFixed(1);
+          sdnnValue.innerText = v.pulse_rate_variability.sdnn ? v.pulse_rate_variability.sdnn.toFixed(1) : "--";
+          pnn50Value.innerText = v.pulse_rate_variability.pnn50 ? `${Math.round(v.pulse_rate_variability.pnn50)}%` : "--%";
+        }
+
+        // Cardiac Workload
+        if (v.cardiac_workload && v.cardiac_workload.rpp) {
+          rppValue.innerText = v.cardiac_workload.rpp.toFixed(1);
+          workloadBadge.innerText = v.cardiac_workload.category || "Normal";
+        }
+
+        // Stress & Autonomic Indices
+        if (v.stress_index) {
+          stressValue.innerText = v.stress_index.score ? v.stress_index.score.toFixed(0) : "--";
+          stressLevelBadge.innerText = v.stress_index.level || "Low";
+          baevskyValue.innerText = v.stress_index.baevskyIndex ? v.stress_index.baevskyIndex.toFixed(0) : "--";
+          pnsValue.innerText = v.stress_index.parasympatheticScore ? v.stress_index.parasympatheticScore.toFixed(0) : "--";
+          prqValue.innerText = v.stress_index.prq ? v.stress_index.prq.toFixed(2) : "--";
+        }
+
+        // Cardiovascular & Metabolic Risks
+        if (v.cvd_risk) {
+          cvdRiskScore.innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)}%`;
+          cvdCatLabel.innerText = `${v.cvd_risk.category} Risk`;
+          cvdRiskScore.className = "risk-score-badge " + (v.cvd_risk.tenYearRiskPct > 20.0 ? "high" : (v.cvd_risk.tenYearRiskPct > 10.0 ? "moderate" : ""));
+        }
+
+        if (v.vascular_age) {
+          vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
+          vascDeltaValue.innerText = `${v.vascular_age.ageDelta > 0 ? "+" : ""}${v.vascular_age.ageDelta.toFixed(1)} yrs`;
+          vascStatusBadge.innerText = v.vascular_age.status;
+          vascStatusBadge.className = "badge-status " + (v.vascular_age.status === "Optimal" ? "badge-optimal" : "badge-warn");
+        }
+
+        if (v.body_composition) {
+          bmiValue.innerText = v.body_composition.bmi.toFixed(1);
+          bmiBadge.innerText = v.body_composition.bmiCategory;
+          briValue.innerText = v.body_composition.bri.toFixed(1);
+          whtrValue.innerText = v.body_composition.whtr.toFixed(2);
+        }
+
+        sqiValue.innerText = `${Math.round(v.signal_quality)} / 100`;
 
         if (v.pulse_waveform && v.pulse_waveform.length > 0) {
           waveformBuffer = v.pulse_waveform;
@@ -939,11 +1374,10 @@
         if (elapsed < 6.0) {
           statusBanner.innerText = `Accumulating pulse buffer (${Math.floor(elapsed)}s / 6s)...`;
         } else {
-          statusBanner.innerText = v.reason || "Analyzing facial signal...";
+          statusBanner.innerText = v.reason || "Analyzing multi-spectral facial signal...";
         }
         statusBanner.style.borderLeftColor = "#f59e0b";
-        sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100 (${v.quality_category})`;
-        sqiProgress.style.width = `${Math.min(100, Math.max(0, v.signal_quality || 0))}%`;
+        sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
       }
     }
 
@@ -951,7 +1385,7 @@
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
       if (points.length < 2) return;
 
-      waveCtx.strokeStyle = "rgba(31, 41, 61, 0.8)";
+      waveCtx.strokeStyle = "rgba(30, 41, 59, 0.8)";
       waveCtx.lineWidth = 1;
       waveCtx.setLineDash([4, 4]);
       waveCtx.beginPath();
@@ -961,7 +1395,7 @@
       waveCtx.setLineDash([]);
 
       waveCtx.strokeStyle = "#06b6d4";
-      waveCtx.lineWidth = 2.5;
+      waveCtx.lineWidth = 2.2;
       waveCtx.beginPath();
 
       const minVal = Math.min(...points);
@@ -972,7 +1406,7 @@
       for (let i = 0; i < points.length; i++) {
         const x = i * step;
         const normalized = (points[i] - minVal) / range;
-        const y = waveformCanvas.height - (normalized * (waveformCanvas.height - 24) + 12);
+        const y = waveformCanvas.height - (normalized * (waveformCanvas.height - 20) + 10);
         if (i === 0) waveCtx.moveTo(x, y);
         else waveCtx.lineTo(x, y);
       }

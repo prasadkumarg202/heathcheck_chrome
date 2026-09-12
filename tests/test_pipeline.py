@@ -49,8 +49,8 @@ def test_pipeline_streaming_simulation():
     assert result.heart_rate["confidence"] > 0.40
     assert result.signal_quality >= 35.0
     assert result.measurement_duration_s >= 8.0
-    assert result.algorithm_version == "0.1.0"
-    assert result.engine == "AuraPulse-Core"
+    assert result.algorithm_version == "0.2.0"
+    assert result.engine == "AuraPulse-Clinical-Edge"
 
 
 def test_pipeline_fail_safe_on_short_duration():

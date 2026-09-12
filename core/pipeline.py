@@ -24,6 +24,10 @@ from core.vitals.hr import HeartRateEngine, HRResult
 from core.vitals.respiration import RespirationEngine, RespirationResult
 from core.vitals.prv import PRVEngine, PRVResult
 from core.vitals.stress import StressEngine, StressResult
+from core.vitals.blood_pressure import BloodPressureEngine, BloodPressureResult
+from core.vitals.spo2 import SpO2Engine, SpO2Result
+from core.vitals.cardiac_workload import CardiacWorkloadEngine, CardiacWorkloadResult
+from core.analytics.risk_models import HealthRiskAnalyticsEngine, VascularAgeResult, CVDRiskResult, BodyCompositionResult
 
 
 @dataclass
@@ -32,15 +36,22 @@ class HealthMeasurementResult:
     heart_rate: Optional[Dict[str, Any]] = None
     respiration_rate: Optional[Dict[str, Any]] = None
     pulse_rate_variability: Optional[Dict[str, Any]] = None
+    blood_pressure: Optional[Dict[str, Any]] = None
+    spo2: Optional[Dict[str, Any]] = None
+    cardiac_workload: Optional[Dict[str, Any]] = None
     stress_index: Optional[Dict[str, Any]] = None
+    vascular_age: Optional[Dict[str, Any]] = None
+    cvd_risk: Optional[Dict[str, Any]] = None
+    body_composition: Optional[Dict[str, Any]] = None
+    wellness_indices: Optional[Dict[str, Any]] = None
     pulse_waveform: Optional[list] = None
     signal_quality: float = 0.0
     quality_category: str = "Invalid"
     face_quality: float = 0.0
     measurement_duration_s: float = 0.0
-    algorithm_version: str = "0.1.0"
-    engine: str = "AuraPulse-Core"
-    validation_status: str = "Research/Validated - On-Device Core"
+    algorithm_version: str = "0.2.0"
+    engine: str = "AuraPulse-Clinical-Edge"
+    validation_status: str = "On-Device Synthesis Core (rPPG + Biomarkers)"
     reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -84,6 +95,10 @@ class AuraPulseEngine:
         self.respiration_engine = RespirationEngine()
         self.prv_engine = PRVEngine(min_duration_s=min_measurement_duration_s)
         self.stress_engine = StressEngine()
+        self.bp_engine = BloodPressureEngine()
+        self.spo2_engine = SpO2Engine()
+        self.cardiac_workload_engine = CardiacWorkloadEngine()
+        self.risk_engine = HealthRiskAnalyticsEngine()
 
         self.session_start_time: Optional[float] = None
         self.frame_count = 0
@@ -124,11 +139,21 @@ class AuraPulseEngine:
 
         return True, landmarks, rois, face_quality
 
-    def compute_vitals(self) -> HealthMeasurementResult:
+    def compute_vitals(self, user_metadata: Optional[Dict[str, Any]] = None) -> HealthMeasurementResult:
         """
-        Executes signal processing, rPPG extraction, SQI, and vitals estimation
-        over the current sliding buffer window.
+        Executes signal processing, rPPG extraction, SQI, vitals estimation,
+        and comprehensive health risk analytics over the current sliding buffer window.
         """
+        meta = user_metadata or {}
+        user_age = float(meta.get("age", 35.0))
+        user_is_male = bool(meta.get("is_male", True))
+        user_bmi = float(meta.get("bmi", 23.5))
+        user_height = float(meta.get("height_cm", 175.0))
+        user_weight = float(meta.get("weight_kg", 72.0))
+        user_waist = float(meta.get("waist_cm", 0.0)) if meta.get("waist_cm") else None
+        user_smoker = bool(meta.get("is_smoker", False))
+        user_diabetic = bool(meta.get("is_diabetic", False))
+
         t_uniform, roi_rgbs, duration = self.signal_buffer.get_window(
             duration_s=self.window_duration_s,
             target_fs=self.target_fs
@@ -237,13 +262,69 @@ class AuraPulseEngine:
             hr_bpm_hint=hr_res.hr_bpm
         )
 
-        # 7. Physiological Stress Index
+        # 7. Continuous Blood Pressure Estimation
+        bp_res = self.bp_engine.estimate_blood_pressure(
+            bvp_signal=fused_bvp,
+            fs=self.target_fs,
+            hr_bpm=hr_res.hr_bpm,
+            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
+            age=user_age,
+            is_male=user_is_male,
+            bmi=user_bmi,
+            sqi_score=overall_sqi.sqi_score
+        )
+
+        # 8. Oxygen Saturation (SpO2) Estimation
+        spo2_res = self.spo2_engine.estimate_spo2(
+            rgb_temporal=fh_rgb,
+            fs=self.target_fs,
+            sqi_score=overall_sqi.sqi_score
+        )
+
+        # 9. Cardiac Workload (Rate-Pressure Product)
+        cardiac_res = self.cardiac_workload_engine.compute_workload(
+            hr_bpm=hr_res.hr_bpm,
+            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            confidence_hr=hr_res.confidence,
+            confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
+        )
+
+        # 10. Advanced Physiological Stress & Autonomic Recovery
         stress_res = self.stress_engine.compute_stress_index(
             hr_bpm=hr_res.hr_bpm,
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
             rr_rpm=rr_res.rr_rpm if rr_res.is_valid else 0.0,
             confidence_hr=hr_res.confidence,
             confidence_prv=prv_res.confidence if prv_res.is_valid else 0.5,
+            ppi_intervals_ms=prv_res.ppi_intervals if hasattr(prv_res, "ppi_intervals") else None,
+        )
+
+        # 11. Body Composition & Anthropometrics
+        body_comp_res = self.risk_engine.compute_body_composition(
+            height_cm=user_height,
+            weight_kg=user_weight,
+            waist_cm=user_waist
+        )
+
+        # 12. Vascular Age Estimation
+        vasc_age_res = self.risk_engine.estimate_vascular_age(
+            chronological_age=user_age,
+            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            stiffness_index=bp_res.stiffness_index_ms if bp_res.is_valid else 7.5,
+            sdppg_aging_index=bp_res.sdppg_aging_index if bp_res.is_valid else -0.35,
+            confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
+        )
+
+        # 13. 10-Year Cardiovascular & Stroke Risk Projection
+        cvd_risk_res = self.risk_engine.estimate_10yr_cvd_risk(
+            age=user_age,
+            is_male=user_is_male,
+            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            is_smoker=user_smoker,
+            is_diabetic=user_diabetic,
+            bmi=body_comp_res.bmi,
+            hr_bpm=hr_res.hr_bpm,
+            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0
         )
 
         # Downsample waveform for API transmission (last 120 samples)
@@ -257,12 +338,13 @@ class AuraPulseEngine:
                 "confidence": hr_res.confidence,
                 "signalQuality": overall_sqi.sqi_score,
                 "methods": hr_res.method_estimates,
+                "status": "Tachycardia" if hr_res.hr_bpm > 100.0 else ("Bradycardia" if hr_res.hr_bpm < 60.0 else "Normal")
             },
             respiration_rate={
                 "value": rr_res.rr_rpm if rr_res.is_valid else None,
                 "unit": "breaths/min",
                 "confidence": rr_res.confidence if rr_res.is_valid else 0.0,
-                "status": "VALID" if rr_res.is_valid else "INSUFFICIENT_DATA",
+                "status": "Tachypnea" if (rr_res.is_valid and rr_res.rr_rpm > 20.0) else ("Bradypnea" if (rr_res.is_valid and rr_res.rr_rpm < 12.0) else "Optimal")
             },
             pulse_rate_variability={
                 "rmssd": prv_res.rmssd_ms if prv_res.is_valid else None,
@@ -276,19 +358,77 @@ class AuraPulseEngine:
                 "label": prv_res.label,
                 "status": "VALID" if prv_res.is_valid else "INSUFFICIENT_DATA",
             },
+            blood_pressure={
+                "systolic": bp_res.systolic_bp if bp_res.is_valid else None,
+                "diastolic": bp_res.diastolic_bp if bp_res.is_valid else None,
+                "pulsePressure": bp_res.pulse_pressure if bp_res.is_valid else None,
+                "map": bp_res.mean_arterial_pressure if bp_res.is_valid else None,
+                "category": bp_res.aha_category if bp_res.is_valid else "Unknown",
+                "stiffnessIndex": bp_res.stiffness_index_ms if bp_res.is_valid else None,
+                "augmentationIndex": bp_res.augmentation_index_pct if bp_res.is_valid else None,
+                "agingIndex": bp_res.sdppg_aging_index if bp_res.is_valid else None,
+                "confidence": bp_res.confidence if bp_res.is_valid else 0.0,
+                "status": "VALID" if bp_res.is_valid else "INSUFFICIENT_DATA",
+            },
+            spo2={
+                "value": spo2_res.spo2_pct if spo2_res.is_valid else None,
+                "category": spo2_res.category if spo2_res.is_valid else "Unknown",
+                "ratioOfRatios": spo2_res.ratio_of_ratios if spo2_res.is_valid else None,
+                "confidence": spo2_res.confidence if spo2_res.is_valid else 0.0,
+                "status": "VALID" if spo2_res.is_valid else "INSUFFICIENT_DATA",
+            },
+            cardiac_workload={
+                "rpp": cardiac_res.rpp_score if cardiac_res.is_valid else None,
+                "category": cardiac_res.workload_category if cardiac_res.is_valid else "Unknown",
+                "loadIndex": cardiac_res.myocardial_load_index if cardiac_res.is_valid else None,
+                "confidence": cardiac_res.confidence if cardiac_res.is_valid else 0.0,
+                "status": "VALID" if cardiac_res.is_valid else "INSUFFICIENT_DATA",
+            },
             stress_index={
                 "score": stress_res.stress_score if stress_res.is_valid else None,
                 "level": stress_res.stress_level if stress_res.is_valid else "Unknown",
+                "baevskyIndex": stress_res.baevsky_stress_index if stress_res.is_valid else None,
+                "parasympatheticScore": stress_res.parasympathetic_score if stress_res.is_valid else None,
+                "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
                 "confidence": stress_res.confidence if stress_res.is_valid else 0.0,
                 "disclaimer": stress_res.disclaimer,
+            },
+            vascular_age={
+                "estimatedAge": vasc_age_res.vascular_age_years,
+                "ageDelta": vasc_age_res.age_delta,
+                "status": vasc_age_res.stiffness_status,
+                "confidence": vasc_age_res.confidence,
+            },
+            cvd_risk={
+                "tenYearRiskPct": cvd_risk_res.ten_year_risk_pct,
+                "category": cvd_risk_res.risk_category,
+                "strokeRiskPct": cvd_risk_res.stroke_risk_pct,
+                "hypertensionScore": cvd_risk_res.hypertension_risk_score,
+                "diabetesScore": cvd_risk_res.diabetes_risk_score,
+                "keyDrivers": cvd_risk_res.key_drivers,
+                "confidence": cvd_risk_res.confidence,
+            },
+            body_composition={
+                "bmi": body_comp_res.bmi,
+                "bmiCategory": body_comp_res.bmi_category,
+                "whtr": body_comp_res.whtr,
+                "whtrCategory": body_comp_res.whtr_category,
+                "bri": body_comp_res.body_roundness_index,
+                "briCategory": body_comp_res.bri_category,
+            },
+            wellness_indices={
+                "baevskyStress": stress_res.baevsky_stress_index if stress_res.is_valid else None,
+                "pnsRecovery": stress_res.parasympathetic_score if stress_res.is_valid else None,
+                "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
+                "ansBalance": stress_res.ans_balance_ratio if stress_res.is_valid else None,
             },
             pulse_waveform=waveform_sample,
             signal_quality=overall_sqi.sqi_score,
             quality_category=overall_sqi.category,
             face_quality=100.0,
             measurement_duration_s=round(duration, 1),
-            algorithm_version="0.1.0",
-            engine="AuraPulse-Core",
-            validation_status="Research/Validated - On-Device Core",
+            algorithm_version="0.2.0",
+            engine="AuraPulse-Clinical-Edge",
+            validation_status="On-Device Synthesis Core (rPPG + Biomarkers)",
             reason=None,
         )
