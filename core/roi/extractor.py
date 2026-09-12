@@ -59,12 +59,12 @@ class ROIExtractor:
         eye_y = (ley + rey) / 2.0
         eye_dist = max(10.0, float(np.hypot(lex - rex, ley - rey)))
 
-        # 1. FOREHEAD POLYGON (Upper Forehead well above eyebrows)
+        # 1. FOREHEAD POLYGON (Top of face, high in middle of forehead)
         fh_mid_x = (eye_left_x + eye_right_x) / 2.0
-        fh_bot_y = int(eye_y - eye_dist * 0.32)
-        fh_top_y = max(int(by + bh * 0.05), int(eye_y - eye_dist * 0.78))
+        fh_bot_y = int(eye_y - eye_dist * 0.30)
+        fh_top_y = max(int(by + 2), int(eye_y - eye_dist * 0.85))
         if fh_top_y >= fh_bot_y:
-            fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.38))
+            fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.40))
         fh_half_w = eye_dist * 0.45
 
         forehead_poly = np.array([
@@ -75,9 +75,9 @@ class ROIExtractor:
         ], dtype=np.int32)
 
         # 2. MALAR CHEEKBONES (Upper cheek area beside nose bridge)
-        cheek_y = eye_y + (nose_y - eye_y) * 0.32
-        cheek_w = eye_dist * 0.30
-        cheek_h = max(6.0, (nose_y - eye_y) * 0.38)
+        cheek_y = int(eye_y + (nose_y - eye_y) * 0.38)
+        cheek_w = eye_dist * 0.28
+        cheek_h = max(6.0, (nose_y - eye_y) * 0.36)
 
         left_cheek_poly = np.array([
             [int(eye_left_x - eye_dist * 0.04 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
