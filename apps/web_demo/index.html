@@ -1668,68 +1668,188 @@
 
     initCamera();
 
-        startBtn.addEventListener("click", async () => {
+        function resetAllDashboardMetrics() {
+      // 1. Core Vitals
+      if (hrValue) hrValue.innerText = "--";
+      if (hrBadge) { hrBadge.innerText = "⚪ Waiting"; hrBadge.className = "badge-pill neutral"; }
+      if (hrConf) hrConf.innerText = "--%";
+      if (hrSubtext) hrSubtext.innerText = "Normal resting baseline (60-100 BPM)";
+      
+      if (rrValue) rrValue.innerText = "--";
+      if (rrBadge) { rrBadge.innerText = "⚪ Waiting"; rrBadge.className = "badge-pill neutral"; }
+      if (rrConf) rrConf.innerText = "--%";
+      if (rrSubtext) rrSubtext.innerText = "Healthy eupnea range (12-20 RPM)";
+
+      if (bpValue) bpValue.innerText = "-- / --";
+      if (bpBadge) { bpBadge.innerText = "⚪ Waiting"; bpBadge.className = "badge-pill neutral"; }
+      if (mapValue) mapValue.innerText = "--";
+      if (bpSubtext) bpSubtext.innerText = "AHA Clinical Guideline Stratification";
+
+      if (spo2Value) spo2Value.innerText = "--";
+      if (spo2Badge) { spo2Badge.innerText = "⚪ Waiting"; spo2Badge.className = "badge-pill neutral"; }
+      if (spo2Ratio) spo2Ratio.innerText = "--";
+
+      if (prvValue) prvValue.innerText = "--";
+      if (prvBadge) { prvBadge.innerText = "⚪ Waiting"; prvBadge.className = "badge-pill neutral"; }
+      if (sdnnValue) sdnnValue.innerText = "--";
+      if (pnn50Value) pnn50Value.innerText = "--%";
+
+      if (prqValue) prqValue.innerText = "--";
+      if (prqBadge) { prqBadge.innerText = "⚪ Waiting"; prqBadge.className = "badge-pill neutral"; }
+
+      if (sqiValue) sqiValue.innerText = "-- / 100";
+
+      // 2. Arrhythmia & Fitness
+      const arrStatus = document.getElementById("arrhythmiaStatusValue");
+      const arrBadge = document.getElementById("arrhythmiaBadge");
+      const arrSub = document.getElementById("arrhythmiaSubtext");
+      if (arrStatus) arrStatus.innerText = "--";
+      if (arrBadge) { arrBadge.innerText = "⚪ Waiting"; arrBadge.className = "badge-pill neutral"; }
+      if (arrSub) arrSub.innerText = "Sub-sample IBI Poincaré geometry";
+
+      const cohEl = document.getElementById("coherenceValue");
+      const cohB = document.getElementById("coherenceBadge");
+      if (cohEl) cohEl.innerText = "--";
+      if (cohB) { cohB.innerText = "⚪ Waiting"; cohB.className = "badge-pill neutral"; }
+
+      const vo2El = document.getElementById("vo2MaxValue");
+      const vo2B = document.getElementById("vo2MaxBadge");
+      const vo2Sub = document.getElementById("vo2MaxSubtext");
+      if (vo2El) vo2El.innerText = "--";
+      if (vo2B) { vo2B.innerText = "⚪ Waiting"; vo2B.className = "badge-pill neutral"; }
+      if (vo2Sub) vo2Sub.innerText = "Jackson-Pollock Non-Exercise Model";
+
+      // 3. Stress & Autonomic
+      const baevskyV = document.getElementById("baevskyValue");
+      const baevskyB = document.getElementById("baevskyBadge");
+      if (baevskyV) baevskyV.innerText = "--";
+      if (baevskyB) { baevskyB.innerText = "⚪ Waiting"; baevskyB.className = "badge-pill neutral"; }
+
+      const stressV = document.getElementById("stressValue");
+      const stressB = document.getElementById("stressBadge");
+      if (stressV) stressV.innerText = "--";
+      if (stressB) { stressB.innerText = "⚪ Waiting"; stressB.className = "badge-pill neutral"; }
+
+      const pnsV = document.getElementById("pnsValue");
+      const pnsZ = document.getElementById("pnsZone");
+      if (pnsV) pnsV.innerText = "--";
+      if (pnsZ) pnsZ.innerText = "Parasympathetic Index";
+
+      const snsV = document.getElementById("snsValue");
+      const snsZ = document.getElementById("snsZone");
+      if (snsV) snsV.innerText = "--";
+      if (snsZ) snsZ.innerText = "Sympathetic Index";
+
+      const lfHf = document.getElementById("lfHfRatio");
+      if (lfHf) lfHf.innerText = "--";
+
+      // 4. Cardiovascular & Chronic Risks
+      const rppV = document.getElementById("rppValue");
+      const rppB = document.getElementById("rppBadge");
+      const rppC = document.getElementById("cardiacWorkload");
+      const rppCat = document.getElementById("rppCategory");
+      if (rppV) rppV.innerText = "--";
+      if (rppB) { rppB.innerText = "⚪ Waiting"; rppB.className = "badge-pill neutral"; }
+      if (rppC) rppC.innerText = "--";
+      if (rppCat) rppCat.innerText = "Baseline";
+
+      const ascvdRisk = document.getElementById("ascvd10YrRisk");
+      const ascvdB = document.getElementById("ascvdBadge");
+      if (ascvdRisk) ascvdRisk.innerText = "--%";
+      if (ascvdB) { ascvdB.innerText = "⚪ Waiting"; ascvdB.className = "badge-pill neutral"; }
+
+      const vascAge = document.getElementById("vascAgeValue");
+      const vascBadge = document.getElementById("vascAgeBadge");
+      const vascDelta = document.getElementById("vascDeltaValue");
+      if (vascAge) vascAge.innerText = "--";
+      if (vascBadge) { vascBadge.innerText = "⚪ Waiting"; vascBadge.className = "badge-pill neutral"; }
+      if (vascDelta) vascDelta.innerText = "Delta: -- yrs";
+
+      // 5. Metabolic
+      const metScore = document.getElementById("metabolicScore");
+      const metBadge = document.getElementById("metabolicBadge");
+      if (metScore) metScore.innerText = "--";
+      if (metBadge) { metBadge.innerText = "⚪ Waiting"; metBadge.className = "badge-pill neutral"; }
+
+      const tgHdl = document.getElementById("tgHdlValue");
+      if (tgHdl) tgHdl.innerText = "--";
+      const tyg = document.getElementById("tygValue");
+      if (tyg) tyg.innerText = "--";
+      const visc = document.getElementById("visceralFat");
+      if (visc) visc.innerText = "--";
+      const hba1c = document.getElementById("hbA1cValue");
+      if (hba1c) hba1c.innerText = "--%";
+      const hb = document.getElementById("hbValue");
+      const hbB = document.getElementById("hbBadge");
+      if (hb) hb.innerText = "--";
+      if (hbB) { hbB.innerText = "⚪ Waiting"; hbB.className = "badge-pill neutral"; }
+      const whtr = document.getElementById("whtrValue");
+      if (whtr) whtr.innerText = "--";
+    }
+
+    startBtn.addEventListener("click", () => {
       if (isScanning) {
-        // Stop / Cancel Current Scan
+        // Pause / Cancel active scan
         isScanning = false;
-        startBtn.innerText = "Start 60s Scan";
+        startBtn.innerText = "Resume / Start Scan";
         startBtn.style.background = "";
-        statusBanner.innerHTML = "<span>● Scan paused. Ready to resume or start new scan.</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>" + scanTimer.innerText + "</span>";
+        statusBanner.innerHTML = "<span>● Scan paused. Click to resume or Reset.</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>" + scanTimer.innerText + "</span>";
         return;
       }
 
-      // Start / Restart Fresh Scan
-      try {
-        await fetch("/api/reset", { method: "POST" });
-        if (wsReady && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: "reset" }));
-        }
-      } catch (e) {}
-
+      // Start fresh 60s scan
       isScanning = true;
       scanCompleted = false;
       scanFramesCount = 0;
       scanStartTime = performance.now();
       waveformBuffer = [];
+      latestResultPayload = null;
+
       startBtn.disabled = false;
       startBtn.innerText = "Stop / Cancel Scan";
       startBtn.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
+      scanTimer.innerText = "0s / 60s";
       statusBanner.innerHTML = "<span>● Analyzing multi-spectral facial stream...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
 
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      resetAllDashboardMetrics();
+
+      // Async server reset (fire and forget without blocking UI thread)
+      if (wsReady && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "reset" }));
+      } else {
+        fetch("/api/reset", { method: "POST" }).catch(() => {});
+      }
+
       triggerKeyframeDetection();
     });
 
-    resetBtn.addEventListener("click", async () => {
-      try {
-        await fetch("/api/reset", { method: "POST" });
-        if (wsReady && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: "reset" }));
-        }
-      } catch (e) {}
-
+    resetBtn.addEventListener("click", () => {
+      // Immediate UI & State Reset
       isScanning = false;
       scanCompleted = false;
       scanFramesCount = 0;
       waveformBuffer = [];
+      latestResultPayload = null;
+
       startBtn.disabled = false;
       startBtn.innerText = "Start 60s Scan";
       startBtn.style.background = "";
       scanTimer.innerText = "Ready";
       telFps.innerText = "--";
       statusBanner.innerHTML = "<span>● Session reset. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
+
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
-      
-      // Reset displayed values to initial placeholder
-      if (hrValue) hrValue.innerText = "--";
-      if (rrValue) rrValue.innerText = "--";
-      if (bpValue) bpValue.innerText = "-- / --";
-      if (spo2Value) spo2Value.innerText = "--";
-      if (prvValue) prvValue.innerText = "--";
-      if (prqValue) prqValue.innerText = "--";
-      if (sqiValue) sqiValue.innerText = "-- / 100";
-      
+      resetAllDashboardMetrics();
+
+      // Async server reset
+      if (wsReady && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "reset" }));
+      } else {
+        fetch("/api/reset", { method: "POST" }).catch(() => {});
+      }
+
       triggerKeyframeDetection();
     });
 
