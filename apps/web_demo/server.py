@@ -29,7 +29,7 @@ from core.face.detector import FaceDetector
 from core.roi.extractor import ROIExtractor, ROIData
 
 # Initialize single-session engine
-engine = AuraPulseEngine(min_measurement_duration_s=6.0, window_duration_s=25.0, target_fs=30.0)
+engine = AuraPulseEngine(min_measurement_duration_s=4.0, window_duration_s=25.0, target_fs=30.0)
 engine.start_session()
 
 face_detector = FaceDetector(detection_interval=1)

@@ -1571,47 +1571,6 @@
           }
         }
       }
-    }
-
-      if (activeFaceBBox) {
-        const [bx, by, bw, bh] = activeFaceBBox;
-        // Green Face Bounding Box
-        overlayCtx.strokeStyle = "#10b981";
-        overlayCtx.lineWidth = 2.5;
-        overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
-
-        // Face Label Tag
-        overlayCtx.fillStyle = "#10b981";
-        overlayCtx.font = "bold 11px sans-serif";
-        overlayCtx.fillText("Face Locked", bx * scaleX + 4, by * scaleY - 6);
-
-        if (activeROIs) {
-          for (const [name, rData] of Object.entries(activeROIs)) {
-            const poly = rData.polygon;
-            if (poly && poly.length > 0) {
-              overlayCtx.beginPath();
-              overlayCtx.moveTo(poly[0][0] * scaleX, poly[0][1] * scaleY);
-              for (let i = 1; i < poly.length; i++) {
-                overlayCtx.lineTo(poly[i][0] * scaleX, poly[i][1] * scaleY);
-              }
-              overlayCtx.closePath();
-              // In Research Mode, red/cyan wireframes; in Patient mode, bright cyan
-              overlayCtx.strokeStyle = rData.isValid ? "#06b6d4" : "#ef4444";
-              overlayCtx.lineWidth = 2;
-              overlayCtx.stroke();
-
-              // ROI Label
-              if (currentProductMode === "research" || currentProductMode === "developer") {
-                overlayCtx.fillStyle = rData.isValid ? "#06b6d4" : "#ef4444";
-                overlayCtx.font = "10px sans-serif";
-                overlayCtx.fillText(name.toUpperCase(), poly[0][0] * scaleX, poly[0][1] * scaleY - 4);
-              }
-            }
-          }
-        }
-      }
-    }
-
     function updateDashboard(data) {
       const v = data.vitals;
       if (v.status === "VALID") {
