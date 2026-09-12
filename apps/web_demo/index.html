@@ -1141,6 +1141,83 @@
   </div>
 
   <!-- Clinical Reference Chart Modal -->
+  
+  <!-- Commercial & Regulatory Readiness Modal -->
+  <div class="modal-backdrop" id="complianceModal">
+    <div class="modal-content" style="max-width: 840px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3>⚖️ Commercialization & Regulatory Compliance Guide</h3>
+        <button class="btn-close-modal" onclick="closeComplianceModal()">✕</button>
+      </div>
+
+      <div style="font-size: 13px; color: var(--text-main); line-height: 1.6; space-y: 16px;">
+        
+        <!-- Highlight Banner -->
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 14px; border-radius: 10px; margin-bottom: 16px;">
+          <h4 style="color: var(--accent-green); font-size: 14px; font-weight: 700; margin-bottom: 4px;">Commercial Deployment Authorization</h4>
+          <p style="font-size: 12px; color: var(--text-muted);">
+            AuraPulse can be deployed commercially <strong>immediately</strong> under a <strong>General Wellness & B2B Analytics</strong> framework (Path A), matching the commercial go-to-market strategies of Binah.ai, Shen.ai, and NuraLogix.
+          </p>
+        </div>
+
+        <!-- Two Commercial Paths Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
+          
+          <!-- Path A: Immediate B2B Wellness -->
+          <div style="background: #0D1B2A; border: 1px solid #1E293B; border-radius: 10px; padding: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: var(--accent-cyan); font-size: 13px;">Path A: Immediate Commercialization</strong>
+              <span class="badge-pill optimal">Ready to Sell</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+              <strong>Model:</strong> General Wellness, Employee Vitality, & HealthTech Analytics.
+            </p>
+            <ul style="font-size: 11px; color: var(--text-muted); list-style: disc; margin-left: 16px; line-height: 1.5;">
+              <li><strong>Corporate Wellness:</strong> Stress tracking, autonomic recovery, and fatigue monitoring.</li>
+              <li><strong>Insurance Programs:</strong> Premium incentive check-ins, customer vitality scoring.</li>
+              <li><strong>Fitness & Gym Apps:</strong> Training readiness, resting HR, and VO2 max estimation.</li>
+              <li><strong>Telehealth Pre-Check:</strong> Pre-consultation informational intake for clinician review.</li>
+            </ul>
+          </div>
+
+          <!-- Path B: Clinical SaMD Clearance -->
+          <div style="background: #0D1B2A; border: 1px solid #1E293B; border-radius: 10px; padding: 14px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <strong style="color: var(--accent-purple); font-size: 13px;">Path B: Medical SaMD Roadmap</strong>
+              <span class="badge-pill warning">Clinical Track</span>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
+              <strong>Model:</strong> Certified Software as a Medical Device (FDA 510(k) / CE MDR).
+            </p>
+            <ul style="font-size: 11px; color: var(--text-muted); list-style: disc; margin-left: 16px; line-height: 1.5;">
+              <li><strong>FDA 510(k) Class II:</strong> Substantial equivalence for pulse rate and breathing rate.</li>
+              <li><strong>EU MDR Class IIa:</strong> CE mark certification for remote diagnostic screening.</li>
+              <li><strong>Clinical Trials:</strong> Multi-center cohort validation against 12-lead ECG and invasive A-line BP.</li>
+              <li><strong>QMS:</strong> ISO 13485 and IEC 62304 medical software life cycle standard.</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Mandatory Compliance Ruleset -->
+        <div style="background: #08121E; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 14px; margin-bottom: 16px;">
+          <h4 style="color: #fff; font-size: 13px; font-weight: 700; margin-bottom: 8px;">Mandatory Safe-Harbor Guidelines for Commercial Wellness Mode</h4>
+          
+          <div style="font-size: 11px; color: var(--text-muted); space-y: 6px;">
+            <p><strong>1. Universal Disclaimer:</strong> Every screen, printable summary, and exported report includes the clear safe-harbor notice: <em>"AuraPulse is intended for informational, fitness, and general wellness purposes only. It is not intended to diagnose, treat, cure, or prevent any medical condition or disease."</em></p>
+            <p><strong>2. Non-Diagnostic Terminology:</strong> Unvalidated physiological parameters are labeled as <em>"Arterial Waveform Analysis / SDPPG Index"</em>, <em>"Metabolic Wellness Indicator"</em>, and <em>"Pulse Rhythm Regularity Screener"</em> rather than definitive diagnostic lab tests.</p>
+            <p><strong>3. Observational Language:</strong> The UI provides physiological signal observations (e.g. <em>"Elevated resting pulse observed compared to typical baseline; consider resting and consulting a healthcare professional."</em>) rather than issuing direct medical diagnostic conclusions.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn-action-header" onclick="closeComplianceModal()" style="padding: 8px 20px;">I Understand</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="referenceChartModal">
     <div class="modal-content" style="max-width: 960px; max-height: 90vh; overflow-y: auto;">
       <div class="modal-header">
@@ -1334,6 +1411,14 @@
     });
 
     // Modals Handlers
+    
+    function openComplianceModal() {
+      document.getElementById("complianceModal").classList.add("open");
+    }
+    function closeComplianceModal() {
+      document.getElementById("complianceModal").classList.remove("open");
+    }
+
     function openReferenceModal() {
       document.getElementById("referenceChartModal").classList.add("open");
     }
