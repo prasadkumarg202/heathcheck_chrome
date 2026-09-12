@@ -544,94 +544,8 @@
     .btn-export:hover {
       opacity: 0.9;
     }
-  
-    .mode-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .mode-btn:hover {
-      color: var(--text-main);
-    }
-    .mode-btn.active {
-      background: #1e293b;
-      color: var(--accent-cyan);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    }
-
   </style>
-  <script src="/thresholds.js">
-    let currentProductMode = "patient";
-
-    function setProductMode(mode) {
-      currentProductMode = mode;
-      document.getElementById("btnModePatient").classList.toggle("active", mode === "patient");
-      document.getElementById("btnModeResearch").classList.toggle("active", mode === "research");
-      document.getElementById("btnModeDev").classList.toggle("active", mode === "developer");
-
-      const researchCard = document.getElementById("researchCard");
-      const devCard = document.getElementById("devCard");
-
-      if (mode === "patient") {
-        if (researchCard) researchCard.style.display = "none";
-        if (devCard) devCard.style.display = "none";
-      } else if (mode === "research") {
-        if (researchCard) researchCard.style.display = "flex";
-        if (devCard) devCard.style.display = "none";
-      } else if (mode === "developer") {
-        if (researchCard) researchCard.style.display = "none";
-        if (devCard) devCard.style.display = "flex";
-      }
-    }
-
-    function openReportModal() {
-      if (latestResultPayload && latestResultPayload.vitals) {
-        const v = latestResultPayload.vitals;
-        document.getElementById("repSessionId").innerText = "SESS-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-        document.getElementById("repTimestamp").innerText = new Date().toUTCString();
-        document.getElementById("repSqi").innerText = `${Math.round(v.signal_quality || 85)}% (${v.quality_category || "Optimal"})`;
-
-        if (v.heart_rate && v.heart_rate.value) {
-          document.getElementById("repValHr").innerText = `${v.heart_rate.value.toFixed(1)} BPM`;
-          document.getElementById("repBadgeHr").innerText = v.heart_rate.status || "Normal";
-        }
-        if (v.respiration_rate && v.respiration_rate.value) {
-          document.getElementById("repValRr").innerText = `${v.respiration_rate.value.toFixed(1)} RPM`;
-          document.getElementById("repBadgeRr").innerText = v.respiration_rate.status || "Optimal";
-        }
-        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
-          document.getElementById("repValRmssd").innerText = `${v.pulse_rate_variability.rmssd.toFixed(1)} ms`;
-        }
-        if (v.stress_index && v.stress_index.score) {
-          document.getElementById("repValStress").innerText = `${v.stress_index.score.toFixed(0)} SI`;
-        }
-        if (v.cardiac_workload && v.cardiac_workload.rpp) {
-          document.getElementById("repValRpp").innerText = v.cardiac_workload.rpp.toFixed(1);
-        }
-        if (v.vascular_age && v.vascular_age.estimatedAge) {
-          document.getElementById("repValVascAge").innerText = `${v.vascular_age.estimatedAge.toFixed(1)} Years`;
-        }
-        if (v.cvd_risk && v.cvd_risk.tenYearRiskPct) {
-          document.getElementById("repValCvd").innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)} %`;
-        }
-      }
-      document.getElementById("reportModal").style.display = "flex";
-    }
-
-    function closeReportModal() {
-      document.getElementById("reportModal").style.display = "none";
-    }
-
-  </script>
+  <script src="/thresholds.js"></script></script>
 </head>
 <body>
   <header>
@@ -1183,74 +1097,20 @@
 
     connectWebSocket();
 
-        async function initCamera() {
+    async function initCamera() {
       try {
-        statusBanner.innerText = "Requesting camera access...";
-        statusBanner.style.borderLeftColor = "#06b6d4";
-
-        const constraints = {
+        const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: "user"
-          },
-          audio: false
-        };
-
-        let stream;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia(constraints);
-        } catch (e1) {
-          // Fallback with minimal constraints for legacy webcams
-          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        }
-
-        video.srcObject = stream;
-        await video.play().catch(() => {});
-
-        const onVideoReady = () => {
-          const vw = video.videoWidth || 640;
-          const vh = video.videoHeight || 480;
-          overlayCanvas.width = vw;
-          overlayCanvas.height = vh;
-          sampleCanvas.width = vw;
-          sampleCanvas.height = vh;
-          const vp = document.querySelector('.video-viewport');
-          if (vp) {
-            vp.style.aspectRatio = `${vw} / ${vh}`;
+            width: { ideal: 640, max: 640 },
+            height: { ideal: 480, max: 480 },
+            frameRate: { ideal: 30, min: 25 }
           }
-          statusBanner.innerText = "● Camera Locked • Position Face Inside Guide";
-          statusBanner.style.borderLeftColor = "#10b981";
-          triggerKeyframeDetection();
-        };
-
-        if (video.videoWidth > 0) {
-          onVideoReady();
-        } else {
-          video.onloadedmetadata = onVideoReady;
-          video.onplaying = onVideoReady;
-        }
-
-      } catch (err) {
-        console.error("Camera access error:", err);
-        statusBanner.innerText = "⚠️ Camera access denied. Click 'Start 60s Scan' to retry.";
-        statusBanner.style.borderLeftColor = "#ef4444";
-      }
-    }
         });
         video.srcObject = stream;
         video.onloadedmetadata = () => {
-          const vw = video.videoWidth || 640;
-          const vh = video.videoHeight || 480;
-          overlayCanvas.width = vw;
-          overlayCanvas.height = vh;
-          sampleCanvas.width = vw;
-          sampleCanvas.height = vh;
-          const vp = document.querySelector('.video-viewport');
-          if (vp) {
-            vp.style.aspectRatio = `${vw} / ${vh}`;
-          }
-          statusBanner.innerText = "Camera locked. Align face inside guide.";
+          overlayCanvas.width = video.videoWidth || 640;
+          overlayCanvas.height = video.videoHeight || 480;
+          statusBanner.innerText = "Camera locked. Ready for scan.";
           triggerKeyframeDetection();
         };
       } catch (err) {
@@ -1260,18 +1120,12 @@
 
     initCamera();
 
-        startBtn.addEventListener("click", async () => {
-      // If camera not yet started, initialize it first
-      if (!video.srcObject || video.videoWidth === 0) {
-        await initCamera();
-      }
-
+    startBtn.addEventListener("click", async () => {
       if (wsReady && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "reset" }));
       } else {
         await fetch("/api/reset", { method: "POST" });
       }
-
       isScanning = true;
       scanCompleted = false;
       scanFramesCount = 0;
@@ -1279,7 +1133,7 @@
       waveformBuffer = [];
       startBtn.disabled = true;
       startBtn.innerText = "Scanning in Progress (60s)...";
-      statusBanner.innerText = "Starting comprehensive 60s health measurement...";
+      statusBanner.innerText = "Starting comprehensive health measurement...";
       statusBanner.style.borderLeftColor = "#06b6d4";
 
       // Reset values
@@ -1349,21 +1203,11 @@
       downloadAnchor.remove();
     });
 
-    let serverFrameSize = [640, 480];
-
     async function triggerKeyframeDetection() {
       if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
         isDetectingKeyframe = true;
-        const vw = video.videoWidth || 640;
-        const vh = video.videoHeight || 480;
-        if (sampleCanvas.width !== vw || sampleCanvas.height !== vh) {
-          sampleCanvas.width = vw;
-          sampleCanvas.height = vh;
-          overlayCanvas.width = vw;
-          overlayCanvas.height = vh;
-        }
-        sampleCtx.drawImage(video, 0, 0, vw, vh);
-        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.65);
+        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.50);
 
         try {
           const resp = await fetch("/api/detect_rois", {
@@ -1375,7 +1219,6 @@
           if (resp.ok) {
             const data = await resp.json();
             if (data.hasFace) {
-              serverFrameSize = [data.frameWidth || vw, data.frameHeight || vh];
               activeFaceBBox = data.faceBBox;
               activeROIs = data.rois;
               if (data.faceQuality) {
@@ -1452,7 +1295,7 @@
             const sustainedScanFps = (scanFramesCount / elapsed);
             telFps.innerText = `${sustainedScanFps.toFixed(1)} FPS (Locked)`;
             telFps.style.color = "#10b981";
-            scanTimer.innerText = "60s / 60s (Completed)";
+            scanTimer.innerText = "30s / 30s (Completed)";
             startBtn.disabled = false;
             startBtn.innerText = "Start New 60s Scan";
             statusBanner.innerText = "✅ 60s Scan Completed — Comprehensive Health Report Locked";
@@ -1503,48 +1346,33 @@
 
     requestAnimationFrame(highSpeedFrameLoop);
 
-        function renderOverlays() {
+    function renderOverlays() {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      const frameW = serverFrameSize[0] || overlayCanvas.width;
-      const frameH = serverFrameSize[1] || overlayCanvas.height;
-      const scaleX = overlayCanvas.width / frameW;
-      const scaleY = overlayCanvas.height / frameH;
+      const scaleX = overlayCanvas.width / sampleCanvas.width;
+      const scaleY = overlayCanvas.height / sampleCanvas.height;
 
-      // 1. Large Head Positioning Guide Oval (Visible to guide user to center their face)
-      if (!isScanning || !activeFaceBBox) {
+      if (!isScanning) {
         overlayCtx.save();
-        overlayCtx.strokeStyle = "rgba(0, 194, 215, 0.70)";
-        overlayCtx.lineWidth = 3.0;
-        overlayCtx.setLineDash([12, 8]);
+        overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
+        overlayCtx.lineWidth = 2;
+        overlayCtx.setLineDash([6, 6]);
         overlayCtx.beginPath();
-        const cx = overlayCanvas.width / 2.0;
-        const cy = overlayCanvas.height * 0.48;
-        const rx = overlayCanvas.width * 0.28;
-        const ry = overlayCanvas.height * 0.38;
-        overlayCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+        overlayCtx.ellipse(
+          overlayCanvas.width / 2,
+          overlayCanvas.height / 2,
+          overlayCanvas.width * 0.22,
+          overlayCanvas.height * 0.35,
+          0, 0, 2 * Math.PI
+        );
         overlayCtx.stroke();
-
-        overlayCtx.fillStyle = "#00C2D7";
-        overlayCtx.font = "bold 14px sans-serif";
-        overlayCtx.textAlign = "center";
-        overlayCtx.fillText("Fit Your Face Inside Guide", cx, cy + ry + 26);
         overlayCtx.restore();
       }
 
-      // 2. Detected Face Bounding Box & Dynamic High-Perfusion ROIs
       if (activeFaceBBox) {
         const [bx, by, bw, bh] = activeFaceBBox;
-        
-        // Green Face Bounding Box
-        overlayCtx.strokeStyle = "#10B981";
-        overlayCtx.lineWidth = 2.8;
+        overlayCtx.strokeStyle = "#10b981";
+        overlayCtx.lineWidth = 2.5;
         overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
-
-        // Face Status Pill
-        overlayCtx.fillStyle = "#10B981";
-        overlayCtx.font = "bold 12px sans-serif";
-        overlayCtx.textAlign = "left";
-        overlayCtx.fillText("● Face Locked", bx * scaleX + 4, by * scaleY - 8);
 
         if (activeROIs) {
           for (const [name, rData] of Object.entries(activeROIs)) {
@@ -1556,21 +1384,15 @@
                 overlayCtx.lineTo(poly[i][0] * scaleX, poly[i][1] * scaleY);
               }
               overlayCtx.closePath();
-
-              overlayCtx.strokeStyle = rData.isValid ? "#00C2D7" : "#EF4444";
-              overlayCtx.lineWidth = 2.2;
+              overlayCtx.strokeStyle = rData.isValid ? "#06b6d4" : "#ef4444";
+              overlayCtx.lineWidth = 2;
               overlayCtx.stroke();
-
-              // ROI Label in Research/Dev mode
-              if (currentProductMode === "research" || currentProductMode === "developer") {
-                overlayCtx.fillStyle = rData.isValid ? "#00C2D7" : "#EF4444";
-                overlayCtx.font = "bold 10px sans-serif";
-                overlayCtx.fillText(name.toUpperCase(), poly[0][0] * scaleX, poly[0][1] * scaleY - 4);
-              }
             }
           }
         }
       }
+    }
+
     function updateDashboard(data) {
       const v = data.vitals;
       if (v.status === "VALID") {
@@ -1806,68 +1628,6 @@
       }
       waveCtx.stroke();
     }
-  
-    let currentProductMode = "patient";
-
-    function setProductMode(mode) {
-      currentProductMode = mode;
-      document.getElementById("btnModePatient").classList.toggle("active", mode === "patient");
-      document.getElementById("btnModeResearch").classList.toggle("active", mode === "research");
-      document.getElementById("btnModeDev").classList.toggle("active", mode === "developer");
-
-      const researchCard = document.getElementById("researchCard");
-      const devCard = document.getElementById("devCard");
-
-      if (mode === "patient") {
-        if (researchCard) researchCard.style.display = "none";
-        if (devCard) devCard.style.display = "none";
-      } else if (mode === "research") {
-        if (researchCard) researchCard.style.display = "flex";
-        if (devCard) devCard.style.display = "none";
-      } else if (mode === "developer") {
-        if (researchCard) researchCard.style.display = "none";
-        if (devCard) devCard.style.display = "flex";
-      }
-    }
-
-    function openReportModal() {
-      if (latestResultPayload && latestResultPayload.vitals) {
-        const v = latestResultPayload.vitals;
-        document.getElementById("repSessionId").innerText = "SESS-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-        document.getElementById("repTimestamp").innerText = new Date().toUTCString();
-        document.getElementById("repSqi").innerText = `${Math.round(v.signal_quality || 85)}% (${v.quality_category || "Optimal"})`;
-
-        if (v.heart_rate && v.heart_rate.value) {
-          document.getElementById("repValHr").innerText = `${v.heart_rate.value.toFixed(1)} BPM`;
-          document.getElementById("repBadgeHr").innerText = v.heart_rate.status || "Normal";
-        }
-        if (v.respiration_rate && v.respiration_rate.value) {
-          document.getElementById("repValRr").innerText = `${v.respiration_rate.value.toFixed(1)} RPM`;
-          document.getElementById("repBadgeRr").innerText = v.respiration_rate.status || "Optimal";
-        }
-        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
-          document.getElementById("repValRmssd").innerText = `${v.pulse_rate_variability.rmssd.toFixed(1)} ms`;
-        }
-        if (v.stress_index && v.stress_index.score) {
-          document.getElementById("repValStress").innerText = `${v.stress_index.score.toFixed(0)} SI`;
-        }
-        if (v.cardiac_workload && v.cardiac_workload.rpp) {
-          document.getElementById("repValRpp").innerText = v.cardiac_workload.rpp.toFixed(1);
-        }
-        if (v.vascular_age && v.vascular_age.estimatedAge) {
-          document.getElementById("repValVascAge").innerText = `${v.vascular_age.estimatedAge.toFixed(1)} Years`;
-        }
-        if (v.cvd_risk && v.cvd_risk.tenYearRiskPct) {
-          document.getElementById("repValCvd").innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)} %`;
-        }
-      }
-      document.getElementById("reportModal").style.display = "flex";
-    }
-
-    function closeReportModal() {
-      document.getElementById("reportModal").style.display = "none";
-    }
-
   </script>
   <!-- Health Report Modal -->
   <div class="modal" id="reportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
