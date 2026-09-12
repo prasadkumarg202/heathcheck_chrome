@@ -123,23 +123,21 @@
     
     /* Mobile & Tablet Responsive Viewport */
     @media (max-width: 768px) {
+      .video-panel {
+        width: 100% !important;
+        max-width: 440px !important;
+        margin: 0 auto !important;
+        border-radius: 14px !important;
+      }
       .video-viewport {
-        width: 84% !important;
-        max-width: 320px !important;
-        aspect-ratio: 3 / 4 !important;
-        max-height: 340px !important;
-        min-height: 280px !important;
-        margin: 6px auto 10px auto !important;
-        border-radius: 16px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        width: 100% !important;
+        aspect-ratio: 4 / 3 !important;
+        max-height: 300px !important;
+        border-radius: 14px 14px 0 0 !important;
       }
       .container {
         padding: 8px 10px !important;
-        gap: 10px !important;
-      }
-      .video-panel {
-        border-radius: 14px !important;
-        padding-bottom: 6px !important;
+        gap: 12px !important;
       }
       .header-actions {
         gap: 6px !important;
@@ -179,21 +177,22 @@
       display: flex;
       flex-direction: column;
       position: relative;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
     }
 
     .video-viewport {
       position: relative;
       width: 100%;
-      max-width: 500px;
       aspect-ratio: 4 / 3;
-      max-height: 380px;
-      margin: 0 auto;
+      max-height: 360px;
       background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      border-radius: 14px;
+      border-radius: 14px 14px 0 0;
     }
 
     video#videoElement {
@@ -1664,11 +1663,9 @@
           sampleCanvas.width = baseW;
           sampleCanvas.height = Math.round(baseW * (vh / vw));
 
-          if (window.innerWidth > 768) {
-            const viewport = document.querySelector(".video-viewport");
-            if (viewport) {
-              viewport.style.aspectRatio = `${vw} / ${vh}`;
-            }
+          const viewport = document.querySelector(".video-viewport");
+          if (viewport) {
+            viewport.style.aspectRatio = `${vw} / ${vh}`;
           }
 
           statusBanner.innerHTML = "<span>● Camera locked. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
@@ -2040,9 +2037,9 @@
         overlayCtx.beginPath();
         overlayCtx.ellipse(
           overlayCanvas.width / 2,
-          overlayCanvas.height * 0.46,
-          overlayCanvas.width * 0.20,
-          overlayCanvas.height * 0.35,
+          overlayCanvas.height * 0.44,
+          overlayCanvas.width * 0.22,
+          overlayCanvas.height * 0.36,
           0, 0, 2 * Math.PI
         );
         overlayCtx.stroke();
