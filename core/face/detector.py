@@ -119,7 +119,7 @@ class FaceDetector:
                         str(self.yunet_path),
                         "",
                         (proc_w, proc_h),
-                        score_threshold=0.45,
+                        score_threshold=0.30,
                         nms_threshold=0.3
                     )
                     self.yunet_size = (proc_w, proc_h)

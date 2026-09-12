@@ -59,13 +59,13 @@ class ROIExtractor:
         eye_y = (ley + rey) / 2.0
         eye_dist = max(10.0, float(np.hypot(lex - rex, ley - rey)))
 
-        # 1. FOREHEAD POLYGON
+        # 1. FOREHEAD POLYGON (Upper Face above eyebrows)
         fh_mid_x = (eye_left_x + eye_right_x) / 2.0
-        fh_bot_y = int(eye_y - eye_dist * 0.38)
-        fh_top_y = max(int(by + bh * 0.05), int(eye_y - eye_dist * 0.85))
+        fh_bot_y = int(eye_y - eye_dist * 0.22)
+        fh_top_y = max(int(by + bh * 0.04), int(eye_y - eye_dist * 0.65))
         if fh_top_y >= fh_bot_y:
-            fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.40))
-        fh_half_w = eye_dist * 0.48
+            fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.35))
+        fh_half_w = eye_dist * 0.44
 
         forehead_poly = np.array([
             [int(fh_mid_x - fh_half_w * 1.05), fh_bot_y],
@@ -74,23 +74,23 @@ class ROIExtractor:
             [int(fh_mid_x + fh_half_w * 1.05), fh_bot_y],
         ], dtype=np.int32)
 
-        # 2. MALAR CHEEKBONES
-        cheek_y = eye_y + (nose_y - eye_y) * 0.42
-        cheek_w = eye_dist * 0.34
-        cheek_h = max(6.0, (nose_y - eye_y) * 0.45)
+        # 2. MALAR CHEEKBONES (Upper cheeks flanking nose bridge, above nose base)
+        cheek_y = eye_y + (nose_y - eye_y) * 0.28
+        cheek_w = eye_dist * 0.28
+        cheek_h = max(6.0, (nose_y - eye_y) * 0.35)
 
         left_cheek_poly = np.array([
-            [int(eye_left_x - eye_dist * 0.05 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(eye_left_x - eye_dist * 0.05 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(eye_left_x - eye_dist * 0.05 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
-            [int(eye_left_x - eye_dist * 0.05 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.02 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.02 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.02 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.02 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
         right_cheek_poly = np.array([
-            [int(eye_right_x + eye_dist * 0.05 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(eye_right_x + eye_dist * 0.05 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(eye_right_x + eye_dist * 0.05 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
-            [int(eye_right_x + eye_dist * 0.05 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.02 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.02 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.02 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.02 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
         candidate_polys = {
