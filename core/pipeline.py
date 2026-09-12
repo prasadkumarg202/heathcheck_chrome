@@ -129,6 +129,7 @@ class AuraPulseEngine:
 
     def start_session(self) -> None:
         self.signal_buffer.clear()
+        self.hr_engine.reset_tracking()
         self.session_active = True
         self.session_start_time = time.time()
 

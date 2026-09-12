@@ -88,15 +88,25 @@ class TemporalSignalBuffer:
         mask = t_arr >= t_start
         t_win = t_arr[mask]
 
+        if len(t_win) < 2 or (t_win[-1] - t_win[0]) < 1.0:
+            return np.array([]), {}, actual_duration
+
+        # Deduplicate timestamps to guarantee strictly increasing time sequence
+        unique_mask = np.concatenate(([True], np.diff(t_win) > 1e-5))
+        t_win_uniq = t_win[unique_mask]
+
+        if len(t_win_uniq) < 2 or (t_win_uniq[-1] - t_win_uniq[0]) < 1.0:
+            return np.array([]), {}, actual_duration
+
         # Uniform time grid
         num_target_points = max(int(actual_duration * target_fs), 10)
-        t_uniform = np.linspace(t_win[0], t_win[-1], num_target_points)
+        t_uniform = np.linspace(t_win_uniq[0], t_win_uniq[-1], num_target_points)
 
         interpolated_signals: Dict[str, np.ndarray] = {}
 
         for roi_name in ["forehead", "left_cheek", "right_cheek"]:
-            raw_rgb = np.array(self.signals_rgb[roi_name])[mask]  # (M, 3)
-            val_mask = np.array(self.is_valid_mask[roi_name])[mask]
+            raw_rgb = np.array(self.signals_rgb[roi_name])[mask][unique_mask]  # (M, 3)
+            val_mask = np.array(self.is_valid_mask[roi_name])[mask][unique_mask]
 
             if np.count_nonzero(val_mask) < (len(val_mask) * 0.4):
                 # ROI is largely invalid/corrupted
@@ -114,7 +124,7 @@ class TemporalSignalBuffer:
                         channel_data = np.interp(np.arange(len(channel_data)), valid_idx, channel_data[valid_idx])
                 
                 f_interp = interpolate.interp1d(
-                    t_win,
+                    t_win_uniq,
                     channel_data,
                     kind='linear',
                     bounds_error=False,

@@ -55,7 +55,7 @@ class HeartRateEngine:
         Calculates heart rate from BVP signal using ensemble spectral and temporal analysis.
         """
         N = len(bvp_signal)
-        if N < int(fs * 4):  # Minimum 4 seconds
+        if N < int(fs * 3.0):  # Minimum 3 seconds
             return HRResult(
                 hr_bpm=0.0,
                 confidence=0.0,

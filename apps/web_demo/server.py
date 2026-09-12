@@ -29,7 +29,7 @@ from core.face.detector import FaceDetector
 from core.roi.extractor import ROIExtractor, ROIData
 
 # Initialize single-session engine
-engine = AuraPulseEngine(min_measurement_duration_s=4.0, window_duration_s=25.0, target_fs=30.0)
+engine = AuraPulseEngine(min_measurement_duration_s=3.0, window_duration_s=25.0, target_fs=30.0, min_sqi_threshold=15.0)
 engine.start_session()
 
 face_detector = FaceDetector(detection_interval=1)
@@ -180,22 +180,28 @@ async def detect_rois_keyframe(request):
 
 
 def _ingest_roi_signals(timestamp_s: float, roi_signals: dict):
+    if not roi_signals or not isinstance(roi_signals, dict):
+        return
     dummy_poly = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
     roi_dict = {}
+    has_valid_data = False
     for r_name in ["forehead", "left_cheek", "right_cheek"]:
-        if r_name in roi_signals:
+        if r_name in roi_signals and roi_signals[r_name] is not None:
             rgb = tuple(roi_signals[r_name])
-            roi_dict[r_name] = ROIData(
-                name=r_name,
-                polygon=dummy_poly,
-                mean_rgb=rgb,
-                median_rgb=rgb,
-                std_rgb=(1.0, 1.0, 1.0),
-                skin_pixel_pct=95.0,
-                num_valid_pixels=200,
-                is_valid=True
-            )
-    engine.signal_buffer.append(timestamp_s, roi_dict)
+            if len(rgb) == 3 and any(v > 0 for v in rgb):
+                has_valid_data = True
+                roi_dict[r_name] = ROIData(
+                    name=r_name,
+                    polygon=dummy_poly,
+                    mean_rgb=rgb,
+                    median_rgb=rgb,
+                    std_rgb=(1.0, 1.0, 1.0),
+                    skin_pixel_pct=95.0,
+                    num_valid_pixels=200,
+                    is_valid=True
+                )
+    if has_valid_data:
+        engine.signal_buffer.append(timestamp_s, roi_dict)
 
 
 async def push_signals_api(request):
@@ -213,7 +219,7 @@ async def push_signals_api(request):
         _ingest_roi_signals(timestamp_s, roi_signals)
 
         now = time.perf_counter()
-        if (now - last_vitals_compute_time) >= 0.25:
+        if (now - last_vitals_compute_time) >= 0.15:
             cached_vitals = engine.compute_vitals(meta)
             last_vitals_compute_time = now
 
@@ -242,7 +248,7 @@ async def push_signals_batch_api(request):
             _ingest_roi_signals(ts, sigs)
 
         now = time.perf_counter()
-        if (now - last_vitals_compute_time) >= 0.20:
+        if (now - last_vitals_compute_time) >= 0.15:
             cached_vitals = engine.compute_vitals(meta)
             last_vitals_compute_time = now
 
@@ -264,13 +270,19 @@ async def websocket_signals_endpoint(websocket: WebSocket):
     try:
         while True:
             text = await websocket.receive_text()
-            data = json.loads(text)
+            try:
+                data = json.loads(text)
+            except Exception:
+                continue
             
             if data.get("type") == "reset":
                 engine.start_session()
                 cached_vitals = engine.compute_vitals(user_profile)
                 last_vitals_compute_time = 0.0
-                await websocket.send_text(json.dumps({ "status": "SESSION_RESET" }))
+                await websocket.send_text(json.dumps(convert_to_serializable({
+                    "status": "SESSION_RESET",
+                    "vitals": cached_vitals.to_dict()
+                })))
                 continue
 
             if data.get("type") == "update_profile":

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -1697,7 +1697,7 @@
 
     initCamera();
 
-        function resetAllDashboardMetrics() {
+    function resetAllDashboardMetrics() {
       // 1. Core Vitals
       if (hrValue) hrValue.innerText = "--";
       if (hrBadge) { hrBadge.innerText = "⚪ Waiting"; hrBadge.className = "badge-pill neutral"; }
@@ -1717,14 +1717,17 @@
       if (spo2Value) spo2Value.innerText = "--";
       if (spo2Badge) { spo2Badge.innerText = "⚪ Waiting"; spo2Badge.className = "badge-pill neutral"; }
       if (spo2Ratio) spo2Ratio.innerText = "--";
+      if (spo2Subtext) spo2Subtext.innerText = "Dual-wavelength Ratio-of-Ratios";
 
       if (prvValue) prvValue.innerText = "--";
       if (prvBadge) { prvBadge.innerText = "⚪ Waiting"; prvBadge.className = "badge-pill neutral"; }
       if (sdnnValue) sdnnValue.innerText = "--";
       if (pnn50Value) pnn50Value.innerText = "--%";
+      if (prvSubtext) prvSubtext.innerText = "Autonomic vagal recovery indicator";
 
       if (prqValue) prqValue.innerText = "--";
       if (prqBadge) { prqBadge.innerText = "⚪ Waiting"; prqBadge.className = "badge-pill neutral"; }
+      if (prqSubtext) prqSubtext.innerText = "Cardiopulmonary synchronization";
 
       if (sqiValue) sqiValue.innerText = "-- / 100";
 
@@ -1749,71 +1752,61 @@
       if (vo2Sub) vo2Sub.innerText = "Jackson-Pollock Non-Exercise Model";
 
       // 3. Stress & Autonomic
-      const baevskyV = document.getElementById("baevskyValue");
-      const baevskyB = document.getElementById("baevskyBadge");
-      if (baevskyV) baevskyV.innerText = "--";
-      if (baevskyB) { baevskyB.innerText = "⚪ Waiting"; baevskyB.className = "badge-pill neutral"; }
+      if (baevskyValue) baevskyValue.innerText = "--";
+      if (baevskyBadge) { baevskyBadge.innerText = "⚪ Waiting"; baevskyBadge.className = "badge-pill neutral"; }
+      if (baevskySubtext) baevskySubtext.innerText = "Sympathetic tension & regulatory strain";
 
-      const stressV = document.getElementById("stressValue");
-      const stressB = document.getElementById("stressBadge");
-      if (stressV) stressV.innerText = "--";
-      if (stressB) { stressB.innerText = "⚪ Waiting"; stressB.className = "badge-pill neutral"; }
+      if (pnsValue) pnsValue.innerText = "--";
+      if (pnsBadge) { pnsBadge.innerText = "⚪ Waiting"; pnsBadge.className = "badge-pill neutral"; }
+      if (pnsSubtext) pnsSubtext.innerText = "Vagal rest & regenerative capacity";
 
-      const pnsV = document.getElementById("pnsValue");
-      const pnsZ = document.getElementById("pnsZone");
-      if (pnsV) pnsV.innerText = "--";
-      if (pnsZ) pnsZ.innerText = "Parasympathetic Index";
+      if (snsValue) snsValue.innerText = "--";
+      if (snsBadge) { snsBadge.innerText = "⚪ Waiting"; snsBadge.className = "badge-pill neutral"; }
+      if (snsSubtext) snsSubtext.innerText = "Fight-or-flight sympathetic mobilization";
 
-      const snsV = document.getElementById("snsValue");
-      const snsZ = document.getElementById("snsZone");
-      if (snsV) snsV.innerText = "--";
-      if (snsZ) snsZ.innerText = "Sympathetic Index";
+      if (lfHfValue) lfHfValue.innerText = "--";
+      if (lfHfBadge) { lfHfBadge.innerText = "⚪ Waiting"; lfHfBadge.className = "badge-pill neutral"; }
+      if (lfHfSubtext) lfHfSubtext.innerText = "Sympathovagal spectral balance";
 
-      const lfHf = document.getElementById("lfHfRatio");
-      if (lfHf) lfHf.innerText = "--";
+      if (rppValue) rppValue.innerText = "--";
+      if (workloadBadge) { workloadBadge.innerText = "⚪ Waiting"; workloadBadge.className = "badge-pill neutral"; }
+      if (workloadSubtext) workloadSubtext.innerText = "Rate-Pressure Product (HR × SBP / 100)";
 
-      // 4. Cardiovascular & Chronic Risks
-      const rppV = document.getElementById("rppValue");
-      const rppB = document.getElementById("rppBadge");
-      const rppC = document.getElementById("cardiacWorkload");
-      const rppCat = document.getElementById("rppCategory");
-      if (rppV) rppV.innerText = "--";
-      if (rppB) { rppB.innerText = "⚪ Waiting"; rppB.className = "badge-pill neutral"; }
-      if (rppC) rppC.innerText = "--";
-      if (rppCat) rppCat.innerText = "Baseline";
+      if (stressValue) stressValue.innerText = "--";
+      if (stressLevelBadge) { stressLevelBadge.innerText = "⚪ Waiting"; stressLevelBadge.className = "badge-pill neutral"; }
+      if (stressSubtext) stressSubtext.innerText = "Multi-biomarker arousal score";
 
-      const ascvdRisk = document.getElementById("ascvd10YrRisk");
-      const ascvdB = document.getElementById("ascvdBadge");
-      if (ascvdRisk) ascvdRisk.innerText = "--%";
-      if (ascvdB) { ascvdB.innerText = "⚪ Waiting"; ascvdB.className = "badge-pill neutral"; }
+      // 4. Chronic & Metabolic Risks
+      if (cvdRiskScore) { cvdRiskScore.innerText = "--%"; cvdRiskScore.className = "risk-score-badge"; }
+      if (cvdCatLabel) cvdCatLabel.innerText = "Low Risk (<10%)";
+      if (cvdSubtext) cvdSubtext.innerText = "Framingham Cox Proportional Hazard Model";
 
-      const vascAge = document.getElementById("vascAgeValue");
-      const vascBadge = document.getElementById("vascAgeBadge");
-      const vascDelta = document.getElementById("vascDeltaValue");
-      if (vascAge) vascAge.innerText = "--";
-      if (vascBadge) { vascBadge.innerText = "⚪ Waiting"; vascBadge.className = "badge-pill neutral"; }
-      if (vascDelta) vascDelta.innerText = "Delta: -- yrs";
+      if (vascAgeValue) vascAgeValue.innerText = "--";
+      if (vascDeltaValue) vascDeltaValue.innerText = "Delta: -- yrs";
+      if (vascStatusBadge) { vascStatusBadge.innerText = "⚪ Waiting"; vascStatusBadge.className = "badge-pill neutral"; }
+      if (vascSubtext) vascSubtext.innerText = "Arterial compliance & Aging Index (AGI)";
 
-      // 5. Metabolic
-      const metScore = document.getElementById("metabolicScore");
-      const metBadge = document.getElementById("metabolicBadge");
-      if (metScore) metScore.innerText = "--";
-      if (metBadge) { metBadge.innerText = "⚪ Waiting"; metBadge.className = "badge-pill neutral"; }
+      if (hbValue) hbValue.innerText = "--";
+      if (hbBadge) { hbBadge.innerText = "⚪ Waiting"; hbBadge.className = "badge-pill neutral"; }
+      if (hbSubtext) hbSubtext.innerText = "Differential optical extinction model";
 
-      const tgHdl = document.getElementById("tgHdlValue");
-      if (tgHdl) tgHdl.innerText = "--";
-      const tyg = document.getElementById("tygValue");
-      if (tyg) tyg.innerText = "--";
-      const visc = document.getElementById("visceralFat");
-      if (visc) visc.innerText = "--";
-      const hba1c = document.getElementById("hbA1cValue");
-      if (hba1c) hba1c.innerText = "--%";
-      const hb = document.getElementById("hbValue");
-      const hbB = document.getElementById("hbBadge");
-      if (hb) hb.innerText = "--";
-      if (hbB) { hbB.innerText = "⚪ Waiting"; hbB.className = "badge-pill neutral"; }
-      const whtr = document.getElementById("whtrValue");
-      if (whtr) whtr.innerText = "--";
+      if (fbgValue) fbgValue.innerText = "--";
+      if (fbgBadge) { fbgBadge.innerText = "⚪ Waiting"; fbgBadge.className = "badge-pill neutral"; }
+      if (fbgSubtext) fbgSubtext.innerText = "Multi-variate glycemic risk indicator";
+
+      if (hba1cValue) hba1cValue.innerText = "--";
+      if (hba1cBadge) { hba1cBadge.innerText = "⚪ Waiting"; hba1cBadge.className = "badge-pill neutral"; }
+      if (hba1cSubtext) hba1cSubtext.innerText = "Estimated 3-month glycemic exposure tier";
+
+      if (bmiValue) bmiValue.innerText = "--";
+      if (bmiBadge) { bmiBadge.innerText = "⚪ Waiting"; bmiBadge.className = "badge-pill neutral"; }
+      if (bmiSubtext) bmiSubtext.innerText = "Anthropometric body roundness analysis";
+      if (briValue) briValue.innerText = "--";
+      if (whtrValue) whtrValue.innerText = "--";
+
+      if (strokeValue) strokeValue.innerText = "--";
+      if (strokeBadge) { strokeBadge.innerText = "⚪ Waiting"; strokeBadge.className = "badge-pill neutral"; }
+      if (htnScoreValue) htnScoreValue.innerText = "--";
     }
 
     startBtn.addEventListener("click", () => {
@@ -1838,7 +1831,7 @@
       startBtn.innerText = "Stop / Cancel Scan";
       startBtn.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
       scanTimer.innerText = "0s / 60s";
-      statusBanner.innerHTML = "<span>● Analyzing multi-spectral facial stream...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
+      statusBanner.innerHTML = "<span>● Initializing optical buffer (0s / 3s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
 
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
       resetAllDashboardMetrics();
@@ -2015,7 +2008,7 @@
           }
 
           const payload = {
-            timestamp_s: nowMs / 1000.0,
+            timestamp_s: (nowMs - scanStartTime) / 1000.0,
             signals: roiSignals,
             profile: userProfile
           };
@@ -2544,10 +2537,10 @@
         }
       } else {
         const elapsed = (performance.now() - scanStartTime) / 1000;
-        if (elapsed < 4.0) {
-          statusBanner.innerHTML = `<span>ΓùÅ Initializing optical buffer (${Math.floor(elapsed)}s / 4s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
+        if (elapsed < 3.0) {
+          statusBanner.innerHTML = `<span>● Initializing optical buffer (${Math.floor(elapsed)}s / 3s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
         } else {
-          statusBanner.innerHTML = `<span>ΓùÅ ${v.reason || "Analyzing multi-spectral facial stream..."}</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
+          statusBanner.innerHTML = `<span>● ${v.reason || "Analyzing multi-spectral facial stream..."}</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
         }
         sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
       }
