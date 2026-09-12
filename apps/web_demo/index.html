@@ -1889,6 +1889,8 @@
       downloadAnchor.remove();
     });
 
+    let missedFaceCount = 0;
+
     async function triggerKeyframeDetection() {
       if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
         isDetectingKeyframe = true;
@@ -1907,8 +1909,15 @@
             if (data.hasFace) {
               activeFaceBBox = data.faceBBox;
               activeROIs = data.rois;
+              missedFaceCount = 0;
               if (data.faceQuality) {
                 telLighting.innerText = `${Math.round(data.faceQuality.illumination)}%`;
+              }
+            } else {
+              missedFaceCount++;
+              if (missedFaceCount >= 2) {
+                activeFaceBBox = null;
+                activeROIs = null;
               }
             }
           }
@@ -1985,7 +1994,7 @@
             startBtn.disabled = false;
             startBtn.innerText = "Start New 60s Scan";
             startBtn.style.background = "";
-            statusBanner.innerHTML = "<span style='color:#10b981;'>Γ£à 60s Health Screening Completed ΓÇö Report Locked</span>";
+            statusBanner.innerHTML = "<span style='color:#10b981;'>✅ 60s Health Screening Completed — Report Locked</span>";
           } else {
             scanTimer.innerText = `${Math.floor(elapsed)}s / 60s`;
             const durEl = document.getElementById("bannerDuration");
@@ -1996,9 +2005,14 @@
         sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
         renderOverlays();
 
-        const detectInterval = (activeFaceBBox && activeROIs) ? 1500 : 500;
+        const detectInterval = (activeFaceBBox && activeROIs) ? 350 : 180;
         if (nowMs - lastKeyframeTime > detectInterval) {
           triggerKeyframeDetection();
+        }
+
+        if (!activeROIs && isScanning) {
+          const elapsed = (nowMs - scanStartTime) / 1000.0;
+          statusBanner.innerHTML = `<span>● Align face in camera view to detect pulse...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${Math.floor(elapsed)}s / 60s</span>`;
         }
 
         if (activeROIs && isScanning) {

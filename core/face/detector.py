@@ -80,7 +80,7 @@ class FaceDetector:
         self.last_landmarks: Optional[FaceLandmarks] = None
         self.last_quality: Optional[FaceQualityScore] = None
         self.last_center: Optional[Tuple[float, float]] = None
-        self.tracking_alpha = 0.75
+        self.tracking_alpha = 0.90
 
     def detect(self, frame: np.ndarray) -> Tuple[bool, Optional[FaceLandmarks], FaceQualityScore]:
         """
