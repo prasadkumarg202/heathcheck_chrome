@@ -62,13 +62,14 @@
     }
 
     .brand h1 {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 700;
       letter-spacing: -0.4px;
     }
 
-    .brand span {
-      color: var(--accent-cyan);
+    .brand p {
+      font-size: 11px;
+      color: var(--text-muted);
     }
 
     .header-actions {
@@ -90,11 +91,11 @@
       gap: 6px;
     }
 
-    .btn-profile-toggle {
+    .btn-action-header {
       background: #1e293b;
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 6px 14px;
+      padding: 7px 14px;
       border-radius: 8px;
       font-size: 12px;
       font-weight: 600;
@@ -104,7 +105,7 @@
       gap: 6px;
       transition: all 0.2s;
     }
-    .btn-profile-toggle:hover {
+    .btn-action-header:hover {
       background: #334155;
     }
 
@@ -113,12 +114,19 @@
       grid-template-columns: 1.05fr 1.25fr;
       gap: 20px;
       padding: 20px 28px;
-      max-width: 1560px;
+      max-width: 1600px;
       margin: 0 auto;
       width: 100%;
       flex: 1;
     }
 
+    @media (max-width: 1150px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left Column */
     .left-panel {
       display: flex;
       flex-direction: column;
@@ -127,32 +135,30 @@
 
     .video-panel {
       background: var(--panel-bg);
-      border-radius: 16px;
       border: 1px solid var(--border-color);
-      padding: 16px;
+      border-radius: 16px;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      position: relative;
     }
 
     .video-viewport {
       position: relative;
       width: 100%;
-      aspect-ratio: 4/3;
+      aspect-ratio: 4 / 3;
       background: #000;
-      border-radius: 12px;
-      overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
     }
 
-    video {
-      position: absolute;
+    video#videoElement {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      transform: scaleX(-1);
     }
 
     canvas#overlayCanvas {
@@ -161,6 +167,7 @@
       left: 0;
       width: 100%;
       height: 100%;
+      transform: scaleX(-1);
       pointer-events: none;
     }
 
@@ -169,42 +176,50 @@
       top: 12px;
       left: 12px;
       right: 12px;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(8px);
       padding: 8px 14px;
-      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 4px solid var(--accent-cyan);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(8px);
+      z-index: 10;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 12px;
-      font-weight: 600;
-      border-left: 4px solid var(--accent-cyan);
-      z-index: 10;
     }
 
     .controls-row {
       display: flex;
-      gap: 10px;
+      gap: 12px;
+      padding: 14px;
+      background: #090e17;
+      border-top: 1px solid var(--border-color);
     }
 
-    button.btn-ctrl {
+    .btn-ctrl {
       flex: 1;
-      padding: 12px 16px;
+      padding: 12px;
       border-radius: 10px;
       font-weight: 700;
-      font-size: 13px;
+      font-size: 14px;
       cursor: pointer;
       border: none;
-      transition: all 0.2s ease;
+      transition: all 0.2s;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
-      color: #fff;
+      color: #000;
     }
     .btn-primary:hover {
       opacity: 0.95;
       transform: translateY(-1px);
+    }
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
 
     .btn-secondary {
@@ -221,9 +236,8 @@
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       background: #090e17;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-top: 1px solid var(--border-color);
       font-size: 11px;
       color: var(--text-muted);
     }
@@ -271,6 +285,7 @@
       gap: 8px;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 8px;
+      overflow-x: auto;
     }
 
     .tab-btn {
@@ -282,11 +297,13 @@
       padding: 8px 14px;
       border-radius: 8px;
       cursor: pointer;
+      white-space: nowrap;
       transition: all 0.2s;
     }
     .tab-btn.active {
       background: #1e293b;
       color: var(--accent-cyan);
+      box-shadow: inset 0 0 0 1px var(--accent-cyan);
     }
 
     .tab-content {
@@ -304,6 +321,12 @@
       gap: 14px;
     }
 
+    @media (max-width: 768px) {
+      .grid-vitals {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .vital-card {
       background: var(--panel-bg);
       border: 1px solid var(--border-color);
@@ -314,6 +337,7 @@
       justify-content: space-between;
       position: relative;
       overflow: hidden;
+      min-height: 120px;
       transition: border-color 0.3s ease;
     }
 
@@ -331,6 +355,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
 
     .card-title {
@@ -345,103 +370,98 @@
     .badge-pill {
       font-size: 10px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 3px 9px;
       border-radius: 20px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: all 0.2s ease;
+      white-space: nowrap;
     }
     .badge-pill.optimal {
       background: rgba(16, 185, 129, 0.15);
-      border: 1px solid var(--accent-green);
       color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
     .badge-pill.warning {
       background: rgba(234, 179, 8, 0.15);
-      border: 1px solid var(--accent-yellow);
       color: var(--accent-yellow);
+      border: 1px solid rgba(234, 179, 8, 0.3);
     }
     .badge-pill.critical {
       background: rgba(239, 68, 68, 0.15);
-      border: 1px solid var(--accent-red);
       color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
     .badge-pill.neutral {
-      background: rgba(148, 163, 184, 0.12);
-      border: 1px solid #475569;
+      background: #1e293b;
       color: var(--text-muted);
+      border: 1px solid var(--border-color);
     }
 
     .card-value-group {
-      margin: 10px 0;
       display: flex;
       align-items: baseline;
-      gap: 6px;
+      gap: 8px;
+      margin: 10px 0 6px 0;
     }
 
     .card-value {
-      font-size: 34px;
+      font-size: 28px;
       font-weight: 800;
-      color: #fff;
-      transition: color 0.3s ease;
+      color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
     }
 
     .card-unit {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-muted);
-      font-weight: 500;
+      font-weight: 600;
     }
 
     .card-subtext {
       font-size: 11px;
       color: var(--text-muted);
-      margin-top: 2px;
-      font-weight: 500;
       line-height: 1.3;
-      transition: color 0.3s ease;
+      margin-bottom: 6px;
     }
 
     .card-meta {
-      font-size: 11px;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
+      font-size: 10px;
+      color: #64748b;
       border-top: 1px solid rgba(255, 255, 255, 0.05);
       padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    /* Risk & Body Comp Cards */
     .risk-banner-card {
-      background: var(--panel-bg);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
       border: 1px solid var(--border-color);
       border-radius: 14px;
-      padding: 18px;
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
     .risk-score-badge {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
-      padding: 8px 18px;
+      padding: 6px 16px;
       border-radius: 12px;
       background: rgba(16, 185, 129, 0.15);
-      border: 1px solid var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
       color: var(--accent-green);
-      text-align: center;
     }
-
     .risk-score-badge.moderate {
       background: rgba(234, 179, 8, 0.15);
-      border-color: var(--accent-yellow);
+      border-color: rgba(234, 179, 8, 0.3);
       color: var(--accent-yellow);
     }
     .risk-score-badge.high {
       background: rgba(239, 68, 68, 0.15);
-      border-color: var(--accent-red);
+      border-color: rgba(239, 68, 68, 0.3);
       color: var(--accent-red);
     }
 
@@ -452,12 +472,13 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.8);
       backdrop-filter: blur(6px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
+      z-index: 1000;
+      padding: 16px;
     }
     .modal-backdrop.open {
       display: flex;
@@ -468,12 +489,12 @@
       border: 1px solid var(--border-color);
       border-radius: 16px;
       padding: 24px;
-      width: 90%;
-      max-width: 480px;
+      width: 100%;
+      max-width: 520px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85);
     }
 
     .modal-header {
@@ -484,14 +505,15 @@
       padding-bottom: 10px;
     }
     .modal-header h3 {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 700;
+      color: var(--accent-cyan);
     }
     .btn-close-modal {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 20px;
+      font-size: 22px;
       cursor: pointer;
     }
 
@@ -544,64 +566,52 @@
     .btn-export:hover {
       opacity: 0.9;
     }
+
+    /* Reference Table */
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      text-align: left;
+    }
+    .report-table th {
+      background: #091320;
+      color: #9AA8B7;
+      padding: 10px 12px;
+      font-weight: 700;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .report-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border-color);
+      color: #e2e8f0;
+    }
   </style>
-  <script src="/thresholds.js">
-    function openReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "flex";
-    }
-
-    function closeReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "none";
-    }
-
-  </script>
-    function openReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "flex";
-    }
-
-    function closeReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "none";
-    }
-
-  </script>
+  <script src="/thresholds.js"></script>
 </head>
 <body>
   <header>
-        <div class="brand">
+    <div class="brand">
       <div class="logo-badge">AURAPULSE</div>
-      <div class="brand-text">
-        <h1 style="font-size: 18px; font-weight: 700;">AuraPulse Health AI</h1>
-        <p style="font-size: 11px; color: var(--text-muted);">60 Seconds. Camera-Based Health Intelligence.</p>
+      <div>
+        <h1>AuraPulse Health AI</h1>
+        <p>60 Seconds. Camera-Based Health Intelligence.</p>
       </div>
-    </div>
-
-    <!-- 3-Tier Product Mode Switcher -->
-    <div class="mode-switcher" style="display: flex; background: #091320; border: 1px solid var(--border-color); padding: 3px; border-radius: 10px; gap: 4px;">
-      <button class="mode-btn active" id="btnModePatient" onclick="setProductMode('patient')">
-        <span>👤</span> Patient Mode
-      </button>
-      <button class="mode-btn" id="btnModeResearch" onclick="setProductMode('research')">
-        <span>🔬</span> Research Mode
-      </button>
-      <button class="mode-btn" id="btnModeDev" onclick="setProductMode('developer')">
-        <span>🛠️</span> Developer Mode
-      </button>
     </div>
 
     <div class="header-actions">
       <div class="privacy-tag">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        100% On-Device / RAM Only
+        100% Edge Processing
       </div>
-      <button class="btn-profile-toggle" onclick="openReferenceChartModal()" style="background: rgba(0, 194, 215, 0.15); border-color: #00C2D7; color: #00C2D7;">
-        <span>📊</span> Clinical Reference Chart
+      <button class="btn-action-header" onclick="openReferenceModal()" style="color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.4);">
+        <span>📊</span> Clinical Chart
       </button>
-      <button class="btn-profile-toggle" onclick="openReportModal()">
+      <button class="btn-action-header" onclick="openReportModal()">
         <span>📄</span> View Report
       </button>
-      <button class="btn-profile-toggle" id="profileToggleBtn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Subject Profile
+      <button class="btn-action-header" id="profileToggleBtn">
+        <span>👤</span> Subject Profile
       </button>
     </div>
   </header>
@@ -611,7 +621,10 @@
     <div class="left-panel">
       <div class="video-panel">
         <div class="video-viewport">
-          <div class="status-banner" id="diagnosticStatus">Initializing AuraPulse biomedical stream...</div>
+          <div class="status-banner" id="diagnosticStatus">
+            <span>● Camera initializing...</span>
+            <span id="bannerDuration" style="color: var(--text-muted); font-size: 11px;">60s Target</span>
+          </div>
           <video id="videoElement" autoplay playsinline muted></video>
           <canvas id="overlayCanvas"></canvas>
         </div>
@@ -651,19 +664,19 @@
     <div class="right-panel">
       <div class="tabs-nav">
         <button class="tab-btn active" data-tab="tab-vitals">Core Vitals</button>
-        <button class="tab-btn" data-tab="tab-wellness">Stress & Autonomic</button>
-        <button class="tab-btn" data-tab="tab-risks">Cardiovascular & Metabolic Risk</button>
-        <button class="tab-btn" data-tab="tab-reference" style="color: #00C2D7;">📊 Reference Health Chart</button>
+        <button class="tab-btn" data-tab="tab-stress">Stress & Autonomic</button>
+        <button class="tab-btn" data-tab="tab-risks">Chronic & Metabolic Risks</button>
+        <button class="tab-btn" data-tab="tab-reference" style="color: var(--accent-cyan);">📊 Reference Health Chart</button>
       </div>
 
       <!-- TAB 1: CORE VITALS -->
       <div class="tab-content active" id="tab-vitals">
         <div class="grid-vitals">
           <!-- Heart Rate -->
-          <div class="vital-card card-hr" id="cardHr">
+          <div class="vital-card" id="cardHr">
             <div class="card-header-row">
               <span class="card-title">Heart Rate (rPPG)</span>
-              <span class="badge-pill neutral" id="hrBadge">Waiting</span>
+              <span class="badge-pill neutral" id="hrBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="hrValue">--</span>
@@ -677,10 +690,10 @@
           </div>
 
           <!-- Respiration Rate -->
-          <div class="vital-card card-rr" id="cardRr">
+          <div class="vital-card" id="cardRr">
             <div class="card-header-row">
               <span class="card-title">Respiration Rate</span>
-              <span class="badge-pill neutral" id="rrBadge">Waiting</span>
+              <span class="badge-pill neutral" id="rrBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="rrValue">--</span>
@@ -689,15 +702,15 @@
             <div class="card-subtext" id="rrSubtext">Healthy eupnea range (12-20 RPM)</div>
             <div class="card-meta">
               <span>Confidence: <strong id="rrConf">--%</strong></span>
-              <span>AM/FM Demodulation</span>
+              <span>RIAV/RIFV Extraction</span>
             </div>
           </div>
 
           <!-- Blood Pressure -->
-          <div class="vital-card card-bp" id="cardBp">
+          <div class="vital-card" id="cardBp">
             <div class="card-header-row">
               <span class="card-title">Blood Pressure (SDPPG)</span>
-              <span class="badge-pill neutral" id="bpBadge">Waiting</span>
+              <span class="badge-pill neutral" id="bpBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="bpValue">-- / --</span>
@@ -706,21 +719,21 @@
             <div class="card-subtext" id="bpSubtext">AHA Clinical Guideline Stratification</div>
             <div class="card-meta">
               <span>MAP: <strong id="mapValue">--</strong> mmHg</span>
-              <span>Stiffness Index</span>
+              <span>Stiffness Proxy</span>
             </div>
           </div>
 
           <!-- SpO2 -->
-          <div class="vital-card card-spo2" id="cardSpo2">
+          <div class="vital-card" id="cardSpo2">
             <div class="card-header-row">
               <span class="card-title">Oxygen Saturation</span>
-              <span class="badge-pill neutral" id="spo2Badge">Waiting</span>
+              <span class="badge-pill neutral" id="spo2Badge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="spo2Value">--</span>
               <span class="card-unit">% SpO2</span>
             </div>
-            <div class="card-subtext" id="spo2Subtext">Chromatic Ratio-of-Ratios Calibration</div>
+            <div class="card-subtext" id="spo2Subtext">Dual-wavelength Ratio-of-Ratios</div>
             <div class="card-meta">
               <span>Ratio (R): <strong id="spo2Ratio">--</strong></span>
               <span>Norm: 95-100%</span>
@@ -728,10 +741,10 @@
           </div>
 
           <!-- HRV RMSSD / SDNN -->
-          <div class="vital-card card-prv" id="cardPrv">
+          <div class="vital-card" id="cardPrv">
             <div class="card-header-row">
               <span class="card-title">Heart Rate Variability</span>
-              <span class="badge-pill neutral" id="prvBadge">Waiting</span>
+              <span class="badge-pill neutral" id="prvBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="prvValue">--</span>
@@ -744,11 +757,101 @@
             </div>
           </div>
 
+          <!-- Pulse-Respiration Quotient -->
+          <div class="vital-card" id="cardPrq">
+            <div class="card-header-row">
+              <span class="card-title">Pulse-Respiration (PRQ)</span>
+              <span class="badge-pill neutral" id="prqBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="prqValue">--</span>
+              <span class="card-unit">ratio (HR/RR)</span>
+            </div>
+            <div class="card-subtext" id="prqSubtext">Cardiopulmonary synchronization</div>
+            <div class="card-meta">
+              <span>Coupling Ratio</span>
+              <span>Norm: 3.5 - 5.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: STRESS & AUTONOMIC -->
+      <div class="tab-content" id="tab-stress">
+        <div class="grid-vitals">
+          <!-- Baevsky Stress Index -->
+          <div class="vital-card" id="cardBaevsky">
+            <div class="card-header-row">
+              <span class="card-title">Baevsky Stress Index</span>
+              <span class="badge-pill neutral" id="baevskyBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="baevskyValue">--</span>
+              <span class="card-unit">SI</span>
+            </div>
+            <div class="card-subtext" id="baevskySubtext">Sympathetic tension & regulatory strain</div>
+            <div class="card-meta">
+              <span>50ms Bin Histogram</span>
+              <span>Norm: 50-150</span>
+            </div>
+          </div>
+
+          <!-- Parasympathetic Tone -->
+          <div class="vital-card" id="cardPns">
+            <div class="card-header-row">
+              <span class="card-title">PNS Recovery Tone</span>
+              <span class="badge-pill neutral" id="pnsBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="pnsValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-subtext" id="pnsSubtext">Vagal rest & regenerative capacity</div>
+            <div class="card-meta">
+              <span>Vagal Tone</span>
+              <span>Norm: ≥50</span>
+            </div>
+          </div>
+
+          <!-- Sympathetic Drive (SNS Zone) -->
+          <div class="vital-card" id="cardSns">
+            <div class="card-header-row">
+              <span class="card-title">SNS Arousal Zone</span>
+              <span class="badge-pill neutral" id="snsBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="snsValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-subtext" id="snsSubtext">Fight-or-flight sympathetic mobilization</div>
+            <div class="card-meta">
+              <span>Sympathetic Tone</span>
+              <span>Norm: &lt;35</span>
+            </div>
+          </div>
+
+          <!-- Autonomic LF/HF Ratio -->
+          <div class="vital-card" id="cardLfHf">
+            <div class="card-header-row">
+              <span class="card-title">Spectral LF/HF Ratio</span>
+              <span class="badge-pill neutral" id="lfHfBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="lfHfValue">--</span>
+              <span class="card-unit">ratio</span>
+            </div>
+            <div class="card-subtext" id="lfHfSubtext">Sympathovagal spectral balance</div>
+            <div class="card-meta">
+              <span>LF (0.04-0.15Hz) / HF</span>
+              <span>Norm: 0.8 - 2.5</span>
+            </div>
+          </div>
+
           <!-- Cardiac Workload -->
-          <div class="vital-card card-workload" id="cardWorkload">
+          <div class="vital-card" id="cardWorkload">
             <div class="card-header-row">
               <span class="card-title">Cardiac Workload (RPP)</span>
-              <span class="badge-pill neutral" id="workloadBadge">Waiting</span>
+              <span class="badge-pill neutral" id="workloadBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="rppValue">--</span>
@@ -760,68 +863,12 @@
               <span>Norm: ≤100</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- TAB 2: STRESS & AUTONOMIC -->
-      <div class="tab-content" id="tab-wellness">
-        <div class="grid-vitals">
-          <!-- Baevsky Stress Index -->
-          <div class="vital-card card-hr" id="cardBaevsky">
-            <div class="card-header-row">
-              <span class="card-title">Baevsky Stress Index</span>
-              <span class="badge-pill neutral" id="baevskyBadge">Waiting</span>
-            </div>
-            <div class="card-value-group">
-              <span class="card-value" id="baevskyValue">--</span>
-              <span class="card-unit">SI</span>
-            </div>
-            <div class="card-subtext" id="baevskySubtext">Sympathetic tension & mobilization</div>
-            <div class="card-meta">
-              <span>Autonomic Tension</span>
-              <span>Norm: 50-150</span>
-            </div>
-          </div>
-
-          <!-- Parasympathetic Tone -->
-          <div class="vital-card card-spo2" id="cardPns">
-            <div class="card-header-row">
-              <span class="card-title">Parasympathetic Recovery</span>
-              <span class="badge-pill neutral" id="pnsBadge">Waiting</span>
-            </div>
-            <div class="card-value-group">
-              <span class="card-value" id="pnsValue">--</span>
-              <span class="card-unit">/ 100</span>
-            </div>
-            <div class="card-subtext" id="pnsSubtext">Vagal tone & physiological resilience</div>
-            <div class="card-meta">
-              <span>Vagal Tone</span>
-              <span>PNS Index</span>
-            </div>
-          </div>
-
-          <!-- Pulse-Respiration Quotient -->
-          <div class="vital-card card-rr" id="cardPrq">
-            <div class="card-header-row">
-              <span class="card-title">Pulse-Respiration Ratio</span>
-              <span class="badge-pill neutral" id="prqBadge">Waiting</span>
-            </div>
-            <div class="card-value-group">
-              <span class="card-value" id="prqValue">--</span>
-              <span class="card-unit">PRQ</span>
-            </div>
-            <div class="card-subtext" id="prqSubtext">Cardiopulmonary coupling index</div>
-            <div class="card-meta">
-              <span>Coupling Ratio</span>
-              <span>Norm: 4.0 - 5.0</span>
-            </div>
-          </div>
 
           <!-- Composite Stress Score -->
-          <div class="vital-card card-workload" id="cardStress">
+          <div class="vital-card" id="cardStress">
             <div class="card-header-row">
               <span class="card-title">Composite Stress Load</span>
-              <span class="badge-pill neutral" id="stressLevelBadge">Waiting</span>
+              <span class="badge-pill neutral" id="stressLevelBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="stressValue">--</span>
@@ -829,30 +876,30 @@
             </div>
             <div class="card-subtext" id="stressSubtext">Multi-biomarker arousal score</div>
             <div class="card-meta">
-              <span>Sympathovagal Balance</span>
-              <span>Research Scale</span>
+              <span>Autonomic Index</span>
+              <span>Research Metric</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 3: CARDIOVASCULAR & METABOLIC RISKS -->
+      <!-- TAB 3: CHRONIC & METABOLIC RISKS -->
       <div class="tab-content" id="tab-risks">
         <div class="risk-banner-card">
           <div>
-            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">10-Year Cardiovascular (CVD) & Stroke Projection</div>
-            <div style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="cvdCatLabel">Low Risk (<10%)</div>
-            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="cvdSubtext">Framingham / WHO-ISH Hemodynamic-Metabolic Calibration</div>
+            <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">10-Year ASCVD Cardiovascular & Stroke Projection</div>
+            <div style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="cvdCatLabel">Low Risk (&lt;10%)</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="cvdSubtext">Framingham Cox Proportional Hazard Model</div>
           </div>
           <div class="risk-score-badge" id="cvdRiskScore">--%</div>
         </div>
 
         <div class="grid-vitals">
           <!-- Vascular Age -->
-          <div class="vital-card card-bp" id="cardVasc">
+          <div class="vital-card" id="cardVasc">
             <div class="card-header-row">
               <span class="card-title">Vascular Biological Age</span>
-              <span class="badge-pill neutral" id="vascStatusBadge">Waiting</span>
+              <span class="badge-pill neutral" id="vascStatusBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="vascAgeValue">--</span>
@@ -865,20 +912,88 @@
             </div>
           </div>
 
-          <!-- Body Composition -->
-          <div class="vital-card card-workload" id="cardBmi">
+          <!-- Hemoglobin -->
+          <div class="vital-card" id="cardHb">
             <div class="card-header-row">
-              <span class="card-title">Body Composition (BMI & BRI)</span>
-              <span class="badge-pill neutral" id="bmiBadge">Normal</span>
+              <span class="card-title">Hemoglobin (Hb)</span>
+              <span class="badge-pill neutral" id="hbBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="hbValue">--</span>
+              <span class="card-unit">g/dL</span>
+            </div>
+            <div class="card-subtext" id="hbSubtext">Differential optical extinction model</div>
+            <div class="card-meta">
+              <span id="hbRefRange">Men: 14-18 / Women: 12-16</span>
+              <span>Optical Density</span>
+            </div>
+          </div>
+
+          <!-- Fasting Blood Glucose Risk -->
+          <div class="vital-card" id="cardFbg">
+            <div class="card-header-row">
+              <span class="card-title">Fasting Glucose Risk</span>
+              <span class="badge-pill neutral" id="fbgBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="fbgValue">--</span>
+              <span class="card-unit">mg/dL</span>
+            </div>
+            <div class="card-subtext" id="fbgSubtext">Multi-variate glycemic risk indicator</div>
+            <div class="card-meta">
+              <span>Target: &lt;100 mg/dL</span>
+              <span>Metabolic Score</span>
+            </div>
+          </div>
+
+          <!-- HbA1c Glycemic Risk -->
+          <div class="vital-card" id="cardHba1c">
+            <div class="card-header-row">
+              <span class="card-title">HbA1c Glycemic Risk</span>
+              <span class="badge-pill neutral" id="hba1cBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="hba1cValue">--</span>
+              <span class="card-unit">% HbA1c</span>
+            </div>
+            <div class="card-subtext" id="hba1cSubtext">Estimated 3-month glycemic exposure tier</div>
+            <div class="card-meta">
+              <span>Normal: &lt;5.7%</span>
+              <span>Prediabetes: 5.7-6.4%</span>
+            </div>
+          </div>
+
+          <!-- Body Composition -->
+          <div class="vital-card" id="cardBmi">
+            <div class="card-header-row">
+              <span class="card-title">Body Composition (BMI)</span>
+              <span class="badge-pill neutral" id="bmiBadge">⚪ Waiting</span>
             </div>
             <div class="card-value-group">
               <span class="card-value" id="bmiValue">--</span>
-              <span class="card-unit">kg/m² (BMI)</span>
+              <span class="card-unit">kg/m²</span>
             </div>
             <div class="card-subtext" id="bmiSubtext">Anthropometric body roundness analysis</div>
             <div class="card-meta">
               <span>BRI: <strong id="briValue">--</strong></span>
               <span>WHtR: <strong id="whtrValue">--</strong></span>
+            </div>
+          </div>
+
+          <!-- Hypertension & Stroke Score -->
+          <div class="vital-card" id="cardStroke">
+            <div class="card-header-row">
+              <span class="card-title">10-Yr Stroke Projection</span>
+              <span class="badge-pill neutral" id="strokeBadge">⚪ Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="strokeValue">--</span>
+              <span class="card-unit">% Prob</span>
+            </div>
+            <div class="card-subtext" id="strokeSubtext">Hemodynamic cerebrovascular risk projection</div>
+            <div class="card-meta">
+              <span>HTN Score: <strong id="htnScoreValue">--</strong>/100</span>
+              <span>Framingham Calibration</span>
             </div>
           </div>
         </div>
@@ -888,257 +1003,84 @@
       <div class="tab-content" id="tab-reference">
         <div class="chart-container" style="background: #0D1B2A; border: 1px solid #1E334A; border-radius: 14px; padding: 18px;">
           <div class="chart-header" style="margin-bottom: 12px;">
-            <span style="color: #00C2D7; font-size: 13px; font-weight: 800;">CLINICAL BIOMARKER & VITAL SIGNS REFERENCE STANDARDS (AGE 18+)</span>
+            <span style="color: var(--accent-cyan); font-size: 13px; font-weight: 800;">CLINICAL BIOMARKER & VITAL SIGNS REFERENCE STANDARDS (AGE 18+)</span>
             <span style="color: var(--text-muted);">Abnormal measurements may require clinical attention</span>
           </div>
 
           <div style="overflow-x: auto;">
-            <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <table class="report-table">
               <thead>
-                <tr style="background: #091320; color: #9AA8B7; border-bottom: 2px solid #1E334A;">
-                  <th style="padding: 10px 14px; width: 26%;">Health Indicator & Description</th>
-                  <th style="padding: 10px 14px; width: 26%;">Normal Range (Age 18+)</th>
-                  <th style="padding: 10px 14px; width: 48%;">Health Issues Associated with Abnormal Levels</th>
+                <tr>
+                  <th style="width: 26%;">Health Indicator & Description</th>
+                  <th style="width: 26%;">Normal Range (Age 18+)</th>
+                  <th style="width: 48%;">Health Issues Associated with Abnormal Levels</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Blood Pressure</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">How blood is pumped through your veins</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Systolic: &lt; 120 mmHg</span><br/>
-                    <span class="badge-pill optimal" style="font-size: 11px; margin-top: 4px;">Diastolic: &lt; 80 mmHg</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Heart attack, heart disease, stroke, kidney disease, poor cognitive function, dementia
-                  </td>
+                <tr>
+                  <td><strong>Blood Pressure</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Arterial pressure during contraction/relaxation</span></td>
+                  <td><span class="badge-pill optimal">Systolic: &lt; 120 mmHg</span><br/><span class="badge-pill optimal" style="margin-top: 4px;">Diastolic: &lt; 80 mmHg</span></td>
+                  <td>Heart attack, heart disease, stroke, kidney disease, poor cognitive function, dementia</td>
                 </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Heart Rate / Pulse Rate</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">How many times your heart beats per minute</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">60 – 100 BPM</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Stroke, heart failure, hypovolemia, fever, tachycardia (&gt;100 bpm), bradycardia (&lt;60 bpm)
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Heart Rate Variability (HRV / RMSSD)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Variance in time between consecutive heart beats</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Age 20–25: 55–105 ms</span><br/>
-                    <span class="badge-pill optimal" style="font-size: 11px; margin-top: 4px;">Age 60–65: 25–45 ms</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Autonomic strain, physical exhaustion, elevated risk of cardiac events, sickness, sleep disturbance
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Oxygen Saturation (SpO2)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Amount of oxygen-carrying hemoglobin relative to total</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">95% – 100%</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Hypoxemia, heart disease, interstitial lung disease, COPD, anemia, ARDS, pneumonia, sleep apnea
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Breathing / Respiration Rate</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">The number of breaths taken per minute</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">12 – 20 RPM</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Anxiety, fever, respiratory distress, tachypnea (&gt;20 rpm), bradypnea (&lt;12 rpm), COPD, asthma
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Hemoglobin Estimation</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Total hemoglobin concentration in circulating blood</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Men: 14 – 18 g/dL</span><br/>
-                    <span class="badge-pill optimal" style="font-size: 11px; margin-top: 4px;">Women: 12 – 16 g/dL</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Anemia, sickle cell disease, chronic kidney disease, hematological disorders, malnutrition, acute blood loss
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Hemoglobin A1c (HbA1c)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Estimated average blood glucose over past 2–3 months</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Normal: &le; 5.7%</span><br/>
-                    <span class="badge-pill warning" style="font-size: 11px; margin-top: 4px;">Prediabetes: 5.7% – 6.4%</span><br/>
-                    <span class="badge-pill critical" style="font-size: 11px; margin-top: 4px;">Diabetes: &gt; 6.4%</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Prediabetes, Type 2 diabetes, metabolic syndrome, macrovascular/microvascular complications, neuropathy
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Sympathetic Stress (Baevsky SI)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Central regulatory strain and autonomic tension</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low – Normal (50 – 150 SI)</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Acute mental/physical stress, cardiovascular overstrain, autonomic imbalance, oncoming infection
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Stress Response (SNS Zone)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Sympathetic activation during exertion</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low – Normal</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Persistent fight-or-flight arousal, adrenal fatigue, sleep disruption, elevated resting blood pressure
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Recovery Ability (PNS Zone)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Vagal tone and capability to recover after stress</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Normal – High (&gt; 50 / 100)</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Delayed parasympathetic reactivation, chronic fatigue, poor athletic recovery, systemic inflammation
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Pulse Respiratory Quotient (PRQ)</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Heart rate divided by breathing rate (HR / RR)</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">4.0 – 5.0 (Optimal ~ 4.5:1)</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Cardiorespiratory mismatch, hyperventilation, autonomic dysregulation, impaired oxygen delivery
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">High HbA1c Risk Indicator</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Estimated risk of elevated glycated hemoglobin</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low Risk</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Diabetes, microvascular damage, retinopathy, renal impairment, accelerated arterial stiffening
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">High Fasting Glucose Risk</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Risk of elevated fasting blood sugar</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low Risk</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Impaired fasting glycemia, insulin resistance, non-alcoholic fatty liver disease (NAFLD)
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Low Hemoglobin Risk</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Risk of insufficient red blood cell carrier capacity</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low Risk</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Iron deficiency anemia, chronic kidney disease, nutritional deficits, occult blood loss
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">High Blood Pressure Risk</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Vascular resistance and hypertensive trend risk</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low Risk</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Essential hypertension, stroke, myocardial infarction, left ventricular hypertrophy, renal failure
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A; background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">High Total Cholesterol Risk</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Estimated dyslipidemia & atherogenic plaque risk</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Low Risk</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Atherosclerosis, coronary artery disease, peripheral vascular disease, carotid stenosis
-                  </td>
-                </tr>
-
-                <tr style="border-bottom: 1px solid #1E334A;">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">10-Year ASCVD Risk</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Likelihood of atherosclerotic cardiovascular event (10-Yr)</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Below 10% (Low Risk)</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Coronary heart disease, stroke, peripheral arterial disease, cardiovascular mortality
-                  </td>
-                </tr>
-
                 <tr style="background: rgba(13, 27, 42, 0.5);">
-                  <td style="padding: 10px 14px;">
-                    <strong style="color: #fff; font-size: 13px;">Heart / Vascular Biological Age</strong><br/>
-                    <span style="color: var(--text-muted); font-size: 11px;">Estimated biological vascular age vs chronological</span>
-                  </td>
-                  <td style="padding: 10px 14px;">
-                    <span class="badge-pill optimal" style="font-size: 11px;">Heart Age &le; Chronological Age</span>
-                  </td>
-                  <td style="padding: 10px 14px; color: #E2E8F0; line-height: 1.4;">
-                    Premature arterial stiffening, chronic endothelial stress, subclinical atherosclerosis
-                  </td>
+                  <td><strong>Heart Rate / Pulse Rate</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Resting heart beat frequency</span></td>
+                  <td><span class="badge-pill optimal">60 – 100 BPM</span></td>
+                  <td>Stroke, heart failure, hypovolemia, fever, tachycardia (&gt;100 bpm), bradycardia (&lt;60 bpm)</td>
+                </tr>
+                <tr>
+                  <td><strong>Heart Rate Variability (HRV / RMSSD)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Inter-beat interval variance</span></td>
+                  <td><span class="badge-pill optimal">Age 20–25: 55–105 ms</span><br/><span class="badge-pill optimal" style="margin-top: 4px;">Age 60–65: 25–45 ms</span></td>
+                  <td>Autonomic strain, physical exhaustion, elevated risk of cardiac events, sickness, sleep disturbance</td>
+                </tr>
+                <tr style="background: rgba(13, 27, 42, 0.5);">
+                  <td><strong>Oxygen Saturation (SpO2)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Oxygen-carrying hemoglobin relative to total</span></td>
+                  <td><span class="badge-pill optimal">95% – 100%</span></td>
+                  <td>Hypoxemia, heart disease, interstitial lung disease, COPD, anemia, ARDS, pneumonia, sleep apnea</td>
+                </tr>
+                <tr>
+                  <td><strong>Breathing / Respiration Rate</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Breaths per minute</span></td>
+                  <td><span class="badge-pill optimal">12 – 20 RPM</span></td>
+                  <td>Anxiety, fever, respiratory distress, tachypnea (&gt;20 rpm), bradypnea (&lt;12 rpm), COPD, asthma</td>
+                </tr>
+                <tr style="background: rgba(13, 27, 42, 0.5);">
+                  <td><strong>Hemoglobin (Hb)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Total blood hemoglobin concentration</span></td>
+                  <td><span class="badge-pill optimal">Men: 14 – 18 g/dL</span><br/><span class="badge-pill optimal" style="margin-top: 4px;">Women: 12 – 16 g/dL</span></td>
+                  <td>Anemia, sickle cell disease, chronic kidney disease, hematological disorders, acute blood loss</td>
+                </tr>
+                <tr>
+                  <td><strong>Hemoglobin A1c (HbA1c)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Estimated 2-3 month glycemic control</span></td>
+                  <td><span class="badge-pill optimal">Normal: &le; 5.7%</span><br/><span class="badge-pill warning" style="margin-top: 4px;">Prediabetes: 5.7% – 6.4%</span><br/><span class="badge-pill critical" style="margin-top: 4px;">Diabetes: &gt; 6.4%</span></td>
+                  <td>Prediabetes, Type 2 diabetes, metabolic syndrome, macrovascular complications, neuropathy</td>
+                </tr>
+                <tr style="background: rgba(13, 27, 42, 0.5);">
+                  <td><strong>Fasting Blood Glucose (FBG)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Estimated fasting glycemic status</span></td>
+                  <td><span class="badge-pill optimal">Normal: &lt; 100 mg/dL</span><br/><span class="badge-pill warning" style="margin-top: 4px;">Impaired: 100 – 125 mg/dL</span><br/><span class="badge-pill critical" style="margin-top: 4px;">Elevated: &gt; 125 mg/dL</span></td>
+                  <td>Insulin resistance, metabolic syndrome, Type 2 diabetes, hepatic steatosis</td>
+                </tr>
+                <tr>
+                  <td><strong>Sympathetic Stress (Baevsky SI)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Central regulatory tension index</span></td>
+                  <td><span class="badge-pill optimal">50 – 150 SI (Eustress)</span></td>
+                  <td>Acute mental/physical stress, cardiovascular overstrain, autonomic imbalance, fatigue</td>
+                </tr>
+                <tr style="background: rgba(13, 27, 42, 0.5);">
+                  <td><strong>PNS Recovery Ability</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Parasympathetic vagal tone</span></td>
+                  <td><span class="badge-pill optimal">&ge; 50 / 100</span></td>
+                  <td>Delayed parasympathetic reactivation, chronic fatigue, systemic inflammatory stress</td>
+                </tr>
+                <tr>
+                  <td><strong>Pulse-Respiration Quotient (PRQ)</strong><br/><span style="color: var(--text-muted); font-size: 11px;">HR / RR coupling ratio</span></td>
+                  <td><span class="badge-pill optimal">3.5 – 5.0</span></td>
+                  <td>Cardiorespiratory mismatch, hyperventilation, autonomic dysregulation</td>
+                </tr>
+                <tr style="background: rgba(13, 27, 42, 0.5);">
+                  <td><strong>10-Year ASCVD Risk</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Likelihood of atherosclerotic event in 10 years</span></td>
+                  <td><span class="badge-pill optimal">&lt; 10% (Low Risk)</span></td>
+                  <td>Heart disease, stroke, peripheral artery disease, myocardial infarction</td>
+                </tr>
+                <tr>
+                  <td><strong>Vascular Biological Age</strong><br/><span style="color: var(--text-muted); font-size: 11px;">Arterial compliance biological age</span></td>
+                  <td><span class="badge-pill optimal">Delta &le; +1.0 years</span></td>
+                  <td>Arterial stiffening, endothelial dysfunction, accelerated cardiovascular aging</td>
                 </tr>
               </tbody>
             </table>
@@ -1148,16 +1090,16 @@
     </div>
   </div>
 
-  <!-- Patient Metadata Modal -->
+  <!-- Subject Profile Modal -->
   <div class="modal-backdrop" id="profileModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Patient Profile & Demographic Priors</h3>
-        <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+        <h3>Subject Physiological Profile</h3>
+        <button class="btn-close-modal" id="closeModalBtn">✕</button>
       </div>
       <div class="form-grid">
         <div class="form-group">
-          <label>Age (Years)</label>
+          <label>Chronological Age</label>
           <input type="number" id="inputAge" value="35" min="18" max="100" />
         </div>
         <div class="form-group">
@@ -1177,38 +1119,181 @@
         </div>
         <div class="form-group">
           <label>Waist Circumference (cm)</label>
-          <input type="number" id="inputWaist" value="84" min="40" max="180" />
+          <input type="number" id="inputWaist" value="84" min="40" max="200" />
         </div>
         <div class="form-group">
-          <label>Smoking Status</label>
+          <label>Tobacco Smoker</label>
           <select id="inputSmoker">
-            <option value="no" selected>Non-Smoker</option>
-            <option value="yes">Smoker</option>
+            <option value="no" selected>No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group" style="grid-column: span 2;">
+          <label>Known Diabetic History</label>
+          <select id="inputDiabetic">
+            <option value="no" selected>No (Non-Diabetic)</option>
+            <option value="yes">Yes (Diagnosed Diabetic)</option>
           </select>
         </div>
       </div>
-      <button class="btn-ctrl btn-primary" id="saveProfileBtn">Save Profile & Recalculate Risks</button>
+      <button class="btn-ctrl btn-primary" id="saveProfileBtn">Save & Recalculate Risk Models</button>
+    </div>
+  </div>
+
+  <!-- Clinical Reference Chart Modal -->
+  <div class="modal-backdrop" id="referenceChartModal">
+    <div class="modal-content" style="max-width: 960px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3>📊 Clinical Biomarker Reference Standards (Age 18+)</h3>
+        <button class="btn-close-modal" onclick="closeReferenceModal()">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+        Abnormal measurement results can indicate autonomic stress, cardiorespiratory load, or metabolic trends requiring clinical attention.
+      </p>
+      <div style="overflow-x: auto;">
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th style="width: 26%;">Health Indicator</th>
+              <th style="width: 26%;">Normal Range (Age 18+)</th>
+              <th style="width: 48%;">Health Issues Associated with Abnormal Levels</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Blood Pressure</strong></td>
+              <td><span class="badge-pill optimal">Systolic &lt; 120 / Diastolic &lt; 80 mmHg</span></td>
+              <td>Heart attack, stroke, kidney disease, poor cognitive function</td>
+            </tr>
+            <tr style="background: rgba(13, 27, 42, 0.5);">
+              <td><strong>Heart Rate</strong></td>
+              <td><span class="badge-pill optimal">60 – 100 BPM</span></td>
+              <td>Stroke, heart failure, hypovolemia, fever, tachycardia</td>
+            </tr>
+            <tr>
+              <td><strong>Heart Rate Variability (RMSSD)</strong></td>
+              <td><span class="badge-pill optimal">55 – 105 ms (Young) / 25 – 45 ms (Older)</span></td>
+              <td>Autonomic strain, physical exhaustion, elevated risk of cardiac events</td>
+            </tr>
+            <tr style="background: rgba(13, 27, 42, 0.5);">
+              <td><strong>Oxygen Saturation (SpO2)</strong></td>
+              <td><span class="badge-pill optimal">95% – 100%</span></td>
+              <td>Hypoxemia, COPD, sleep apnea, respiratory distress</td>
+            </tr>
+            <tr>
+              <td><strong>Breathing Rate</strong></td>
+              <td><span class="badge-pill optimal">12 – 20 RPM</span></td>
+              <td>Anxiety, fever, respiratory conditions, asthma, COPD</td>
+            </tr>
+            <tr style="background: rgba(13, 27, 42, 0.5);">
+              <td><strong>Hemoglobin (Hb)</strong></td>
+              <td><span class="badge-pill optimal">Men: 14–18 / Women: 12–16 g/dL</span></td>
+              <td>Anemia, chronic kidney disease, nutritional deficits</td>
+            </tr>
+            <tr>
+              <td><strong>Hemoglobin A1c</strong></td>
+              <td><span class="badge-pill optimal">&le; 5.7% (Prediabetes: 5.7–6.4%, DM: &gt;6.4%)</span></td>
+              <td>Pre-diabetes, Type 2 diabetes, metabolic syndrome, neuropathy</td>
+            </tr>
+            <tr style="background: rgba(13, 27, 42, 0.5);">
+              <td><strong>Fasting Blood Glucose</strong></td>
+              <td><span class="badge-pill optimal">&lt; 100 mg/dL (Impaired: 100-125 mg/dL)</span></td>
+              <td>Insulin resistance, metabolic syndrome, glycemic instability</td>
+            </tr>
+            <tr>
+              <td><strong>Baevsky Stress Index</strong></td>
+              <td><span class="badge-pill optimal">50 – 150 SI (Eustress)</span></td>
+              <td>Sympathoadrenal tension, chronic strain, oncoming illness</td>
+            </tr>
+            <tr style="background: rgba(13, 27, 42, 0.5);">
+              <td><strong>10-Year ASCVD Risk</strong></td>
+              <td><span class="badge-pill optimal">&lt; 10% (Low Risk)</span></td>
+              <td>Atherosclerotic cardiovascular events, coronary disease, stroke</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+        <button class="btn-export" onclick="window.print()">🖨️ Print Reference Guide</button>
+        <button class="btn-action-header" onclick="closeReferenceModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Printable Health Intelligence Summary Report Modal -->
+  <div class="modal-backdrop" id="reportModal">
+    <div class="modal-content" style="max-width: 720px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3>📄 AuraPulse Health Intelligence Screening Report</h3>
+        <button class="btn-close-modal" onclick="closeReportModal()">✕</button>
+      </div>
+
+      <div style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #08121E; padding: 12px; border-radius: 8px;">
+        <div>Subject: <strong id="repSubject" style="color: #fff;">Age 35, Male</strong></div>
+        <div>Timestamp: <strong id="repTimestamp" style="color: #fff;">--</strong></div>
+        <div>Measurement Duration: <strong style="color: #fff;">60 Seconds (Locked)</strong></div>
+        <div>Signal Quality (SQI): <strong id="repSqi" style="color: var(--accent-green);">--</strong></div>
+      </div>
+
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Biomarker / Indicator</th>
+            <th>Measured Value</th>
+            <th>Clinical Assessment</th>
+          </tr>
+        </thead>
+        <tbody id="reportBodyRows">
+          <tr><td>Heart Rate</td><td id="repValHr">-- BPM</td><td><span class="badge-pill optimal" id="repBadgeHr">--</span></td></tr>
+          <tr><td>Respiration Rate</td><td id="repValRr">-- RPM</td><td><span class="badge-pill optimal" id="repBadgeRr">--</span></td></tr>
+          <tr><td>Blood Pressure (SDPPG)</td><td id="repValBp">-- / -- mmHg</td><td><span class="badge-pill optimal" id="repBadgeBp">--</span></td></tr>
+          <tr><td>Oxygen Saturation (SpO2)</td><td id="repValSpo2">-- %</td><td><span class="badge-pill optimal" id="repBadgeSpo2">--</span></td></tr>
+          <tr><td>HRV RMSSD</td><td id="repValRmssd">-- ms</td><td><span class="badge-pill optimal" id="repBadgeRmssd">--</span></td></tr>
+          <tr><td>Pulse-Respiration Quotient (PRQ)</td><td id="repValPrq">--</td><td><span class="badge-pill optimal" id="repBadgePrq">--</span></td></tr>
+          <tr><td>Baevsky Stress Index</td><td id="repValStress">-- SI</td><td><span class="badge-pill optimal" id="repBadgeStress">--</span></td></tr>
+          <tr><td>PNS Recovery Score</td><td id="repValPns">-- / 100</td><td><span class="badge-pill optimal" id="repBadgePns">--</span></td></tr>
+          <tr><td>SNS Arousal Score</td><td id="repValSns">-- / 100</td><td><span class="badge-pill optimal" id="repBadgeSns">--</span></td></tr>
+          <tr><td>Spectral LF/HF Ratio</td><td id="repValLfHf">--</td><td><span class="badge-pill optimal" id="repBadgeLfHf">--</span></td></tr>
+          <tr><td>Cardiac Workload (RPP)</td><td id="repValRpp">--</td><td><span class="badge-pill optimal" id="repBadgeRpp">--</span></td></tr>
+          <tr><td>Estimated Vascular Age</td><td id="repValVascAge">-- Years</td><td><span class="badge-pill optimal" id="repBadgeVascAge">--</span></td></tr>
+          <tr><td>10-Year ASCVD Risk</td><td id="repValCvd">-- %</td><td><span class="badge-pill optimal" id="repBadgeCvd">--</span></td></tr>
+          <tr><td>Hemoglobin (Hb)</td><td id="repValHb">-- g/dL</td><td><span class="badge-pill optimal" id="repBadgeHb">--</span></td></tr>
+          <tr><td>Fasting Glucose Risk</td><td id="repValFbg">-- mg/dL</td><td><span class="badge-pill optimal" id="repBadgeFbg">--</span></td></tr>
+          <tr><td>HbA1c Glycemic Risk</td><td id="repValHba1c">-- %</td><td><span class="badge-pill optimal" id="repBadgeHba1c">--</span></td></tr>
+          <tr><td>Body Mass Index (BMI)</td><td id="repValBmi">-- kg/m²</td><td><span class="badge-pill optimal" id="repBadgeBmi">--</span></td></tr>
+        </tbody>
+      </table>
+
+      <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); padding: 12px; border-radius: 8px; font-size: 11px; color: #C4B5FD; line-height: 1.4;">
+        <strong>Notice:</strong> This contactless assessment is synthesized on-device for physiological screening, wellness, and research purposes. It does not replace diagnostic medical testing or laboratory analysis.
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-export" onclick="window.print()" style="flex: 1; padding: 10px;">🖨️ Print / Save PDF</button>
+        <button class="btn-action-header" onclick="closeReportModal()" style="flex: 1; justify-content: center;">Close</button>
+      </div>
     </div>
   </div>
 
   <footer>
-    <span><strong>AuraPulse Clinical-Edge AI</strong> — Contactless Photoplethysmography & Hemodynamic Risk Synthesis. General wellness & research analytics.</span>
-    <button class="btn-export" id="downloadBtn">Export Session JSON Report</button>
+    <div>AuraPulse Contactless Health Platform &bull; On-Device rPPG Synthesis Core</div>
+    <button class="btn-export" id="downloadBtn">Export JSON Telemetry</button>
   </footer>
 
   <script>
-    // Tab Switching
+    // Tab Navigation
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
         document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
         btn.classList.add("active");
         const tabId = btn.getAttribute("data-tab");
-        document.getElementById(tabId).classList.add("active");
+        const targetEl = document.getElementById(tabId);
+        if (targetEl) targetEl.classList.add("active");
       });
     });
 
-    // Profile Modal
+    // Profile State
     const profileModal = document.getElementById("profileModal");
     const profileToggleBtn = document.getElementById("profileToggleBtn");
     const closeModalBtn = document.getElementById("closeModalBtn");
@@ -1234,6 +1319,7 @@
       userProfile.weight_kg = parseFloat(document.getElementById("inputWeight").value) || 72;
       userProfile.waist_cm = parseFloat(document.getElementById("inputWaist").value) || 84;
       userProfile.is_smoker = document.getElementById("inputSmoker").value === "yes";
+      userProfile.is_diabetic = document.getElementById("inputDiabetic").value === "yes";
 
       if (wsReady && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "update_profile", profile: userProfile }));
@@ -1247,6 +1333,29 @@
       profileModal.classList.remove("open");
     });
 
+    // Modals Handlers
+    function openReferenceModal() {
+      document.getElementById("referenceChartModal").classList.add("open");
+    }
+    function closeReferenceModal() {
+      document.getElementById("referenceChartModal").classList.remove("open");
+    }
+    function openReportModal() {
+      const repSub = document.getElementById("repSubject");
+      if (repSub) {
+        repSub.innerText = `Age ${userProfile.age}, ${userProfile.is_male ? "Male" : "Female"} (BMI: ${(userProfile.weight_kg / Math.pow(userProfile.height_cm/100, 2)).toFixed(1)})`;
+      }
+      const repTs = document.getElementById("repTimestamp");
+      if (repTs) {
+        repTs.innerText = new Date().toLocaleString();
+      }
+      document.getElementById("reportModal").classList.add("open");
+    }
+    function closeReportModal() {
+      document.getElementById("reportModal").classList.remove("open");
+    }
+
+    // Canvas & Video Elements
     const video = document.getElementById("videoElement");
     const overlayCanvas = document.getElementById("overlayCanvas");
     const overlayCtx = overlayCanvas.getContext("2d");
@@ -1259,7 +1368,7 @@
     const statusBanner = document.getElementById("diagnosticStatus");
     const scanTimer = document.getElementById("scanTimer");
 
-    // Vitals Elements
+    // UI Field References
     const hrValue = document.getElementById("hrValue");
     const hrConf = document.getElementById("hrConf");
     const hrBadge = document.getElementById("hrBadge");
@@ -1286,11 +1395,10 @@
     const sdnnValue = document.getElementById("sdnnValue");
     const pnn50Value = document.getElementById("pnn50Value");
 
-    const rppValue = document.getElementById("rppValue");
-    const workloadBadge = document.getElementById("workloadBadge");
-    const workloadSubtext = document.getElementById("workloadSubtext");
+    const prqValue = document.getElementById("prqValue");
+    const prqBadge = document.getElementById("prqBadge");
+    const prqSubtext = document.getElementById("prqSubtext");
 
-    // Stress Elements
     const baevskyValue = document.getElementById("baevskyValue");
     const baevskyBadge = document.getElementById("baevskyBadge");
     const baevskySubtext = document.getElementById("baevskySubtext");
@@ -1299,15 +1407,22 @@
     const pnsBadge = document.getElementById("pnsBadge");
     const pnsSubtext = document.getElementById("pnsSubtext");
 
-    const prqValue = document.getElementById("prqValue");
-    const prqBadge = document.getElementById("prqBadge");
-    const prqSubtext = document.getElementById("prqSubtext");
+    const snsValue = document.getElementById("snsValue");
+    const snsBadge = document.getElementById("snsBadge");
+    const snsSubtext = document.getElementById("snsSubtext");
+
+    const lfHfValue = document.getElementById("lfHfValue");
+    const lfHfBadge = document.getElementById("lfHfBadge");
+    const lfHfSubtext = document.getElementById("lfHfSubtext");
+
+    const rppValue = document.getElementById("rppValue");
+    const workloadBadge = document.getElementById("workloadBadge");
+    const workloadSubtext = document.getElementById("workloadSubtext");
 
     const stressValue = document.getElementById("stressValue");
     const stressLevelBadge = document.getElementById("stressLevelBadge");
     const stressSubtext = document.getElementById("stressSubtext");
 
-    // Risk Elements
     const cvdRiskScore = document.getElementById("cvdRiskScore");
     const cvdCatLabel = document.getElementById("cvdCatLabel");
     const cvdSubtext = document.getElementById("cvdSubtext");
@@ -1317,11 +1432,28 @@
     const vascStatusBadge = document.getElementById("vascStatusBadge");
     const vascSubtext = document.getElementById("vascSubtext");
 
+    const hbValue = document.getElementById("hbValue");
+    const hbBadge = document.getElementById("hbBadge");
+    const hbSubtext = document.getElementById("hbSubtext");
+    const hbRefRange = document.getElementById("hbRefRange");
+
+    const fbgValue = document.getElementById("fbgValue");
+    const fbgBadge = document.getElementById("fbgBadge");
+    const fbgSubtext = document.getElementById("fbgSubtext");
+
+    const hba1cValue = document.getElementById("hba1cValue");
+    const hba1cBadge = document.getElementById("hba1cBadge");
+    const hba1cSubtext = document.getElementById("hba1cSubtext");
+
     const bmiValue = document.getElementById("bmiValue");
     const bmiBadge = document.getElementById("bmiBadge");
     const bmiSubtext = document.getElementById("bmiSubtext");
     const briValue = document.getElementById("briValue");
     const whtrValue = document.getElementById("whtrValue");
+
+    const strokeValue = document.getElementById("strokeValue");
+    const strokeBadge = document.getElementById("strokeBadge");
+    const htnScoreValue = document.getElementById("htnScoreValue");
 
     const sqiValue = document.getElementById("sqiValue");
     const telLighting = document.getElementById("telLighting");
@@ -1394,11 +1526,11 @@
         video.onloadedmetadata = () => {
           overlayCanvas.width = video.videoWidth || 640;
           overlayCanvas.height = video.videoHeight || 480;
-          statusBanner.innerText = "Camera locked. Ready for scan.";
+          statusBanner.innerHTML = "<span>● Camera locked. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
           triggerKeyframeDetection();
         };
       } catch (err) {
-        statusBanner.innerText = "Camera access denied or unavailable.";
+        statusBanner.innerHTML = "<span>Camera access denied or unavailable.</span>";
       }
     }
 
@@ -1417,39 +1549,7 @@
       waveformBuffer = [];
       startBtn.disabled = true;
       startBtn.innerText = "Scanning in Progress (60s)...";
-      statusBanner.innerText = "Starting comprehensive health measurement...";
-      statusBanner.style.borderLeftColor = "#06b6d4";
-
-      // Reset values
-      hrValue.innerText = "--";
-      hrValue.style.color = "#fff";
-      hrBadge.className = "badge-pill neutral";
-      hrBadge.innerText = "Measuring";
-      hrSubtext.innerText = "Analyzing harmonic rPPG...";
-
-      rrValue.innerText = "--";
-      rrValue.style.color = "#fff";
-      rrBadge.className = "badge-pill neutral";
-      rrBadge.innerText = "Measuring";
-
-      bpValue.innerText = "-- / --";
-      bpValue.style.color = "#fff";
-      bpBadge.className = "badge-pill neutral";
-      bpBadge.innerText = "Measuring";
-
-      spo2Value.innerText = "--";
-      spo2Value.style.color = "#fff";
-      spo2Badge.className = "badge-pill neutral";
-      spo2Badge.innerText = "Measuring";
-
-      prvValue.innerText = "--";
-      prvValue.style.color = "#fff";
-      prvBadge.className = "badge-pill neutral";
-      prvBadge.innerText = "Measuring";
-
-      rppValue.innerText = "--";
-      rppValue.style.color = "#fff";
-      workloadBadge.className = "badge-pill neutral";
+      statusBanner.innerHTML = "<span>● Analyzing multi-spectral facial stream...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
 
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
@@ -1467,8 +1567,7 @@
       startBtn.innerText = "Start 60s Scan";
       scanTimer.innerText = "Ready";
       telFps.innerText = "--";
-      statusBanner.innerText = "Session reset. Ready for scan.";
-      statusBanner.style.borderLeftColor = "#06b6d4";
+      statusBanner.innerHTML = "<span>● Session reset. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
@@ -1573,19 +1672,20 @@
         if (isScanning) {
           scanFramesCount++;
           const elapsed = (nowMs - scanStartTime) / 1000.0;
-          if (elapsed >= 30.0) {
+          if (elapsed >= 60.0) {
             isScanning = false;
             scanCompleted = true;
             const sustainedScanFps = (scanFramesCount / elapsed);
             telFps.innerText = `${sustainedScanFps.toFixed(1)} FPS (Locked)`;
             telFps.style.color = "#10b981";
-            scanTimer.innerText = "30s / 30s (Completed)";
+            scanTimer.innerText = "60s / 60s (Completed)";
             startBtn.disabled = false;
             startBtn.innerText = "Start New 60s Scan";
-            statusBanner.innerText = "✅ 60s Scan Completed — Comprehensive Health Report Locked";
-            statusBanner.style.borderLeftColor = "#10b981";
+            statusBanner.innerHTML = "<span style='color:#10b981;'>✅ 60s Health Screening Completed — Report Locked</span>";
           } else {
-            scanTimer.innerText = `${Math.floor(elapsed)}s / 30s`;
+            scanTimer.innerText = `${Math.floor(elapsed)}s / 60s`;
+            const durEl = document.getElementById("bannerDuration");
+            if (durEl) durEl.innerText = `${Math.floor(elapsed)}s / 60s`;
           }
         }
 
@@ -1635,17 +1735,18 @@
       const scaleX = overlayCanvas.width / sampleCanvas.width;
       const scaleY = overlayCanvas.height / sampleCanvas.height;
 
+      // Centered Head Positioning Oval Guide
       if (!isScanning) {
         overlayCtx.save();
-        overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
-        overlayCtx.lineWidth = 2;
-        overlayCtx.setLineDash([6, 6]);
+        overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.45)";
+        overlayCtx.lineWidth = 2.5;
+        overlayCtx.setLineDash([8, 8]);
         overlayCtx.beginPath();
         overlayCtx.ellipse(
           overlayCanvas.width / 2,
           overlayCanvas.height / 2,
-          overlayCanvas.width * 0.22,
-          overlayCanvas.height * 0.35,
+          overlayCanvas.width * 0.24,
+          overlayCanvas.height * 0.38,
           0, 0, 2 * Math.PI
         );
         overlayCtx.stroke();
@@ -1679,25 +1780,30 @@
 
     function updateDashboard(data) {
       const v = data.vitals;
-      if (v.status === "VALID") {
-        statusBanner.innerText = `● Pulse Signal Locked (Quality: ${v.quality_category})`;
-        statusBanner.style.borderLeftColor = "#10b981";
+      const CT = window.CLINICAL_THRESHOLDS || {};
 
-        const CT = window.CLINICAL_THRESHOLDS || {};
+      if (v.status === "VALID") {
+        statusBanner.innerHTML = `<span>● Signal Quality: ${v.quality_category} (${Math.round(v.signal_quality)}%)</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
 
         // 1. Heart Rate
         if (v.heart_rate && v.heart_rate.value) {
           const hrVal = v.heart_rate.value;
           hrValue.innerText = hrVal.toFixed(1);
           hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
-
           if (CT.heartRate) {
-            const evalHr = CT.heartRate.evaluate(hrVal);
-            hrBadge.innerText = evalHr.label;
-            hrBadge.className = `badge-pill ${evalHr.state}`;
-            hrValue.style.color = evalHr.state === "optimal" ? "#fff" : evalHr.color;
-            hrSubtext.innerText = evalHr.subtext;
-            hrSubtext.style.color = evalHr.state === "optimal" ? "var(--text-muted)" : evalHr.color;
+            const e = CT.heartRate.evaluate(hrVal);
+            hrBadge.innerText = e.badge;
+            hrBadge.className = `badge-pill ${e.state}`;
+            hrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            hrSubtext.innerText = e.subtext;
+          }
+          const repHr = document.getElementById("repValHr");
+          const repHrB = document.getElementById("repBadgeHr");
+          if (repHr) repHr.innerText = `${hrVal.toFixed(1)} BPM`;
+          if (repHrB && CT.heartRate) {
+            const e = CT.heartRate.evaluate(hrVal);
+            repHrB.innerText = e.badge;
+            repHrB.className = `badge-pill ${e.state}`;
           }
         }
 
@@ -1706,14 +1812,20 @@
           const rrVal = v.respiration_rate.value;
           rrValue.innerText = rrVal.toFixed(1);
           rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
-
           if (CT.respirationRate) {
-            const evalRr = CT.respirationRate.evaluate(rrVal);
-            rrBadge.innerText = evalRr.label;
-            rrBadge.className = `badge-pill ${evalRr.state}`;
-            rrValue.style.color = evalRr.state === "optimal" ? "#fff" : evalRr.color;
-            rrSubtext.innerText = evalRr.subtext;
-            rrSubtext.style.color = evalRr.state === "optimal" ? "var(--text-muted)" : evalRr.color;
+            const e = CT.respirationRate.evaluate(rrVal);
+            rrBadge.innerText = e.badge;
+            rrBadge.className = `badge-pill ${e.state}`;
+            rrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            rrSubtext.innerText = e.subtext;
+          }
+          const repRr = document.getElementById("repValRr");
+          const repRrB = document.getElementById("repBadgeRr");
+          if (repRr) repRr.innerText = `${rrVal.toFixed(1)} RPM`;
+          if (repRrB && CT.respirationRate) {
+            const e = CT.respirationRate.evaluate(rrVal);
+            repRrB.innerText = e.badge;
+            repRrB.className = `badge-pill ${e.state}`;
           }
         }
 
@@ -1722,15 +1834,21 @@
           const sbp = v.blood_pressure.systolic;
           const dbp = v.blood_pressure.diastolic;
           bpValue.innerText = `${Math.round(sbp)} / ${Math.round(dbp)}`;
-          mapValue.innerText = Math.round(v.blood_pressure.map);
-
+          mapValue.innerText = Math.round(v.blood_pressure.map || (dbp + (sbp - dbp) / 3));
           if (CT.bloodPressure) {
-            const evalBp = CT.bloodPressure.evaluate(sbp, dbp);
-            bpBadge.innerText = evalBp.label;
-            bpBadge.className = `badge-pill ${evalBp.state}`;
-            bpValue.style.color = evalBp.state === "optimal" ? "#fff" : evalBp.color;
-            bpSubtext.innerText = evalBp.subtext;
-            bpSubtext.style.color = evalBp.state === "optimal" ? "var(--text-muted)" : evalBp.color;
+            const e = CT.bloodPressure.evaluate(sbp, dbp);
+            bpBadge.innerText = e.badge;
+            bpBadge.className = `badge-pill ${e.state}`;
+            bpValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            bpSubtext.innerText = e.subtext;
+          }
+          const repBp = document.getElementById("repValBp");
+          const repBpB = document.getElementById("repBadgeBp");
+          if (repBp) repBp.innerText = `${Math.round(sbp)} / ${Math.round(dbp)} mmHg`;
+          if (repBpB && CT.bloodPressure) {
+            const e = CT.bloodPressure.evaluate(sbp, dbp);
+            repBpB.innerText = e.badge;
+            repBpB.className = `badge-pill ${e.state}`;
           }
         }
 
@@ -1739,131 +1857,320 @@
           const spo2Val = v.spo2.value;
           spo2Value.innerText = spo2Val.toFixed(1);
           spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
-
           if (CT.spo2) {
-            const evalSpo2 = CT.spo2.evaluate(spo2Val);
-            spo2Badge.innerText = evalSpo2.label;
-            spo2Badge.className = `badge-pill ${evalSpo2.state}`;
-            spo2Value.style.color = evalSpo2.state === "optimal" ? "#fff" : evalSpo2.color;
-            spo2Subtext.innerText = evalSpo2.subtext;
-            spo2Subtext.style.color = evalSpo2.state === "optimal" ? "var(--text-muted)" : evalSpo2.color;
+            const e = CT.spo2.evaluate(spo2Val);
+            spo2Badge.innerText = e.badge;
+            spo2Badge.className = `badge-pill ${e.state}`;
+            spo2Value.style.color = e.state === "optimal" ? "#fff" : e.color;
+            spo2Subtext.innerText = e.subtext;
+          }
+          const repSpo2 = document.getElementById("repValSpo2");
+          const repSpo2B = document.getElementById("repBadgeSpo2");
+          if (repSpo2) repSpo2.innerText = `${spo2Val.toFixed(1)} %`;
+          if (repSpo2B && CT.spo2) {
+            const e = CT.spo2.evaluate(spo2Val);
+            repSpo2B.innerText = e.badge;
+            repSpo2B.className = `badge-pill ${e.state}`;
           }
         }
 
-        // 5. HRV (RMSSD)
+        // 5. HRV (RMSSD & SDNN)
         if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
           const rmssdVal = v.pulse_rate_variability.rmssd;
           prvValue.innerText = rmssdVal.toFixed(1);
           sdnnValue.innerText = v.pulse_rate_variability.sdnn ? v.pulse_rate_variability.sdnn.toFixed(1) : "--";
           pnn50Value.innerText = v.pulse_rate_variability.pnn50 ? `${Math.round(v.pulse_rate_variability.pnn50)}%` : "--%";
-
           if (CT.rmssd) {
-            const evalRmssd = CT.rmssd.evaluate(rmssdVal);
-            prvBadge.innerText = evalRmssd.label;
-            prvBadge.className = `badge-pill ${evalRmssd.state}`;
-            prvValue.style.color = evalRmssd.state === "optimal" ? "#fff" : evalRmssd.color;
-            prvSubtext.innerText = evalRmssd.subtext;
-            prvSubtext.style.color = evalRmssd.state === "optimal" ? "var(--text-muted)" : evalRmssd.color;
+            const e = CT.rmssd.evaluate(rmssdVal);
+            prvBadge.innerText = e.badge;
+            prvBadge.className = `badge-pill ${e.state}`;
+            prvValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            prvSubtext.innerText = e.subtext;
+          }
+          const repRmssd = document.getElementById("repValRmssd");
+          const repRmssdB = document.getElementById("repBadgeRmssd");
+          if (repRmssd) repRmssd.innerText = `${rmssdVal.toFixed(1)} ms`;
+          if (repRmssdB && CT.rmssd) {
+            const e = CT.rmssd.evaluate(rmssdVal);
+            repRmssdB.innerText = e.badge;
+            repRmssdB.className = `badge-pill ${e.state}`;
           }
         }
 
-        // 6. Cardiac Workload
+        // 6. Pulse-Respiration Quotient (PRQ)
+        if (v.wellness_indices && v.wellness_indices.prq) {
+          const prqVal = v.wellness_indices.prq;
+          prqValue.innerText = prqVal.toFixed(2);
+          if (CT.prq) {
+            const e = CT.prq.evaluate(prqVal);
+            prqBadge.innerText = e.badge;
+            prqBadge.className = `badge-pill ${e.state}`;
+            prqValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            prqSubtext.innerText = e.subtext;
+          }
+          const repPrq = document.getElementById("repValPrq");
+          const repPrqB = document.getElementById("repBadgePrq");
+          if (repPrq) repPrq.innerText = prqVal.toFixed(2);
+          if (repPrqB && CT.prq) {
+            const e = CT.prq.evaluate(prqVal);
+            repPrqB.innerText = e.badge;
+            repPrqB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 7. Baevsky Stress Index
+        if (v.stress_index && v.stress_index.baevskyIndex) {
+          const bVal = v.stress_index.baevskyIndex;
+          baevskyValue.innerText = bVal.toFixed(0);
+          if (CT.baevskyStress) {
+            const e = CT.baevskyStress.evaluate(bVal);
+            baevskyBadge.innerText = e.badge;
+            baevskyBadge.className = `badge-pill ${e.state}`;
+            baevskyValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            baevskySubtext.innerText = e.subtext;
+          }
+          const repStress = document.getElementById("repValStress");
+          const repStressB = document.getElementById("repBadgeStress");
+          if (repStress) repStress.innerText = `${bVal.toFixed(0)} SI`;
+          if (repStressB && CT.baevskyStress) {
+            const e = CT.baevskyStress.evaluate(bVal);
+            repStressB.innerText = e.badge;
+            repStressB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 8. PNS Recovery
+        if (v.stress_index && v.stress_index.parasympatheticScore !== undefined) {
+          const pVal = v.stress_index.parasympatheticScore;
+          pnsValue.innerText = pVal.toFixed(0);
+          if (CT.pnsRecovery) {
+            const e = CT.pnsRecovery.evaluate(pVal);
+            pnsBadge.innerText = e.badge;
+            pnsBadge.className = `badge-pill ${e.state}`;
+            pnsValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            pnsSubtext.innerText = e.subtext;
+          }
+          const repPns = document.getElementById("repValPns");
+          const repPnsB = document.getElementById("repBadgePns");
+          if (repPns) repPns.innerText = `${pVal.toFixed(0)} / 100`;
+          if (repPnsB && CT.pnsRecovery) {
+            const e = CT.pnsRecovery.evaluate(pVal);
+            repPnsB.innerText = e.badge;
+            repPnsB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 9. SNS Arousal
+        if (v.stress_index && v.stress_index.sympatheticScore !== undefined) {
+          const snVal = v.stress_index.sympatheticScore;
+          snsValue.innerText = snVal.toFixed(0);
+          if (CT.snsZone) {
+            const e = CT.snsZone.evaluate(snVal);
+            snsBadge.innerText = e.badge;
+            snsBadge.className = `badge-pill ${e.state}`;
+            snsValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            snsSubtext.innerText = e.subtext;
+          }
+          const repSns = document.getElementById("repValSns");
+          const repSnsB = document.getElementById("repBadgeSns");
+          if (repSns) repSns.innerText = `${snVal.toFixed(0)} / 100`;
+          if (repSnsB && CT.snsZone) {
+            const e = CT.snsZone.evaluate(snVal);
+            repSnsB.innerText = e.badge;
+            repSnsB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 10. Spectral LF/HF Ratio
+        if (v.stress_index && v.stress_index.lfHfRatio !== undefined) {
+          const lfHf = v.stress_index.lfHfRatio;
+          lfHfValue.innerText = lfHf.toFixed(2);
+          if (CT.lfHfRatio) {
+            const e = CT.lfHfRatio.evaluate(lfHf);
+            lfHfBadge.innerText = e.badge;
+            lfHfBadge.className = `badge-pill ${e.state}`;
+            lfHfValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            lfHfSubtext.innerText = e.subtext;
+          }
+          const repLfHf = document.getElementById("repValLfHf");
+          const repLfHfB = document.getElementById("repBadgeLfHf");
+          if (repLfHf) repLfHf.innerText = lfHf.toFixed(2);
+          if (repLfHfB && CT.lfHfRatio) {
+            const e = CT.lfHfRatio.evaluate(lfHf);
+            repLfHfB.innerText = e.badge;
+            repLfHfB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 11. Cardiac Workload
         if (v.cardiac_workload && v.cardiac_workload.rpp) {
           const rppVal = v.cardiac_workload.rpp;
           rppValue.innerText = rppVal.toFixed(1);
-
           if (CT.cardiacWorkload) {
-            const evalRpp = CT.cardiacWorkload.evaluate(rppVal);
-            workloadBadge.innerText = evalRpp.label;
-            workloadBadge.className = `badge-pill ${evalRpp.state}`;
-            rppValue.style.color = evalRpp.state === "optimal" ? "#fff" : evalRpp.color;
-            workloadSubtext.innerText = evalRpp.subtext;
-            workloadSubtext.style.color = evalRpp.state === "optimal" ? "var(--text-muted)" : evalRpp.color;
+            const e = CT.cardiacWorkload.evaluate(rppVal);
+            workloadBadge.innerText = e.badge;
+            workloadBadge.className = `badge-pill ${e.state}`;
+            rppValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            workloadSubtext.innerText = e.subtext;
+          }
+          const repRpp = document.getElementById("repValRpp");
+          const repRppB = document.getElementById("repBadgeRpp");
+          if (repRpp) repRpp.innerText = rppVal.toFixed(1);
+          if (repRppB && CT.cardiacWorkload) {
+            const e = CT.cardiacWorkload.evaluate(rppVal);
+            repRppB.innerText = e.badge;
+            repRppB.className = `badge-pill ${e.state}`;
           }
         }
 
-        // 7. Stress & Autonomic Indices
-        if (v.stress_index) {
-          const sVal = v.stress_index.score;
-          stressValue.innerText = sVal ? sVal.toFixed(0) : "--";
-          if (CT.stressIndex && sVal !== null && sVal !== undefined) {
-            const evalStress = CT.stressIndex.evaluate(sVal);
-            stressLevelBadge.innerText = evalStress.label;
-            stressLevelBadge.className = `badge-pill ${evalStress.state}`;
-            stressValue.style.color = evalStress.state === "optimal" ? "#fff" : evalStress.color;
-            stressSubtext.innerText = evalStress.subtext;
-            stressSubtext.style.color = evalStress.state === "optimal" ? "var(--text-muted)" : evalStress.color;
-          }
-
-          if (v.stress_index.baevskyIndex) {
-            const bVal = v.stress_index.baevskyIndex;
-            baevskyValue.innerText = bVal.toFixed(0);
-            if (bVal > 250) {
-              baevskyBadge.innerText = "🔴 High Tension";
-              baevskyBadge.className = "badge-pill critical";
-              baevskyValue.style.color = "#ef4444";
-              baevskySubtext.innerText = "Elevated central sympathovagal regulation";
-            } else if (bVal > 150) {
-              baevskyBadge.innerText = "🟡 Moderate";
-              baevskyBadge.className = "badge-pill warning";
-              baevskyValue.style.color = "#eab308";
-              baevskySubtext.innerText = "Mild compensatory strain";
-            } else {
-              baevskyBadge.innerText = "🟢 Normotension";
-              baevskyBadge.className = "badge-pill optimal";
-              baevskyValue.style.color = "#fff";
-              baevskySubtext.innerText = "Optimal homeostatic equilibrium (50-150)";
-            }
-          }
-
-          if (v.stress_index.parasympatheticScore) {
-            const pVal = v.stress_index.parasympatheticScore;
-            pnsValue.innerText = pVal.toFixed(0);
-            pnsBadge.innerText = pVal >= 50 ? "🟢 Good" : "🟡 Low";
-            pnsBadge.className = `badge-pill ${pVal >= 50 ? "optimal" : "warning"}`;
-          }
-
-          if (v.stress_index.prq) {
-            const prq = v.stress_index.prq;
-            prqValue.innerText = prq.toFixed(2);
-            const isNormPrq = prq >= 3.8 && prq <= 5.2;
-            prqBadge.innerText = isNormPrq ? "🟢 Balanced" : "🟡 Deviated";
-            prqBadge.className = `badge-pill ${isNormPrq ? "optimal" : "warning"}`;
-          }
+        // 12. Composite Stress
+        if (v.stress_index && v.stress_index.score !== undefined) {
+          const stVal = v.stress_index.score;
+          stressValue.innerText = stVal.toFixed(0);
+          stressLevelBadge.innerText = v.stress_index.level === "Low" ? "🟢 Low" : (v.stress_index.level === "Moderate" ? "🟡 Moderate" : "🔴 High");
+          stressLevelBadge.className = `badge-pill ${v.stress_index.level === "Low" ? "optimal" : (v.stress_index.level === "Moderate" ? "warning" : "critical")}`;
         }
 
-        // 8. Cardiovascular & Metabolic Risks
+        // 13. ASCVD 10-Year Risk
         if (v.cvd_risk) {
           const cvdVal = v.cvd_risk.tenYearRiskPct;
           cvdRiskScore.innerText = `${cvdVal.toFixed(1)}%`;
           cvdCatLabel.innerText = `${v.cvd_risk.category} Risk`;
           if (CT.cvdRisk) {
-            const evalCvd = CT.cvdRisk.evaluate(cvdVal);
-            cvdRiskScore.className = "risk-score-badge " + (evalCvd.state === "critical" ? "high" : (evalCvd.state === "warning" ? "moderate" : ""));
-            cvdSubtext.innerText = evalCvd.subtext;
+            const e = CT.cvdRisk.evaluate(cvdVal);
+            cvdRiskScore.className = "risk-score-badge " + (e.state === "critical" ? "high" : (e.state === "warning" ? "moderate" : ""));
+            cvdSubtext.innerText = e.subtext;
+          }
+          const repCvd = document.getElementById("repValCvd");
+          const repCvdB = document.getElementById("repBadgeCvd");
+          if (repCvd) repCvd.innerText = `${cvdVal.toFixed(1)} % (${v.cvd_risk.category})`;
+          if (repCvdB && CT.cvdRisk) {
+            const e = CT.cvdRisk.evaluate(cvdVal);
+            repCvdB.innerText = e.badge;
+            repCvdB.className = `badge-pill ${e.state}`;
+          }
+          if (v.cvd_risk.strokeRiskPct !== undefined) {
+            strokeValue.innerText = `${v.cvd_risk.strokeRiskPct.toFixed(1)}%`;
+            strokeBadge.innerText = v.cvd_risk.strokeRiskPct < 5.0 ? "🟢 Low" : "🟡 Moderate";
+            strokeBadge.className = `badge-pill ${v.cvd_risk.strokeRiskPct < 5.0 ? "optimal" : "warning"}`;
+          }
+          if (v.cvd_risk.hypertensionScore !== undefined) {
+            htnScoreValue.innerText = Math.round(v.cvd_risk.hypertensionScore);
           }
         }
 
+        // 14. Vascular Age
         if (v.vascular_age) {
           vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
           const delta = v.vascular_age.ageDelta;
           vascDeltaValue.innerText = `${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs`;
-          const isAcc = delta > 4.0;
-          vascStatusBadge.innerText = isAcc ? "🟡 Stiffening" : "🟢 Optimal";
-          vascStatusBadge.className = `badge-pill ${isAcc ? "warning" : "optimal"}`;
+          if (CT.vascularAge) {
+            const e = CT.vascularAge.evaluate(delta);
+            vascStatusBadge.innerText = e.badge;
+            vascStatusBadge.className = `badge-pill ${e.state}`;
+            vascAgeValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            vascSubtext.innerText = e.subtext;
+          }
+          const repVasc = document.getElementById("repValVascAge");
+          const repVascB = document.getElementById("repBadgeVascAge");
+          if (repVasc) repVasc.innerText = `${v.vascular_age.estimatedAge.toFixed(0)} Yrs (Δ ${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs)`;
+          if (repVascB && CT.vascularAge) {
+            const e = CT.vascularAge.evaluate(delta);
+            repVascB.innerText = e.badge;
+            repVascB.className = `badge-pill ${e.state}`;
+          }
         }
 
+        // 15. Hemoglobin (Hb)
+        if (v.hemoglobin && v.hemoglobin.value) {
+          const hbVal = v.hemoglobin.value;
+          hbValue.innerText = hbVal.toFixed(1);
+          if (v.hemoglobin.referenceRange) hbRefRange.innerText = v.hemoglobin.referenceRange;
+          if (CT.hemoglobin) {
+            const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
+            hbBadge.innerText = e.badge;
+            hbBadge.className = `badge-pill ${e.state}`;
+            hbValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            hbSubtext.innerText = e.subtext;
+          }
+          const repHb = document.getElementById("repValHb");
+          const repHbB = document.getElementById("repBadgeHb");
+          if (repHb) repHb.innerText = `${hbVal.toFixed(1)} g/dL`;
+          if (repHbB && CT.hemoglobin) {
+            const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
+            repHbB.innerText = e.badge;
+            repHbB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 16. Fasting Blood Glucose (FBG)
+        if (v.metabolic_risks && v.metabolic_risks.fbgMgDl) {
+          const fbgVal = v.metabolic_risks.fbgMgDl;
+          fbgValue.innerText = fbgVal.toFixed(0);
+          if (CT.fbg) {
+            const e = CT.fbg.evaluate(fbgVal);
+            fbgBadge.innerText = e.badge;
+            fbgBadge.className = `badge-pill ${e.state}`;
+            fbgValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            fbgSubtext.innerText = e.subtext;
+          }
+          const repFbg = document.getElementById("repValFbg");
+          const repFbgB = document.getElementById("repBadgeFbg");
+          if (repFbg) repFbg.innerText = `${fbgVal.toFixed(0)} mg/dL`;
+          if (repFbgB && CT.fbg) {
+            const e = CT.fbg.evaluate(fbgVal);
+            repFbgB.innerText = e.badge;
+            repFbgB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 17. HbA1c Glycemic Risk
+        if (v.metabolic_risks && v.metabolic_risks.hba1cPct) {
+          const a1cVal = v.metabolic_risks.hba1cPct;
+          hba1cValue.innerText = a1cVal.toFixed(1);
+          if (CT.hba1c) {
+            const e = CT.hba1c.evaluate(a1cVal);
+            hba1cBadge.innerText = e.badge;
+            hba1cBadge.className = `badge-pill ${e.state}`;
+            hba1cValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            hba1cSubtext.innerText = e.subtext;
+          }
+          const repA1c = document.getElementById("repValHba1c");
+          const repA1cB = document.getElementById("repBadgeHba1c");
+          if (repA1c) repA1c.innerText = `${a1cVal.toFixed(1)} % (${v.metabolic_risks.hba1cStatus || "Normal"})`;
+          if (repA1cB && CT.hba1c) {
+            const e = CT.hba1c.evaluate(a1cVal);
+            repA1cB.innerText = e.badge;
+            repA1cB.className = `badge-pill ${e.state}`;
+          }
+        }
+
+        // 18. Body Composition (BMI)
         if (v.body_composition) {
           const bmi = v.body_composition.bmi;
           bmiValue.innerText = bmi.toFixed(1);
-          const isBmiNorm = bmi >= 18.5 && bmi < 25.0;
-          bmiBadge.innerText = isBmiNorm ? "🟢 Normal" : (bmi < 30 ? "🟡 Overweight" : "🔴 Obese");
-          bmiBadge.className = `badge-pill ${isBmiNorm ? "optimal" : (bmi < 30 ? "warning" : "critical")}`;
+          if (CT.bmi) {
+            const e = CT.bmi.evaluate(bmi);
+            bmiBadge.innerText = e.badge;
+            bmiBadge.className = `badge-pill ${e.state}`;
+            bmiValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            bmiSubtext.innerText = e.subtext;
+          }
           briValue.innerText = v.body_composition.bri.toFixed(1);
           whtrValue.innerText = v.body_composition.whtr.toFixed(2);
+          const repBmi = document.getElementById("repValBmi");
+          const repBmiB = document.getElementById("repBadgeBmi");
+          if (repBmi) repBmi.innerText = `${bmi.toFixed(1)} kg/m² (${v.body_composition.bmiCategory || "Normal"})`;
+          if (repBmiB && CT.bmi) {
+            const e = CT.bmi.evaluate(bmi);
+            repBmiB.innerText = e.badge;
+            repBmiB.className = `badge-pill ${e.state}`;
+          }
         }
 
         sqiValue.innerText = `${Math.round(v.signal_quality)} / 100`;
+        const repSqiEl = document.getElementById("repSqi");
+        if (repSqiEl) repSqiEl.innerText = `${Math.round(v.signal_quality)}% (${v.quality_category})`;
 
         if (v.pulse_waveform && v.pulse_waveform.length > 0) {
           waveformBuffer = v.pulse_waveform;
@@ -1871,12 +2178,11 @@
         }
       } else {
         const elapsed = (performance.now() - scanStartTime) / 1000;
-        if (elapsed < 6.0) {
-          statusBanner.innerText = `Accumulating pulse buffer (${Math.floor(elapsed)}s / 6s)...`;
+        if (elapsed < 4.0) {
+          statusBanner.innerHTML = `<span>● Initializing optical buffer (${Math.floor(elapsed)}s / 4s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
         } else {
-          statusBanner.innerText = v.reason || "Analyzing multi-spectral facial signal...";
+          statusBanner.innerHTML = `<span>● ${v.reason || "Analyzing multi-spectral facial stream..."}</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
         }
-        statusBanner.style.borderLeftColor = "#eab308";
         sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
       }
     }
@@ -1912,213 +2218,6 @@
       }
       waveCtx.stroke();
     }
-  
-    function openReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "flex";
-    }
-
-    function closeReferenceChartModal() {
-      document.getElementById("referenceChartModal").style.display = "none";
-    }
-
   </script>
-  <!-- Health Report Modal -->
-  <div class="modal" id="reportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
-    <div class="modal-content" style="background: #0D1B2A; border: 1px solid #1E334A; border-radius: 16px; width: 90%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.8);">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E334A; padding-bottom: 12px;">
-        <h2 style="font-size: 19px; font-weight: 800; color: #00C2D7; display: flex; align-items: center; gap: 8px;">
-          <span>📄</span> AuraPulse Health Intelligence Report
-        </h2>
-        <button class="modal-close" onclick="closeReportModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
-      </div>
-
-      <div style="font-size: 12px; color: #9AA8B7; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #08121E; padding: 12px; border-radius: 8px;">
-        <div>Session ID: <strong id="repSessionId" style="color:#fff;">--</strong></div>
-        <div>Timestamp: <strong id="repTimestamp" style="color:#fff;">--</strong></div>
-        <div>Duration: <strong id="repDuration" style="color:#fff;">60 Seconds</strong></div>
-        <div>Signal Quality: <strong id="repSqi" style="color:#10B981;">--</strong></div>
-      </div>
-
-      <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 1px solid #1E334A; color: #9AA8B7; background: #091320;">
-            <th style="padding: 8px 12px;">Biomarker / Vital</th>
-            <th style="padding: 8px 12px;">Extracted Value</th>
-            <th style="padding: 8px 12px;">Clinical Assessment</th>
-          </tr>
-        </thead>
-        <tbody id="reportBodyRows">
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Heart Rate (rPPG)</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValHr">-- BPM</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeHr">Normal</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Respiration Rate</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRr">-- RPM</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRr">Optimal</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Pulse Variability (RMSSD)</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRmssd">-- ms</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRmssd">High</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Physiological Stress Index</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValStress">-- SI</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeStress">Low</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Cardiac Workload (RPP)</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRpp">--</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRpp">Normal</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">Estimated Vascular Age</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValVascAge">-- Years</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeVascAge">Optimal</span></td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1E334A;">
-            <td style="padding: 8px 12px; font-weight: 600;">10-Year CVD Risk</td>
-            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValCvd">-- %</td>
-            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeCvd">Low</span></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); padding: 12px; border-radius: 8px; font-size: 11px; color: #C4B5FD; line-height: 1.4;">
-        <strong>Notice:</strong> This report is generated on-device for wellness, fitness, and research screening purposes. It is not a medical diagnosis. Consult a licensed healthcare provider for clinical evaluation.
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <button class="btn-export" onclick="window.print()" style="flex: 1; padding: 10px; background: #00C2D7; color: #000; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">🖨️ Print / Save PDF</button>
-        <button class="btn-export" onclick="closeReportModal()" style="flex: 1; padding: 10px; background: #1E334A; color: #fff; font-weight: 600; border: 1px solid #2D4C6E; border-radius: 8px; cursor: pointer;">Close</button>
-      </div>
-    </div>
-  </div>
-  <!-- Clinical Reference Chart Modal -->
-  <div class="modal" id="referenceChartModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2100; align-items: center; justify-content: center; padding: 20px;">
-    <div class="modal-content" style="background: #0D1B2A; border: 1px solid #1E334A; border-radius: 16px; width: 95%; max-width: 960px; max-height: 90vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.9);">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E334A; padding-bottom: 12px;">
-        <h2 style="font-size: 20px; font-weight: 800; color: #00C2D7; display: flex; align-items: center; gap: 8px;">
-          <span>📊</span> Clinical Biomarker & Vital Signs Reference Standards (Age 18+)
-        </h2>
-        <button class="modal-close" onclick="closeReferenceChartModal()" style="background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer;">✕</button>
-      </div>
-
-      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-        Abnormal measurement results can be related to the following physiological states and may require medical attention:
-      </p>
-
-      <div style="overflow-x: auto;">
-        <table class="report-table" style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
-          <thead>
-            <tr style="background: #091320; color: #9AA8B7; border-bottom: 2px solid #1E334A;">
-              <th style="padding: 10px 14px; width: 26%;">Health Indicator</th>
-              <th style="padding: 10px 14px; width: 26%;">Normal Range (Age 18+)</th>
-              <th style="padding: 10px 14px; width: 48%;">Health Issues Associated with Abnormal Levels</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Blood pressure</strong><br/><span style="color:var(--text-muted); font-size:11px;">How blood is pumped through your veins</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Systolic: &lt; 120</span><br/><span class="badge-pill optimal" style="margin-top:4px;">Diastolic: &lt; 80</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Heart attack, heart disease, stroke, kidney disease, poor cognitive function, dementia</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Heart Rate / Pulse Rate</strong><br/><span style="color:var(--text-muted); font-size:11px;">How many times your heart beats per minute</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">60–100 bpm</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Stroke, heart failure, Hypovolemia, Fever</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Heart Rate Variability</strong><br/><span style="color:var(--text-muted); font-size:11px;">The variance in time between heart beats</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Age 20-25: 55–105</span><br/><span class="badge-pill optimal" style="margin-top:4px;">Age 60-65: 25–45</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Stress, risk of cardiac events, oncoming sickness, nutrition and sleep patterns</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Oxygen Saturation</strong><br/><span style="color:var(--text-muted); font-size:11px;">Oxygen-carrying hemoglobin relative to total</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">95% – 100%</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Heart disease, interstitial lung disease, COPD, Anemia, ARDS, Pneumonia, sleep apnea</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Breathing Rate</strong><br/><span style="color:var(--text-muted); font-size:11px;">The number of breaths you take per minute</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">12–20 bpm</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Anxiety, fever, heart problems, respiratory conditions including COPD, asthma, and pneumonia</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Hemoglobin</strong><br/><span style="color:var(--text-muted); font-size:11px;">The amount of hemoglobin in your blood</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Men: 14 to 18 g/dL</span><br/><span class="badge-pill optimal" style="margin-top:4px;">Women: 12 to 16 g/dL</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Anemia, sickle cell disease, chronic kidney disease, hemato-oncology disease, cancer, malnutrition</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Hemoglobin A1c</strong><br/><span style="color:var(--text-muted); font-size:11px;">Average blood sugar over past 2–3 months</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Normal &le; 5.7%</span><br/><span class="badge-pill warning" style="margin-top:4px;">Prediabetes: 5.7–6.4%</span><br/><span class="badge-pill critical" style="margin-top:4px;">Diabetes: &gt; 6.4%</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Pre-diabetes, diabetes, metabolic syndrome, heart disease, kidney damage, eye damage, liver disease</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Sympathetic Stress (Baevsky)</strong><br/><span style="color:var(--text-muted); font-size:11px;">Stress level on scale from low to very high</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low – Normal</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Stress, risk of cardiac events, oncoming sickness, nutrition and sleep patterns</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Stress response (SNS Zone)</strong><br/><span style="color:var(--text-muted); font-size:11px;">How effectively your body responds to stress</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low – Normal</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Stress, risk of cardiac events, oncoming sickness, nutrition and sleep patterns</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Recovery Ability (PNS Zone)</strong><br/><span style="color:var(--text-muted); font-size:11px;">How capable you are of recovering after stress</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Normal – High</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Stress, risk of cardiac events, oncoming sickness, nutrition and sleep patterns</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Pulse Respiratory Quotient (PRQ)</strong><br/><span style="color:var(--text-muted); font-size:11px;">Heart rate divided by respiration rate</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">5 (4.0 – 5.0)</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Hyperventilation, cardiorespiratory issues</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">High HbA1c Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Risk of having high HbA1c levels</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Diabetes, heart disease, kidney damage, eye damage, liver disease</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">High Fasting Glucose Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Risk of high glucose after 8–12h fasting</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Diabetes, heart disease, kidney damage, eye damage, liver disease</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Low Hemoglobin Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Risk of having low hemoglobin levels</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Anemia, blood loss, sickle cell disease, chronic kidney disease, cancer, malnutrition</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">High Blood Pressure Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Risk of suffering from high blood pressure</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Heart attack, stroke, heart disease, kidney damage, poor cognitive function, dementia, pregnancy complications</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A; background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">High Total Cholesterol Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Risk of having high total cholesterol levels</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Low</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Atherosclerosis, heart disease, heart attack, stroke, peripheral artery disease, high blood pressure</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #1E334A;">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">ASCVD Risk</strong><br/><span style="color:var(--text-muted); font-size:11px;">Likelihood of atherosclerotic event in 10 years</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Below 1% (or &lt; 10%)</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Heart disease, stroke, peripheral artery disease, aneurysm, kidney disease, diabetes</td>
-            </tr>
-            <tr style="background: rgba(13,27,42,0.5);">
-              <td style="padding: 10px 14px;"><strong style="color:#fff;">Heart / Vascular Age</strong><br/><span style="color:var(--text-muted); font-size:11px;">Heart’s estimated biological age vs chronological</span></td>
-              <td style="padding: 10px 14px;"><span class="badge-pill optimal">Heart age &le; chronological age</span></td>
-              <td style="padding: 10px 14px; color:#E2E8F0;">Heart disease, heart attack, stroke, heart failure, peripheral artery disease, high blood pressure, high cholesterol, diabetes, obesity</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-        <button class="btn-export" onclick="window.print()" style="padding: 10px 20px; background: #00C2D7; color: #000; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">🖨️ Print Reference Guide</button>
-        <button class="btn-export" onclick="closeReferenceChartModal()" style="padding: 10px 20px; background: #1E334A; color: #fff; font-weight: 600; border: 1px solid #2D4C6E; border-radius: 8px; cursor: pointer;">Close</button>
-      </div>
-    </div>
-  </div>
 </body>
 </html>

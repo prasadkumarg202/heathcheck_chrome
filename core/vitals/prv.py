@@ -29,6 +29,7 @@ class PRVResult:
     confidence: float
     is_valid: bool
     label: str = "Pulse Rate Variability (PRV - Optical BVP)"
+    ppi_intervals: Optional[List[float]] = None
     rejection_reason: Optional[str] = None
 
 
@@ -183,5 +184,6 @@ class PRVEngine:
             confidence=round(conf, 3),
             is_valid=True,
             label="Pulse Rate Variability (PRV - Optical BVP)",
+            ppi_intervals=[float(round(p, 1)) for p in clean_ppi],
             rejection_reason=None,
         )

@@ -26,8 +26,10 @@ from core.vitals.prv import PRVEngine, PRVResult
 from core.vitals.stress import StressEngine, StressResult
 from core.vitals.blood_pressure import BloodPressureEngine, BloodPressureResult
 from core.vitals.spo2 import SpO2Engine, SpO2Result
+from core.vitals.hemoglobin import HemoglobinEngine, HemoglobinResult
 from core.vitals.cardiac_workload import CardiacWorkloadEngine, CardiacWorkloadResult
 from core.analytics.risk_models import HealthRiskAnalyticsEngine, VascularAgeResult, CVDRiskResult, BodyCompositionResult
+from core.analytics.metabolic_models import MetabolicRiskEngine, MetabolicRiskResult
 
 
 @dataclass
@@ -38,8 +40,10 @@ class HealthMeasurementResult:
     pulse_rate_variability: Optional[Dict[str, Any]] = None
     blood_pressure: Optional[Dict[str, Any]] = None
     spo2: Optional[Dict[str, Any]] = None
+    hemoglobin: Optional[Dict[str, Any]] = None
     cardiac_workload: Optional[Dict[str, Any]] = None
     stress_index: Optional[Dict[str, Any]] = None
+    metabolic_risks: Optional[Dict[str, Any]] = None
     vascular_age: Optional[Dict[str, Any]] = None
     cvd_risk: Optional[Dict[str, Any]] = None
     body_composition: Optional[Dict[str, Any]] = None
@@ -49,7 +53,7 @@ class HealthMeasurementResult:
     quality_category: str = "Invalid"
     face_quality: float = 0.0
     measurement_duration_s: float = 0.0
-    algorithm_version: str = "0.2.0"
+    algorithm_version: str = "0.3.0"
     engine: str = "AuraPulse-Clinical-Edge"
     validation_status: str = "On-Device Synthesis Core (rPPG + Biomarkers)"
     reason: Optional[str] = None
@@ -65,7 +69,7 @@ class AuraPulseEngine:
 
     def __init__(
         self,
-        min_measurement_duration_s: float = 6.0,
+        min_measurement_duration_s: float = 4.0,
         window_duration_s: float = 25.0,
         target_fs: float = 30.0,
         min_sqi_threshold: float = 35.0,
@@ -97,8 +101,10 @@ class AuraPulseEngine:
         self.stress_engine = StressEngine()
         self.bp_engine = BloodPressureEngine()
         self.spo2_engine = SpO2Engine()
+        self.hb_engine = HemoglobinEngine()
         self.cardiac_workload_engine = CardiacWorkloadEngine()
         self.risk_engine = HealthRiskAnalyticsEngine()
+        self.metabolic_engine = MetabolicRiskEngine()
 
         self.session_start_time: Optional[float] = None
         self.frame_count = 0
@@ -281,7 +287,14 @@ class AuraPulseEngine:
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 9. Cardiac Workload (Rate-Pressure Product)
+        # 9. Hemoglobin (Hb) Estimation
+        hb_res = self.hb_engine.estimate_hemoglobin(
+            rgb_temporal=fh_rgb,
+            is_male=user_is_male,
+            sqi_score=overall_sqi.sqi_score
+        )
+
+        # 10. Cardiac Workload (Rate-Pressure Product)
         cardiac_res = self.cardiac_workload_engine.compute_workload(
             hr_bpm=hr_res.hr_bpm,
             systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
@@ -289,7 +302,7 @@ class AuraPulseEngine:
             confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
         )
 
-        # 10. Advanced Physiological Stress & Autonomic Recovery
+        # 11. Advanced Physiological Stress & Autonomic Recovery
         stress_res = self.stress_engine.compute_stress_index(
             hr_bpm=hr_res.hr_bpm,
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
@@ -297,25 +310,30 @@ class AuraPulseEngine:
             confidence_hr=hr_res.confidence,
             confidence_prv=prv_res.confidence if prv_res.is_valid else 0.5,
             ppi_intervals_ms=prv_res.ppi_intervals if hasattr(prv_res, "ppi_intervals") else None,
+            bvp_signal=fused_bvp,
+            fs=self.target_fs,
         )
 
-        # 11. Body Composition & Anthropometrics
+        # 12. Body Composition & Anthropometrics
         body_comp_res = self.risk_engine.compute_body_composition(
             height_cm=user_height,
             weight_kg=user_weight,
             waist_cm=user_waist
         )
 
-        # 12. Vascular Age Estimation
+        # 13. Vascular Age Estimation
         vasc_age_res = self.risk_engine.estimate_vascular_age(
             chronological_age=user_age,
             systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
             stiffness_index=bp_res.stiffness_index_ms if bp_res.is_valid else 7.5,
             sdppg_aging_index=bp_res.sdppg_aging_index if bp_res.is_valid else -0.35,
-            confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
+            confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8,
+            is_male=user_is_male,
+            is_smoker=user_smoker,
+            is_diabetic=user_diabetic,
         )
 
-        # 13. 10-Year Cardiovascular & Stroke Risk Projection
+        # 14. 10-Year Cardiovascular & Stroke Risk Projection
         cvd_risk_res = self.risk_engine.estimate_10yr_cvd_risk(
             age=user_age,
             is_male=user_is_male,
@@ -325,6 +343,18 @@ class AuraPulseEngine:
             bmi=body_comp_res.bmi,
             hr_bpm=hr_res.hr_bpm,
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0
+        )
+
+        # 15. Metabolic & Glycemic Risk Model (FBG + HbA1c)
+        metabolic_res = self.metabolic_engine.estimate_metabolic_risks(
+            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
+            lf_hf_ratio=stress_res.lf_hf_ratio if stress_res.is_valid else 1.5,
+            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            age=user_age,
+            bmi=body_comp_res.bmi,
+            stiffness_index=bp_res.stiffness_index_ms if bp_res.is_valid else 7.5,
+            is_diabetic_history=user_diabetic,
+            confidence_inputs=min(hr_res.confidence, overall_sqi.sqi_score / 100.0)
         )
 
         # Downsample waveform for API transmission (last 120 samples)
@@ -377,6 +407,16 @@ class AuraPulseEngine:
                 "confidence": spo2_res.confidence if spo2_res.is_valid else 0.0,
                 "status": "VALID" if spo2_res.is_valid else "INSUFFICIENT_DATA",
             },
+            hemoglobin={
+                "value": hb_res.hb_g_dl if hb_res.is_valid else None,
+                "unit": "g/dL",
+                "category": hb_res.category if hb_res.is_valid else "Unknown",
+                "referenceRange": hb_res.reference_range if hb_res.is_valid else "14.0 - 18.0 g/dL",
+                "attenuationRatio": hb_res.attenuation_ratio if hb_res.is_valid else None,
+                "confidence": hb_res.confidence if hb_res.is_valid else 0.0,
+                "status": "VALID" if hb_res.is_valid else "INSUFFICIENT_DATA",
+                "disclaimer": hb_res.disclaimer,
+            },
             cardiac_workload={
                 "rpp": cardiac_res.rpp_score if cardiac_res.is_valid else None,
                 "category": cardiac_res.workload_category if cardiac_res.is_valid else "Unknown",
@@ -389,9 +429,26 @@ class AuraPulseEngine:
                 "level": stress_res.stress_level if stress_res.is_valid else "Unknown",
                 "baevskyIndex": stress_res.baevsky_stress_index if stress_res.is_valid else None,
                 "parasympatheticScore": stress_res.parasympathetic_score if stress_res.is_valid else None,
+                "sympatheticScore": stress_res.sympathetic_score if stress_res.is_valid else None,
                 "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
+                "lfPower": stress_res.lf_power if stress_res.is_valid else None,
+                "hfPower": stress_res.hf_power if stress_res.is_valid else None,
+                "lfHfRatio": stress_res.lf_hf_ratio if stress_res.is_valid else None,
                 "confidence": stress_res.confidence if stress_res.is_valid else 0.0,
                 "disclaimer": stress_res.disclaimer,
+            },
+            metabolic_risks={
+                "fbgMgDl": metabolic_res.estimated_fbg_mg_dl if metabolic_res.is_valid else None,
+                "fbgCategory": metabolic_res.fbg_category if metabolic_res.is_valid else "Unknown",
+                "fbgStatus": metabolic_res.fbg_status if metabolic_res.is_valid else "Unknown",
+                "hba1cPct": metabolic_res.estimated_hba1c_pct if metabolic_res.is_valid else None,
+                "hba1cCategory": metabolic_res.hba1c_category if metabolic_res.is_valid else "Unknown",
+                "hba1cStatus": metabolic_res.hba1c_status if metabolic_res.is_valid else "Unknown",
+                "metabolicScore": metabolic_res.metabolic_score if metabolic_res.is_valid else None,
+                "riskLevel": metabolic_res.risk_level if metabolic_res.is_valid else "Unknown",
+                "keyFactors": metabolic_res.key_factors if metabolic_res.is_valid else [],
+                "confidence": metabolic_res.confidence if metabolic_res.is_valid else 0.0,
+                "disclaimer": metabolic_res.disclaimer,
             },
             vascular_age={
                 "estimatedAge": vasc_age_res.vascular_age_years,
@@ -419,7 +476,9 @@ class AuraPulseEngine:
             wellness_indices={
                 "baevskyStress": stress_res.baevsky_stress_index if stress_res.is_valid else None,
                 "pnsRecovery": stress_res.parasympathetic_score if stress_res.is_valid else None,
+                "snsZone": stress_res.sympathetic_score if stress_res.is_valid else None,
                 "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
+                "lfHfRatio": stress_res.lf_hf_ratio if stress_res.is_valid else None,
                 "ansBalance": stress_res.ans_balance_ratio if stress_res.is_valid else None,
             },
             pulse_waveform=waveform_sample,
@@ -427,7 +486,7 @@ class AuraPulseEngine:
             quality_category=overall_sqi.category,
             face_quality=100.0,
             measurement_duration_s=round(duration, 1),
-            algorithm_version="0.2.0",
+            algorithm_version="0.3.0",
             engine="AuraPulse-Clinical-Edge",
             validation_status="On-Device Synthesis Core (rPPG + Biomarkers)",
             reason=None,
