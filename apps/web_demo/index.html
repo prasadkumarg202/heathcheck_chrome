@@ -1183,14 +1183,60 @@
 
     connectWebSocket();
 
-    async function initCamera() {
+        async function initCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        statusBanner.innerText = "Requesting camera access...";
+        statusBanner.style.borderLeftColor = "#06b6d4";
+
+        const constraints = {
           video: {
-            width: { ideal: 640, max: 640 },
-            height: { ideal: 480, max: 480 },
-            frameRate: { ideal: 30, min: 25 }
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: "user"
+          },
+          audio: false
+        };
+
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+        } catch (e1) {
+          // Fallback with minimal constraints for legacy webcams
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+
+        video.srcObject = stream;
+        await video.play().catch(() => {});
+
+        const onVideoReady = () => {
+          const vw = video.videoWidth || 640;
+          const vh = video.videoHeight || 480;
+          overlayCanvas.width = vw;
+          overlayCanvas.height = vh;
+          sampleCanvas.width = vw;
+          sampleCanvas.height = vh;
+          const vp = document.querySelector('.video-viewport');
+          if (vp) {
+            vp.style.aspectRatio = `${vw} / ${vh}`;
           }
+          statusBanner.innerText = "● Camera Locked • Position Face Inside Guide";
+          statusBanner.style.borderLeftColor = "#10b981";
+          triggerKeyframeDetection();
+        };
+
+        if (video.videoWidth > 0) {
+          onVideoReady();
+        } else {
+          video.onloadedmetadata = onVideoReady;
+          video.onplaying = onVideoReady;
+        }
+
+      } catch (err) {
+        console.error("Camera access error:", err);
+        statusBanner.innerText = "⚠️ Camera access denied. Click 'Start 60s Scan' to retry.";
+        statusBanner.style.borderLeftColor = "#ef4444";
+      }
+    }
         });
         video.srcObject = stream;
         video.onloadedmetadata = () => {
@@ -1214,12 +1260,18 @@
 
     initCamera();
 
-    startBtn.addEventListener("click", async () => {
+        startBtn.addEventListener("click", async () => {
+      // If camera not yet started, initialize it first
+      if (!video.srcObject || video.videoWidth === 0) {
+        await initCamera();
+      }
+
       if (wsReady && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "reset" }));
       } else {
         await fetch("/api/reset", { method: "POST" });
       }
+
       isScanning = true;
       scanCompleted = false;
       scanFramesCount = 0;
@@ -1227,7 +1279,7 @@
       waveformBuffer = [];
       startBtn.disabled = true;
       startBtn.innerText = "Scanning in Progress (60s)...";
-      statusBanner.innerText = "Starting comprehensive health measurement...";
+      statusBanner.innerText = "Starting comprehensive 60s health measurement...";
       statusBanner.style.borderLeftColor = "#06b6d4";
 
       // Reset values
