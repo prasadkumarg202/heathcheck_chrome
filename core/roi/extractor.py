@@ -1,7 +1,7 @@
 """
 Dynamic Region of Interest (ROI) Extraction Engine for AuraPulse.
 Extracts landmark-anchored polygonal ROIs for Forehead and Malar/Cheekbones,
-optimized for vascular density and beard/hair rejection.
+with zero-phase homomorphic lighting normalization and beard/hair rejection.
 """
 
 from __future__ import annotations
@@ -29,13 +29,14 @@ class ROIData:
 class ROIExtractor:
     """
     Extracts dynamic polygon ROIs anchored to facial landmarks and computes
-    skin-masked color statistics. Optimized for malar prominence and beard avoidance.
+    skin-masked color statistics with homomorphic lighting correction.
     """
 
-    def __init__(self, min_skin_pct: float = 25.0, min_pixels: int = 60):
+    def __init__(self, min_skin_pct: float = 25.0, min_pixels: int = 60, enable_homomorphic: bool = True):
         self.min_skin_pct = min_skin_pct
         self.min_pixels = min_pixels
-        self.skin_segmenter = SkinSegmenter()
+        self.skin_segmenter = SkinSegmenter(enable_homomorphic_norm=enable_homomorphic)
+        self.enable_homomorphic = enable_homomorphic
 
     def extract_rois(
         self,
@@ -53,15 +54,14 @@ class ROIExtractor:
         rex, rey = landmarks.right_eye
         nose_x, nose_y = landmarks.nose_tip
 
-        # Establish invariant viewer-left (smaller X) and viewer-right (larger X)
         eye_left_x = min(lex, rex)
         eye_right_x = max(lex, rex)
         eye_y = (ley + rey) / 2.0
         eye_dist = max(10.0, float(np.hypot(lex - rex, ley - rey)))
 
-        # 1. FOREHEAD POLYGON (Trapezoid high on frontal bone, strictly above eyebrows and below hairline)
+        # 1. FOREHEAD POLYGON
         fh_mid_x = (eye_left_x + eye_right_x) / 2.0
-        fh_bot_y = int(eye_y - eye_dist * 0.38)  # High above eyebrow ridge
+        fh_bot_y = int(eye_y - eye_dist * 0.38)
         fh_top_y = max(int(by + bh * 0.05), int(eye_y - eye_dist * 0.85))
         if fh_top_y >= fh_bot_y:
             fh_top_y = max(0, fh_bot_y - int(eye_dist * 0.40))
@@ -74,27 +74,23 @@ class ROIExtractor:
             [int(fh_mid_x + fh_half_w * 1.05), fh_bot_y],
         ], dtype=np.int32)
 
-        # 2. MALAR CHEEKBONES (Zygomatic prominence: directly below ocular orbit, strictly above nostrils & beard)
+        # 2. MALAR CHEEKBONES
         cheek_y = eye_y + max(12.0, (nose_y - eye_y) * 0.45)
         cheek_w = eye_dist * 0.32
         cheek_h = max(10.0, (nose_y - eye_y) * 0.42)
 
-        # Viewer's left cheek (subject's right malar bone)
-        lc_x = eye_left_x - eye_dist * 0.05
         left_cheek_poly = np.array([
-            [int(lc_x - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(lc_x + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(lc_x + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
-            [int(lc_x - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.05 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.05 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.05 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_left_x - eye_dist * 0.05 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
-        # Viewer's right cheek (subject's left malar bone)
-        rc_x = eye_right_x + eye_dist * 0.05
         right_cheek_poly = np.array([
-            [int(rc_x - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(rc_x + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
-            [int(rc_x + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
-            [int(rc_x - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.05 - cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.05 + cheek_w * 0.5), int(cheek_y - cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.05 + cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
+            [int(eye_right_x + eye_dist * 0.05 - cheek_w * 0.45), int(cheek_y + cheek_h * 0.5)],
         ], dtype=np.int32)
 
         candidate_polys = {
@@ -149,7 +145,13 @@ class ROIExtractor:
         skin_pct = (skin_pixels / max(poly_pixels, 1)) * 100.0
         is_valid = (skin_pct >= self.min_skin_pct) and (skin_pixels >= self.min_pixels)
 
-        crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+        # Equalize illumination if enabled
+        if self.enable_homomorphic and crop.shape[0] >= 8 and crop.shape[1] >= 8:
+            crop_for_color = self.skin_segmenter.homomorphic_equalizer(crop, sigma=15.0)
+        else:
+            crop_for_color = crop
+
+        crop_rgb = cv2.cvtColor(crop_for_color, cv2.COLOR_BGR2RGB)
 
         if is_valid:
             valid_pixels = crop_rgb[combined_mask > 0]

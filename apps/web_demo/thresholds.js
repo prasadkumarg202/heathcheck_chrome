@@ -97,12 +97,72 @@ const CLINICAL_THRESHOLDS = {
     validationStatus: "PHYSIOLOGICAL_RATIO",
     evaluate: (val) => {
       if (val === null || val === undefined || isNaN(val) || val <= 0) {
-        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Derived physiological ratio (HR / RR)" };
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Requires valid simultaneous HR & RR" };
       }
       if (val < 3.0 || val > 5.5) {
         return { state: "warning", label: "Atypical Ratio", color: "#F59E0B", badge: "🟡 Deviated", subtext: val > 5.5 ? "Elevated pulse-to-breath quotient" : "Low pulse-to-breath quotient" };
       }
       return { state: "optimal", label: "Balanced", color: "#22C55E", badge: "🟢 Balanced", subtext: "Expected resting cardiorespiratory coupling (3.5 - 5.0)" };
+    }
+  },
+
+  arrhythmia: {
+    name: "Pulse Rhythm & AFib Screening",
+    unit: "% CV",
+    normalRange: "Regular Sinus Rhythm (CV < 12%)",
+    validationStatus: "RESEARCH_ONLY",
+    evaluate: (isIrregular, cvPct, status) => {
+      if (cvPct === null || cvPct === undefined || isNaN(cvPct)) {
+        return { state: "unavailable", label: "Analyzing Rhythm", color: "#64748B", badge: "⚪ In Progress", subtext: "Extracting Poincaré IBI scatter" };
+      }
+      if (isIrregular || cvPct >= 12.0) {
+        return { state: "critical", label: "Irregular Rhythm", color: "#EF4444", badge: "🔴 Irregular (AFib Risk)", subtext: `Elevated beat interval dispersion (${cvPct.toFixed(1)}% CV)` };
+      }
+      if (cvPct >= 8.0) {
+        return { state: "warning", label: "Borderline", color: "#F59E0B", badge: "🟡 Borderline", subtext: `Mild interval variability (${cvPct.toFixed(1)}% CV)` };
+      }
+      return { state: "optimal", label: "Regular Sinus", color: "#22C55E", badge: "🟢 Regular Rhythm", subtext: `Normal rhythmic interval pacing (${cvPct.toFixed(1)}% CV)` };
+    }
+  },
+
+  vo2Max: {
+    name: "Cardiorespiratory Fitness (VO2 max)",
+    unit: "mL/kg/min",
+    normalRange: "Normative (Age/Gender Stratified)",
+    validationStatus: "MODEL_DEPENDENT",
+    evaluate: (val, tier) => {
+      if (val === null || val === undefined || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Non-exercise Jackson-Pollock regression" };
+      }
+      if (tier === "Superior" || tier === "Excellent") {
+        return { state: "optimal", label: tier, color: "#22C55E", badge: `🟢 ${tier}`, subtext: `${val.toFixed(1)} mL/kg/min (High Aerobic Capacity)` };
+      }
+      if (tier === "Good") {
+        return { state: "optimal", label: "Good", color: "#22C55E", badge: "🟢 Good", subtext: `${val.toFixed(1)} mL/kg/min (Average Aerobic Capacity)` };
+      }
+      if (tier === "Fair") {
+        return { state: "warning", label: "Fair", color: "#F59E0B", badge: "🟡 Fair", subtext: `${val.toFixed(1)} mL/kg/min (Moderate Capacity)` };
+      }
+      return { state: "critical", label: "Poor", color: "#EF4444", badge: "🔴 Poor", subtext: `${val.toFixed(1)} mL/kg/min (Low Aerobic Fitness)` };
+    }
+  },
+
+  coherence: {
+    name: "Cardiorespiratory Coherence",
+    unit: "%",
+    normalRange: "> 40% (Coherent Breathing)",
+    validationStatus: "RESEARCH_ONLY",
+    evaluate: (val) => {
+      if (val === null || val === undefined || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Cross-spectral respiratory-HRV coupling" };
+      }
+      if (val >= 70.0) {
+        return { state: "optimal", label: "High Coherence", color: "#22C55E", badge: "🟢 High (70-100%)", subtext: "Strong autonomic-respiratory phase sync" };
+      }
+      if (val >= 40.0) {
+        return { state: "warning", label: "Moderate", color: "#F59E0B", badge: "🟡 Moderate (40-69%)", subtext: "Moderate cardiorespiratory coupling" };
+      }
+      return { state: "critical", label: "Low", color: "#64748B", badge: "⚪ Low (<40%)", subtext: "Desynchronized autonomic rhythm" };
     }
   },
 

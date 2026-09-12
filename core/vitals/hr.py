@@ -20,6 +20,10 @@ class HRResult:
     rejection_reason: Optional[str] = None
 
 
+# Alias for backward compatibility
+HeartRateResult = HRResult
+
+
 class HeartRateEngine:
     """
     Robust Heart Rate extractor using multi-method spectral and temporal consensus.

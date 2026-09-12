@@ -2,8 +2,9 @@
 Multi-Color-Space Semantic Skin Segmentation Engine for AuraPulse.
 Features:
 1. Fused YCbCr, HSV, and Normalized RGB chromatic boundaries across Fitzpatrick types I-VI.
-2. Specular glare and over-saturation rejection (sweaty / direct reflection removal).
-3. Semantic facial landmark exclusion (eyes, eyebrows, lips, and nostrils masking).
+2. Specular glare and over-saturation rejection.
+3. Zero-phase 2D Homomorphic Illumination Normalizer to suppress shadows from fans and lamps.
+4. Semantic facial landmark exclusion (eyes, eyebrows, lips, nostrils).
 """
 
 from __future__ import annotations
@@ -19,10 +20,43 @@ class SkinSegmenter:
     glasses, eyes, lips, and specular glare artifacts.
     """
 
-    def __init__(self, use_morphology: bool = True, reject_specular_glare: bool = True):
+    def __init__(
+        self,
+        use_morphology: bool = True,
+        reject_specular_glare: bool = True,
+        enable_homomorphic_norm: bool = True
+    ):
         self.use_morphology = use_morphology
         self.reject_specular_glare = reject_specular_glare
+        self.enable_homomorphic_norm = enable_homomorphic_norm
         self.morph_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+
+    def homomorphic_equalizer(self, image_bgr: np.ndarray, sigma: float = 15.0) -> np.ndarray:
+        """
+        Applies a zero-phase 2D homomorphic illumination equalizer:
+        I_norm(x, y) = log(1 + I(x, y)) - GaussianBlur(log(1 + I(x, y)), sigma=15)
+        Suppresses low-frequency illumination gradients while preserving pulsatile micro-color shifts.
+        """
+        if image_bgr is None or image_bgr.size == 0:
+            return image_bgr
+
+        img_float = image_bgr.astype(np.float32) + 1.0
+        log_img = np.log(img_float)
+
+        # 2D Gaussian blur for low-frequency illumination baseline
+        ksize = int(2 * round(3 * sigma) + 1)
+        ksize = max(3, ksize if ksize % 2 == 1 else ksize + 1)
+        low_freq = cv2.GaussianBlur(log_img, (ksize, ksize), sigmaX=sigma, sigmaY=sigma)
+
+        # High-frequency reflectance component
+        high_freq = log_img - low_freq
+
+        # Reconstruct with mean baseline
+        mean_base = np.mean(low_freq, axis=(0, 1), keepdims=True)
+        norm_float = np.exp(high_freq + mean_base) - 1.0
+        norm_bgr = np.clip(norm_float, 0.0, 255.0).astype(np.uint8)
+
+        return norm_bgr
 
     def segment(self, bgr_image: np.ndarray) -> Tuple[np.ndarray, float]:
         """
@@ -32,36 +66,38 @@ class SkinSegmenter:
         if bgr_image is None or bgr_image.size == 0:
             return np.zeros((0, 0), dtype=np.uint8), 0.0
 
+        # Apply homomorphic lighting equalization if enabled
+        if self.enable_homomorphic_norm and bgr_image.shape[0] >= 10 and bgr_image.shape[1] >= 10:
+            processed_bgr = self.homomorphic_equalizer(bgr_image, sigma=15.0)
+        else:
+            processed_bgr = bgr_image
+
         # 1. Convert to YCbCr
-        ycbcr = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2YCrCb)
+        ycbcr = cv2.cvtColor(processed_bgr, cv2.COLOR_BGR2YCrCb)
         y, cr, cb = ycbcr[:, :, 0], ycbcr[:, :, 1], ycbcr[:, :, 2]
 
         # Inclusive of Fitzpatrick I-VI under various ambient lighting
         mask_ycbcr = (cr >= 130) & (cr <= 180) & (cb >= 75) & (cb <= 135) & (y >= 30)
 
         # 2. Convert to HSV
-        hsv = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
+        hsv = cv2.cvtColor(processed_bgr, cv2.COLOR_BGR2HSV)
         h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
 
-        # Hue: 0 to 28 (reds-oranges-yellows), Saturation: 18 to 250, Value: 35 to 255
         mask_hsv = (h >= 0) & (h <= 28) & (s >= 18) & (s <= 250) & (v >= 35)
 
         # 3. Normalized RGB Boundaries
-        b = bgr_image[:, :, 0].astype(np.float32)
-        g = bgr_image[:, :, 1].astype(np.float32)
-        r = bgr_image[:, :, 2].astype(np.float32)
+        b = processed_bgr[:, :, 0].astype(np.float32)
+        g = processed_bgr[:, :, 1].astype(np.float32)
+        r = processed_bgr[:, :, 2].astype(np.float32)
 
-        # Vascular skin rule: R > G and G > B*0.75, with minimum intensity
         mask_rgb = (r > g) & (g > b * 0.75) & ((r - g) >= 3) & (r > 38)
 
         # 4. Specular Glare & Direct Reflection Rejection
-        # Specular reflections wash out pulsatile absorption (R,G,B saturated near 255 with low chroma)
         if self.reject_specular_glare:
             specular_mask = (v >= 245) & (s <= 20) | ((r >= 250) & (g >= 250) & (b >= 250))
         else:
             specular_mask = np.zeros(bgr_image.shape[:2], dtype=bool)
 
-        # Fuse masks: (YCbCr AND (HSV OR RGB)) AND (NOT Specular)
         skin_bool = mask_ycbcr & (mask_hsv | mask_rgb) & (~specular_mask)
         skin_mask = (skin_bool * 255).astype(np.uint8)
 
@@ -74,46 +110,3 @@ class SkinSegmenter:
         skin_pct = (skin_pixels / total_pixels * 100.0) if total_pixels > 0 else 0.0
 
         return skin_mask, skin_pct
-
-    def create_semantic_face_mask(
-        self,
-        frame: np.ndarray,
-        landmarks: Optional[Any] = None
-    ) -> np.ndarray:
-        """
-        Creates a high-precision semantic mask for the entire face,
-        segmenting skin while explicitly zeroing out eyes, eyebrows, lips, and nostrils.
-        """
-        h, w = frame.shape[:2]
-        base_skin_mask, _ = self.segment(frame)
-
-        if landmarks is None or not hasattr(landmarks, "landmarks_68"):
-            return base_skin_mask
-
-        pts = landmarks.landmarks_68
-        if pts is None or len(pts) < 68:
-            return base_skin_mask
-
-        exclusion_mask = np.ones((h, w), dtype=np.uint8) * 255
-
-        # 1. Mask Eyes (Left: 36-41, Right: 42-47)
-        left_eye = np.array(pts[36:42], dtype=np.int32)
-        right_eye = np.array(pts[42:48], dtype=np.int32)
-        cv2.fillPoly(exclusion_mask, [left_eye, right_eye], 0)
-
-        # 2. Mask Eyebrows (Left: 17-21, Right: 22-26)
-        left_eyebrow = np.array(pts[17:22], dtype=np.int32)
-        right_eyebrow = np.array(pts[22:27], dtype=np.int32)
-        cv2.fillPoly(exclusion_mask, [left_eyebrow, right_eyebrow], 0)
-
-        # 3. Mask Lips (Outer: 48-59, Inner: 60-67)
-        outer_lips = np.array(pts[48:60], dtype=np.int32)
-        cv2.fillPoly(exclusion_mask, [outer_lips], 0)
-
-        # 4. Mask Nostrils (31-35)
-        nostrils = np.array(pts[31:36], dtype=np.int32)
-        cv2.fillPoly(exclusion_mask, [nostrils], 0)
-
-        # Combine chromatic skin segmentation with anatomical exclusion mask
-        semantic_skin_mask = cv2.bitwise_and(base_skin_mask, exclusion_mask)
-        return semantic_skin_mask

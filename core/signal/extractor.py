@@ -125,3 +125,15 @@ class TemporalSignalBuffer:
             interpolated_signals[roi_name] = interp_rgb
 
         return t_uniform, interpolated_signals, actual_duration
+
+    def clear(self) -> None:
+        """Clears all stored samples."""
+        self.timestamps.clear()
+        for roi in self.signals_rgb:
+            self.signals_rgb[roi].clear()
+            self.is_valid_mask[roi].clear()
+
+
+# Alias for backward compatibility
+SignalBuffer = TemporalSignalBuffer
+

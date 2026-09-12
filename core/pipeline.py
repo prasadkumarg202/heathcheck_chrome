@@ -1,44 +1,53 @@
 """
-Master AuraPulse 4.0 Engine Pipeline.
-Coordinates video frame ingestion, face/ROI tracking, multi-algorithm rPPG extraction,
-signal quality evaluation, vital signs computation, and standardized API result dispatch.
-Follows non-negotiable scientific integrity rules and explicit measurement status conventions.
+Core Master Processing Pipeline for AuraPulse v4.0.
+Integrates face tracking, dynamic ROI extraction, rPPG signal processing,
+multi-ROI fusion, Signal Quality Index (SQI), failsafe gating,
+and comprehensive clinical / wellness analytics:
+- Primary MVP: HR, Respiration Rate, Pulse Rate Variability (PRV: RMSSD/SDNN), PRQ.
+- Arrhythmia & Rhythm Screening: Poincaré SD1/SD2, CV%, Shannon Entropy, AFib indicator.
+- Fitness & Autonomic: Non-exercise VO2 max, Cardiorespiratory Coherence, Baevsky Stress Index.
+- Research / Experimental: SDPPG Blood Pressure, SpO2, Optical Hemoglobin, Metabolic Glycemic Risk.
+- Clinical Risk: Framingham 10-Yr ASCVD Risk, Vascular Heart Age.
 """
 
 from __future__ import annotations
 import time
-from dataclasses import dataclass, asdict
-from typing import Dict, Optional, Tuple, Any
+from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 
-from core.face.detector import FaceDetector, FaceLandmarks, FaceQualityScore
+from core.face.detector import FaceDetector, FaceLandmarks
 from core.roi.extractor import ROIExtractor, ROIData
-from core.signal.extractor import TemporalSignalBuffer
+from core.signal.extractor import SignalBuffer
 from core.filters.signal_filters import SignalPreprocessor
 from core.rppg.pos import POSAlgorithm
 from core.rppg.chrom import CHROMAlgorithm
 from core.rppg.green import GreenAlgorithm
-from core.rppg.ica import ICAAlgorithm
-from core.quality.sqi import SignalQualityEngine, SQIResult
 from core.fusion.fusion_engine import SignalFusionEngine
-from core.vitals.hr import HeartRateEngine, HRResult
+from core.quality.sqi import SignalQualityEngine, SQIResult
+from core.vitals.hr import HeartRateEngine, HeartRateResult
 from core.vitals.respiration import RespirationEngine, RespirationResult
 from core.vitals.prv import PRVEngine, PRVResult
+from core.vitals.arrhythmia import ArrhythmiaEngine, ArrhythmiaResult
 from core.vitals.stress import StressEngine, StressResult
 from core.vitals.blood_pressure import BloodPressureEngine, BloodPressureResult
 from core.vitals.spo2 import SpO2Engine, SpO2Result
 from core.vitals.hemoglobin import HemoglobinEngine, HemoglobinResult
 from core.vitals.cardiac_workload import CardiacWorkloadEngine, CardiacWorkloadResult
+from core.analytics.fitness_models import FitnessAnalyticsEngine, VO2MaxResult, CoherenceResult
+from core.analytics.metabolic_models import MetabolicAnalyticsEngine, MetabolicRiskResult
 from core.analytics.risk_models import HealthRiskAnalyticsEngine, VascularAgeResult, CVDRiskResult, BodyCompositionResult
-from core.analytics.metabolic_models import MetabolicRiskEngine, MetabolicRiskResult
 
 
 @dataclass
 class HealthMeasurementResult:
-    status: str                         # "valid", "collecting", "insufficient_signal", "insufficient_duration"
+    status: str                         # "valid", "collecting", "insufficient_signal", "invalid_roi"
     heart_rate: Optional[Dict[str, Any]] = None
     respiration_rate: Optional[Dict[str, Any]] = None
     pulse_rate_variability: Optional[Dict[str, Any]] = None
+    arrhythmia_screening: Optional[Dict[str, Any]] = None
+    fitness_vo2max: Optional[Dict[str, Any]] = None
+    cardiorespiratory_coherence: Optional[Dict[str, Any]] = None
     blood_pressure: Optional[Dict[str, Any]] = None
     spo2: Optional[Dict[str, Any]] = None
     hemoglobin: Optional[Dict[str, Any]] = None
@@ -49,14 +58,19 @@ class HealthMeasurementResult:
     cvd_risk: Optional[Dict[str, Any]] = None
     body_composition: Optional[Dict[str, Any]] = None
     wellness_indices: Optional[Dict[str, Any]] = None
-    pulse_waveform: Optional[list] = None
+    pulse_waveform: Optional[List[float]] = None
     signal_quality: float = 0.0
     quality_category: str = "Invalid"
+    snr_db: float = 0.0
     face_quality: float = 0.0
     measurement_duration_s: float = 0.0
     algorithm_version: str = "4.0.0"
     engine: str = "AuraPulse-Clinical-Edge"
     validation_status: str = "On-Device Synthesis Core (rPPG + Biomarkers)"
+    disclaimer: str = (
+        "General Wellness & Investigational Prototype. Not certified as a primary "
+        "diagnostic instrument under FDA 510(k) or EU MDR."
+    )
     reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -65,16 +79,17 @@ class HealthMeasurementResult:
 
 class AuraPulseEngine:
     """
-    Main on-device contactless physiological measurement engine.
+    Master pipeline orchestrating frame ingestion, real-time ROI tracking,
+    signal extraction, quality fail-safes, and 3-tier physiological estimation.
     """
 
     def __init__(
         self,
-        min_measurement_duration_s: float = 4.0,
-        window_duration_s: float = 25.0,
+        min_measurement_duration_s: float = 8.0,
+        window_duration_s: float = 20.0,
         target_fs: float = 30.0,
         min_sqi_threshold: float = 35.0,
-        primary_algorithm: str = "POS",
+        primary_algorithm: str = "POS"
     ):
         self.min_measurement_duration_s = min_measurement_duration_s
         self.window_duration_s = window_duration_s
@@ -84,69 +99,70 @@ class AuraPulseEngine:
 
         # Subsystems
         self.face_detector = FaceDetector()
-        self.roi_extractor = ROIExtractor()
-        self.signal_buffer = TemporalSignalBuffer(capacity=int(window_duration_s * target_fs * 2))
+        self.roi_extractor = ROIExtractor(min_skin_pct=20.0, min_pixels=40, enable_homomorphic=True)
+        self.signal_buffer = SignalBuffer(capacity=int(max(45.0, window_duration_s * 1.5) * target_fs))
         self.preprocessor = SignalPreprocessor()
 
+        # rPPG Extractors
         self.pos_algo = POSAlgorithm()
         self.chrom_algo = CHROMAlgorithm()
         self.green_algo = GreenAlgorithm()
-        self.ica_algo = ICAAlgorithm()
 
-        self.sqi_engine = SignalQualityEngine(min_acceptable_sqi=min_sqi_threshold)
+        # Processing & Fusion Engines
         self.fusion_engine = SignalFusionEngine()
-
+        self.sqi_engine = SignalQualityEngine(min_acceptable_sqi=min_sqi_threshold)
         self.hr_engine = HeartRateEngine()
         self.respiration_engine = RespirationEngine()
-        self.prv_engine = PRVEngine(min_duration_s=min_measurement_duration_s)
+        self.prv_engine = PRVEngine(min_duration_s=min(8.0, min_measurement_duration_s))
+        self.arrhythmia_engine = ArrhythmiaEngine()
         self.stress_engine = StressEngine()
+        self.fitness_engine = FitnessAnalyticsEngine()
         self.bp_engine = BloodPressureEngine()
         self.spo2_engine = SpO2Engine()
         self.hb_engine = HemoglobinEngine()
         self.cardiac_workload_engine = CardiacWorkloadEngine()
+        self.metabolic_engine = MetabolicAnalyticsEngine()
         self.risk_engine = HealthRiskAnalyticsEngine()
-        self.metabolic_engine = MetabolicRiskEngine()
 
-        self.session_start_time: Optional[float] = None
-        self.frame_count = 0
+        self.session_active: bool = False
+        self.session_start_time: float = 0.0
 
     def start_session(self) -> None:
-        """Starts a new measurement session and clears history."""
-        self.signal_buffer = TemporalSignalBuffer(capacity=int(self.window_duration_s * self.target_fs * 2))
-        self.hr_engine.reset_tracking()
-        self.session_start_time = time.perf_counter()
-        self.frame_count = 0
+        self.signal_buffer.clear()
+        self.session_active = True
+        self.session_start_time = time.time()
+
+    def stop_session(self) -> None:
+        self.session_active = False
 
     def process_frame(
         self,
-        frame: np.ndarray,
+        frame_bgr: np.ndarray,
         timestamp_s: Optional[float] = None
-    ) -> Tuple[bool, Optional[FaceLandmarks], Optional[Dict[str, ROIData]], FaceQualityScore]:
+    ) -> Tuple[bool, Optional[FaceLandmarks], Dict[str, ROIData]]:
         """
-        Processes a single video frame: face detection, dynamic ROI extraction, and buffer update.
+        Processes a single incoming video frame.
         """
         if timestamp_s is None:
-            if self.session_start_time is None:
-                self.start_session()
-            timestamp_s = time.perf_counter() - self.session_start_time
+            timestamp_s = time.time()
 
-        self.frame_count += 1
+        face_res = self.face_detector.detect(frame_bgr)
+        if not face_res.face_detected or face_res.primary_landmarks is None:
+            return False, None, {}
 
-        # 1. Face Detection & Quality Assessment
-        has_face, landmarks, face_quality = self.face_detector.detect(frame)
+        landmarks = face_res.primary_landmarks
+        rois = self.roi_extractor.extract_rois(frame_bgr, landmarks)
 
-        if not has_face or landmarks is None:
-            return False, None, None, face_quality
+        valid_rois = {name: data for name, data in rois.items() if data.is_valid}
+        if valid_rois:
+            self.signal_buffer.append(timestamp_s, valid_rois)
 
-        # 2. Dynamic Polygon ROI Extraction & Skin Masking
-        rois = self.roi_extractor.extract_rois(frame, landmarks)
+        return True, landmarks, rois
 
-        # 3. Append to temporal buffer
-        self.signal_buffer.append(timestamp_s, rois)
-
-        return True, landmarks, rois, face_quality
-
-    def compute_vitals(self, user_metadata: Optional[Dict[str, Any]] = None) -> HealthMeasurementResult:
+    def compute_vitals(
+        self,
+        user_metadata: Optional[Dict[str, Any]] = None
+    ) -> HealthMeasurementResult:
         """
         Executes signal processing, rPPG extraction, SQI, vitals estimation,
         and comprehensive health risk analytics over the current sliding buffer window.
@@ -160,6 +176,7 @@ class AuraPulseEngine:
         user_waist = float(meta.get("waist_cm", 0.0)) if meta.get("waist_cm") else None
         user_smoker = bool(meta.get("is_smoker", False))
         user_diabetic = bool(meta.get("is_diabetic", False))
+        user_activity = int(meta.get("activity_level", 3))
         clinical_sbp = float(meta.get("clinical_sbp", 0.0)) if meta.get("clinical_sbp") else None
 
         t_uniform, roi_rgbs, duration = self.signal_buffer.get_window(
@@ -173,6 +190,7 @@ class AuraPulseEngine:
                 measurement_duration_s=round(duration, 1),
                 signal_quality=0.0,
                 quality_category="Invalid",
+                snr_db=-20.0,
                 reason=f"MEASUREMENT_IN_PROGRESS_NEED_{int(self.min_measurement_duration_s)}S",
             )
 
@@ -214,6 +232,7 @@ class AuraPulseEngine:
                 measurement_duration_s=round(duration, 1),
                 signal_quality=0.0,
                 quality_category="Invalid",
+                snr_db=-20.0,
                 reason="ALL_ROIS_INVALID",
             )
 
@@ -234,6 +253,7 @@ class AuraPulseEngine:
                 measurement_duration_s=round(duration, 1),
                 signal_quality=overall_sqi.sqi_score,
                 quality_category=overall_sqi.category,
+                snr_db=overall_sqi.snr_db,
                 reason=f"SIGNAL_QUALITY_TOO_LOW ({overall_sqi.category})",
             )
 
@@ -250,19 +270,11 @@ class AuraPulseEngine:
                 measurement_duration_s=round(duration, 1),
                 signal_quality=overall_sqi.sqi_score,
                 quality_category=overall_sqi.category,
+                snr_db=overall_sqi.snr_db,
                 reason=hr_res.rejection_reason or "HEART_RATE_INDETERMINATE",
             )
 
-        # 5. Respiration Rate Computation (Primary MVP)
-        fh_rgb = roi_rgbs.get("forehead", next(iter(roi_rgbs.values())))
-        raw_green = fh_rgb[:, 1] if fh_rgb.ndim == 2 else fused_bvp
-        rr_res = self.respiration_engine.estimate_rr(
-            raw_green,
-            fs=self.target_fs,
-            sqi_score=overall_sqi.sqi_score
-        )
-
-        # 6. Pulse Rate Variability (PRV) Computation (Primary MVP)
+        # 5. Pulse Rate Variability (PRV) Computation (Primary MVP)
         prv_res = self.prv_engine.compute_prv(
             fused_bvp,
             fs=self.target_fs,
@@ -270,7 +282,62 @@ class AuraPulseEngine:
             hr_bpm_hint=hr_res.hr_bpm
         )
 
-        # 7. Blood Pressure Estimation (Research Only / Experimental)
+        # 6. Respiration Rate Computation (Primary MVP - Ensemble with RSA & RIAV)
+        fh_rgb = roi_rgbs.get("forehead", next(iter(roi_rgbs.values())))
+        raw_green = fh_rgb[:, 1] if fh_rgb.ndim == 2 else fused_bvp
+        rr_res = self.respiration_engine.estimate_rr(
+            raw_green,
+            fs=self.target_fs,
+            sqi_score=overall_sqi.sqi_score,
+            ppi_intervals_ms=prv_res.ppi_intervals if prv_res.is_valid else None
+        )
+
+        # 7. Arrhythmia & Irregular Pulse Screening (Poincaré & Entropy)
+        arrhythmia_res = self.arrhythmia_engine.evaluate_rhythm(
+            ppi_intervals_ms=prv_res.ppi_intervals if prv_res.is_valid else None,
+            sqi_score=overall_sqi.sqi_score,
+            hr_bpm_hint=hr_res.hr_bpm
+        )
+
+        # 8. Advanced Physiological Stress & Autonomic Recovery (Research Only)
+        # Note: PRQ is strictly synchronized with RR validity and confidence >= 0.40
+        stress_res = self.stress_engine.compute_stress_index(
+            hr_bpm=hr_res.hr_bpm,
+            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
+            rr_rpm=rr_res.rr_rpm if (rr_res.is_valid and rr_res.confidence >= 0.40) else 0.0,
+            confidence_hr=hr_res.confidence,
+            confidence_prv=prv_res.confidence if prv_res.is_valid else 0.5,
+            confidence_rr=rr_res.confidence if rr_res.is_valid else 0.0,
+            ppi_intervals_ms=prv_res.ppi_intervals if prv_res.is_valid else None,
+            bvp_signal=fused_bvp,
+            fs=self.target_fs,
+        )
+
+        # 9. Non-Exercise VO2 Max & Cardiorespiratory Coherence
+        body_comp_res = self.risk_engine.compute_body_composition(
+            height_cm=user_height,
+            weight_kg=user_weight,
+            waist_cm=user_waist
+        )
+
+        vo2_res = self.fitness_engine.estimate_vo2_max(
+            age=user_age,
+            is_male=user_is_male,
+            bmi=body_comp_res.bmi,
+            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
+            activity_level=user_activity,
+            confidence_inputs=min(hr_res.confidence, overall_sqi.sqi_score / 100.0)
+        )
+
+        coherence_res = self.fitness_engine.compute_cardiorespiratory_coherence(
+            bvp_signal=fused_bvp,
+            rr_rpm=rr_res.rr_rpm if (rr_res.is_valid and rr_res.confidence >= 0.40) else 0.0,
+            fs=self.target_fs,
+            ppi_intervals_ms=prv_res.ppi_intervals if prv_res.is_valid else None,
+            sqi_score=overall_sqi.sqi_score
+        )
+
+        # 10. Blood Pressure Estimation (Research Only / Experimental)
         bp_res = self.bp_engine.estimate_blood_pressure(
             bvp_signal=fused_bvp,
             fs=self.target_fs,
@@ -282,21 +349,21 @@ class AuraPulseEngine:
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 8. Oxygen Saturation (SpO2) Estimation (Research Only / Experimental)
+        # 11. Oxygen Saturation (SpO2) Estimation (Research Only / Experimental)
         spo2_res = self.spo2_engine.estimate_spo2(
             rgb_temporal=fh_rgb,
             fs=self.target_fs,
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 9. Hemoglobin (Hb) Estimation (Research Only / Experimental)
+        # 12. Hemoglobin (Hb) Estimation (Research Only / Experimental)
         hb_res = self.hb_engine.estimate_hemoglobin(
             rgb_temporal=fh_rgb,
             is_male=user_is_male,
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 10. Cardiac Workload (Rate-Pressure Product)
+        # 13. Cardiac Workload (Rate-Pressure Product)
         cardiac_res = self.cardiac_workload_engine.compute_workload(
             hr_bpm=hr_res.hr_bpm,
             systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
@@ -304,26 +371,7 @@ class AuraPulseEngine:
             confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
         )
 
-        # 11. Advanced Physiological Stress & Autonomic Recovery (Research Only)
-        stress_res = self.stress_engine.compute_stress_index(
-            hr_bpm=hr_res.hr_bpm,
-            rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
-            rr_rpm=rr_res.rr_rpm if rr_res.is_valid else 0.0,
-            confidence_hr=hr_res.confidence,
-            confidence_prv=prv_res.confidence if prv_res.is_valid else 0.5,
-            ppi_intervals_ms=prv_res.ppi_intervals if hasattr(prv_res, "ppi_intervals") else None,
-            bvp_signal=fused_bvp,
-            fs=self.target_fs,
-        )
-
-        # 12. Body Composition & Anthropometrics
-        body_comp_res = self.risk_engine.compute_body_composition(
-            height_cm=user_height,
-            weight_kg=user_weight,
-            waist_cm=user_waist
-        )
-
-        # 13. Vascular Age Estimation (Model Dependent)
+        # 14. Vascular Age Estimation (Age-Calibrated [-10, +20] yrs)
         vasc_age_res = self.risk_engine.estimate_vascular_age(
             chronological_age=user_age,
             systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
@@ -335,8 +383,7 @@ class AuraPulseEngine:
             is_diabetic=user_diabetic,
         )
 
-        # 14. 10-Year Cardiovascular & Stroke Risk Projection (Clinical Risk Model)
-        # Note: Uses clinical SBP if provided by user; otherwise calibrated baseline
+        # 15. 10-Year Cardiovascular & Stroke Risk Projection
         cvd_risk_res = self.risk_engine.estimate_10yr_cvd_risk(
             age=user_age,
             is_male=user_is_male,
@@ -348,7 +395,7 @@ class AuraPulseEngine:
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0
         )
 
-        # 15. Metabolic & Glycemic Risk Model (Research Only / Experimental)
+        # 16. Metabolic & Glycemic Risk Model
         metabolic_res = self.metabolic_engine.estimate_metabolic_risks(
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
             lf_hf_ratio=stress_res.lf_hf_ratio if stress_res.is_valid else 1.5,
@@ -362,6 +409,11 @@ class AuraPulseEngine:
 
         # Downsample waveform for API transmission (last 120 samples)
         waveform_sample = [round(float(v), 4) for v in fused_bvp[-120:]]
+
+        # Synchronize Respiration and PRQ
+        is_rr_synced_valid = rr_res.is_valid and (rr_res.confidence >= 0.40)
+        synced_rr_val = rr_res.rr_rpm if is_rr_synced_valid else None
+        synced_prq_val = stress_res.pulse_respiration_quotient if is_rr_synced_valid else None
 
         return HealthMeasurementResult(
             status="valid",
@@ -379,16 +431,17 @@ class AuraPulseEngine:
                 "limitations": "Subject must remain stationary without speech.",
             },
             respiration_rate={
-                "value": rr_res.rr_rpm if rr_res.is_valid else None,
+                "value": synced_rr_val,
                 "unit": "breaths/min",
-                "confidence": rr_res.confidence if rr_res.is_valid else None,
-                "signal_quality": overall_sqi.sqi_score if rr_res.is_valid else None,
-                "measurement_status": "valid" if rr_res.is_valid else "insufficient_duration",
+                "confidence": rr_res.confidence if is_rr_synced_valid else None,
+                "signal_quality": overall_sqi.sqi_score if is_rr_synced_valid else None,
+                "measurement_status": "valid" if is_rr_synced_valid else "insufficient_signal",
                 "validation_status": "PRIMARY_MVP",
                 "algorithm_version": "4.0.0",
-                "source": "Demodulated Baseline & Amplitude Variation (RIBV/RIAV)",
-                "status": "Tachypnea" if (rr_res.is_valid and rr_res.rr_rpm > 20.0) else ("Bradypnea" if (rr_res.is_valid and rr_res.rr_rpm < 12.0) else "Optimal"),
-                "limitations": "Requires at least 10s of continuous steady breathing.",
+                "source": "Demodulated Baseline & Amplitude Variation (RIBV/RIAV/RSA)",
+                "methods": rr_res.methods_rpm if is_rr_synced_valid else None,
+                "status": "Tachypnea" if (is_rr_synced_valid and synced_rr_val > 20.0) else ("Bradypnea" if (is_rr_synced_valid and synced_rr_val < 12.0) else "Optimal"),
+                "limitations": "Requires at least 8s of continuous steady breathing.",
             },
             pulse_rate_variability={
                 "rmssd": prv_res.rmssd_ms if prv_res.is_valid else None,
@@ -397,6 +450,7 @@ class AuraPulseEngine:
                 "pnn50": prv_res.pnn50_pct if prv_res.is_valid else None,
                 "sd1": prv_res.sd1_ms if prv_res.is_valid else None,
                 "sd2": prv_res.sd2_ms if prv_res.is_valid else None,
+                "sd1_sd2_ratio": prv_res.sd1_sd2_ratio if prv_res.is_valid else None,
                 "unit": "ms",
                 "confidence": prv_res.confidence if prv_res.is_valid else None,
                 "measurement_status": "valid" if prv_res.is_valid else "insufficient_duration",
@@ -405,6 +459,50 @@ class AuraPulseEngine:
                 "label": "Pulse Rate Variability (PRV - Optical BVP)",
                 "source": "Sub-sample Parabolic Peak Interpolation",
                 "limitations": "Camera-derived PRV reflects optical pulse timing and differs from ECG-derived HRV.",
+            },
+            arrhythmia_screening={
+                "rhythmStatus": arrhythmia_res.rhythm_status if arrhythmia_res.is_valid else "Indeterminate",
+                "isIrregular": arrhythmia_res.is_irregular if arrhythmia_res.is_valid else False,
+                "cvPct": arrhythmia_res.cv_pct if arrhythmia_res.is_valid else None,
+                "sd1": arrhythmia_res.sd1_ms if arrhythmia_res.is_valid else None,
+                "sd2": arrhythmia_res.sd2_ms if arrhythmia_res.is_valid else None,
+                "sd1Sd2Ratio": arrhythmia_res.sd1_sd2_ratio if arrhythmia_res.is_valid else None,
+                "shannonEntropy": arrhythmia_res.shannon_entropy if arrhythmia_res.is_valid else None,
+                "ectopicCount": arrhythmia_res.ectopic_beat_count if arrhythmia_res.is_valid else 0,
+                "confidence": arrhythmia_res.confidence if arrhythmia_res.is_valid else None,
+                "measurement_status": "valid" if arrhythmia_res.is_valid else "insufficient_duration",
+                "validation_status": "RESEARCH_ONLY",
+                "algorithm_version": "4.0.0",
+                "source": "Poincaré Scatter Geometry & Shannon Entropy",
+                "recommendation": arrhythmia_res.recommendation,
+                "disclaimer": arrhythmia_res.disclaimer,
+                "limitations": "Investigational rhythm screening; requires confirmatory ECG if irregular.",
+            },
+            fitness_vo2max={
+                "vo2Max": vo2_res.vo2_max_ml_kg_min if vo2_res.is_valid else None,
+                "tier": vo2_res.fitness_tier if vo2_res.is_valid else "Unknown",
+                "percentile": vo2_res.percentile_bracket if vo2_res.is_valid else "Unknown",
+                "activityLevel": vo2_res.activity_level_used,
+                "unit": "mL/kg/min",
+                "confidence": vo2_res.confidence if vo2_res.is_valid else None,
+                "measurement_status": "valid",
+                "validation_status": "MODEL_DEPENDENT",
+                "algorithm_version": "4.0.0",
+                "source": "Jackson-Pollock Non-Exercise Cardiorespiratory Regression",
+                "limitations": "Non-exercise estimation; subject to accurate demographic and activity inputs.",
+            },
+            cardiorespiratory_coherence={
+                "score": coherence_res.coherence_score if (coherence_res.is_valid and is_rr_synced_valid) else None,
+                "status": coherence_res.coherence_status if (coherence_res.is_valid and is_rr_synced_valid) else "Unknown",
+                "phaseShiftDeg": coherence_res.respiratory_hrv_phase_deg if (coherence_res.is_valid and is_rr_synced_valid) else None,
+                "peakFreqHz": coherence_res.peak_coherence_freq_hz if (coherence_res.is_valid and is_rr_synced_valid) else None,
+                "unit": "%",
+                "confidence": coherence_res.confidence if (coherence_res.is_valid and is_rr_synced_valid) else None,
+                "measurement_status": "valid" if (coherence_res.is_valid and is_rr_synced_valid) else "insufficient_data",
+                "validation_status": "RESEARCH_ONLY",
+                "algorithm_version": "4.0.0",
+                "source": "Cross-Spectral Magnitude-Squared Coherence (Welch)",
+                "limitations": "Reflects phase coupling between autonomic oscillations and respiration.",
             },
             blood_pressure={
                 "systolic": bp_res.systolic_bp if bp_res.is_valid else None,
@@ -464,7 +562,7 @@ class AuraPulseEngine:
                 "baevskyIndex": stress_res.baevsky_stress_index if stress_res.is_valid else None,
                 "parasympatheticScore": stress_res.parasympathetic_score if stress_res.is_valid else None,
                 "sympatheticScore": stress_res.sympathetic_score if stress_res.is_valid else None,
-                "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
+                "prq": synced_prq_val,
                 "lfPower": stress_res.lf_power if stress_res.is_valid else None,
                 "hfPower": stress_res.hf_power if stress_res.is_valid else None,
                 "lfHfRatio": stress_res.lf_hf_ratio if stress_res.is_valid else None,
@@ -534,13 +632,14 @@ class AuraPulseEngine:
                 "baevskyStress": stress_res.baevsky_stress_index if stress_res.is_valid else None,
                 "pnsRecovery": stress_res.parasympathetic_score if stress_res.is_valid else None,
                 "snsZone": stress_res.sympathetic_score if stress_res.is_valid else None,
-                "prq": stress_res.pulse_respiration_quotient if stress_res.is_valid else None,
+                "prq": synced_prq_val,
                 "lfHfRatio": stress_res.lf_hf_ratio if stress_res.is_valid else None,
                 "ansBalance": stress_res.ans_balance_ratio if stress_res.is_valid else None,
             },
             pulse_waveform=waveform_sample,
             signal_quality=overall_sqi.sqi_score,
             quality_category=overall_sqi.category,
+            snr_db=overall_sqi.snr_db,
             face_quality=100.0,
             measurement_duration_s=round(duration, 1),
             algorithm_version="4.0.0",

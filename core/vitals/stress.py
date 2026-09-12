@@ -4,7 +4,7 @@ Features:
 1. Baevsky's Stress Index (SI = (AMo * 100) / (2 * Mo * MxDMn)) using 50ms histogram binning.
 2. Frequency-Domain HRV: Low Frequency (LF: 0.04–0.15 Hz), High Frequency (HF: 0.15–0.40 Hz), LF/HF Ratio.
 3. Sympathetic (SNS) Arousal Zone & Parasympathetic (PNS) Recovery Tone.
-4. Pulse-Respiration Quotient (PRQ = HR / RR, normal 3.5–5.0).
+4. Pulse-Respiration Quotient (PRQ = HR / RR, synchronized, null when RR invalid).
 5. Composite Autonomic Stress Score (0–100).
 """
 
@@ -23,7 +23,7 @@ class StressResult:
     baevsky_stress_index: float        # Classical Baevsky SI (norm 50-150)
     parasympathetic_score: float       # PNS tone & recovery score (0-100)
     sympathetic_score: float           # SNS tone & arousal score (0-100)
-    pulse_respiration_quotient: float  # PRQ = HR / RR (norm ~3.5 - 5.0)
+    pulse_respiration_quotient: Optional[float]  # PRQ = HR / RR (null if RR invalid)
     lf_power: float                    # LF Power (0.04-0.15 Hz) in ms^2
     hf_power: float                    # HF Power (0.15-0.40 Hz) in ms^2
     lf_hf_ratio: float                 # Sympathovagal balance (LF / HF)
@@ -52,6 +52,7 @@ class StressEngine:
         ppi_intervals_ms: Optional[List[float]] = None,
         bvp_signal: Optional[np.ndarray] = None,
         fs: float = 30.0,
+        confidence_rr: float = 0.8,
     ) -> StressResult:
         if hr_bpm <= 0 or rmssd_ms <= 0:
             return StressResult(
@@ -60,7 +61,7 @@ class StressEngine:
                 baevsky_stress_index=0.0,
                 parasympathetic_score=0.0,
                 sympathetic_score=0.0,
-                pulse_respiration_quotient=0.0,
+                pulse_respiration_quotient=None,
                 lf_power=0.0,
                 hf_power=0.0,
                 lf_hf_ratio=1.0,
@@ -76,37 +77,33 @@ class StressEngine:
         # 1. Classical Baevsky Stress Index calculation with 50ms histogram bins
         if ppi_intervals_ms is not None and len(ppi_intervals_ms) >= 8:
             ppis = np.array(ppi_intervals_ms)
-            min_p = np.min(ppis)
-            max_p = np.max(ppis)
+            min_p = float(np.min(ppis))
+            max_p = float(np.max(ppis))
             bins = np.arange(min_p, max_p + 50.0, 50.0)
             if len(bins) < 2:
-                bins = [min_p - 25.0, min_p + 25.0]
+                bins = np.array([min_p - 25.0, min_p + 25.0])
             counts, bin_edges = np.histogram(ppis, bins=bins)
-            max_bin_idx = np.argmax(counts)
-            mo_s = (bin_edges[max_bin_idx] + 25.0) / 1000.0
-            amo_pct = (counts[max_bin_idx] / len(ppis)) * 100.0
+            max_bin_idx = int(np.argmax(counts))
+            mo_s = float((bin_edges[max_bin_idx] + 25.0) / 1000.0)
+            amo_pct = float((counts[max_bin_idx] / len(ppis)) * 100.0)
             mx_d_mn_s = max(0.04, (max_p - min_p) / 1000.0)
-            baevsky_si = amo_pct / (2.0 * max(0.35, mo_s) * mx_d_mn_s)
+            baevsky_si = float(amo_pct / (2.0 * max(0.35, mo_s) * mx_d_mn_s))
         else:
-            # Mathematical physiological approximation of mode and variability
             approx_mo = 60.0 / hr_clamped
             approx_amo = min(80.0, max(25.0, 30.0 + (hr_clamped - 60.0) * 0.75))
             approx_range = max(0.06, min(0.45, rmssd_clamped / 240.0))
-            baevsky_si = approx_amo / (2.0 * approx_mo * approx_range)
+            baevsky_si = float(approx_amo / (2.0 * approx_mo * approx_range))
 
         baevsky_si = float(np.clip(baevsky_si, 15.0, 850.0))
 
         # 2. Spectral LF / HF Decomposition
-        # If PPI series or BVP signal available, calculate spectral power
         lf_p = 500.0
         hf_p = 400.0
         if ppi_intervals_ms is not None and len(ppi_intervals_ms) >= 16:
             try:
-                # Interpolate uneven PPIs to uniform 4Hz grid
                 t_cum = np.cumsum(np.array(ppi_intervals_ms)) / 1000.0
                 t_uniform = np.arange(0, t_cum[-1], 0.25)
                 ppi_uniform = np.interp(t_uniform, t_cum, ppi_intervals_ms)
-                # Welch PSD
                 freqs, psd = signal.welch(ppi_uniform - np.mean(ppi_uniform), fs=4.0, nperseg=min(len(ppi_uniform), 64))
                 lf_mask = (freqs >= 0.04) & (freqs < 0.15)
                 hf_mask = (freqs >= 0.15) & (freqs <= 0.40)
@@ -120,26 +117,24 @@ class StressEngine:
         lf_hf = float(np.clip(lf_p / max(1.0, hf_p), 0.2, 8.0))
 
         # 3. Parasympathetic Recovery Score (PNS Index 0-100)
-        # Driven by RMSSD and HF power
         pns_score = float(np.clip((math.log(rmssd_clamped) - 1.5) / 2.7 * 100.0, 5.0, 98.0))
 
         # 4. Sympathetic Arousal Score (SNS Index 0-100)
-        # Driven by Baevsky SI and LF/HF ratio
         sns_linear = 0.60 * (baevsky_si / 300.0) + 0.40 * (lf_hf / 3.0)
         sns_score = float(np.clip(sns_linear * 65.0, 5.0, 98.0))
 
-        # 5. Pulse-Respiration Quotient (PRQ = HR / RR)
-        if rr_rpm > 0:
+        # 5. Pulse-Respiration Quotient (PRQ = HR / RR) - Synchronized!
+        if rr_rpm > 0 and confidence_rr >= 0.40:
             prq = float(round(hr_bpm / rr_rpm, 2))
         else:
-            prq = 4.2
+            prq = None
 
         # 6. Composite Physiological Stress (0-100)
         ln_rmssd = math.log(rmssd_clamped)
         rmssd_factor = max(0.0, min(1.0, (4.4 - ln_rmssd) / 2.8))
         hr_factor = max(0.0, min(1.0, (hr_clamped - 55.0) / 45.0))
 
-        if rr_rpm > 0:
+        if rr_rpm > 0 and confidence_rr >= 0.40:
             rr_factor = max(0.0, min(1.0, (rr_rpm - 12.0) / 14.0))
             composite_stress = 0.40 * rmssd_factor + 0.35 * hr_factor + 0.15 * rr_factor + 0.10 * (sns_score / 100.0)
         else:

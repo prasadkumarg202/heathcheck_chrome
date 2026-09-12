@@ -2,7 +2,7 @@
 Cardiovascular & Metabolic Risk Analytics Suite for AuraPulse.
 Features:
 1. Validated Framingham / ACC-AHA 10-Year ASCVD Event Risk (Cox proportional hazard model).
-2. Vascular Heart Age Back-Calculation & Arterial Stiffness Index Delta.
+2. Vascular Heart Age Back-Calculation & Arterial Stiffness Index Delta (Age-Calibrated [-10, +20] yrs).
 3. Body Composition & Anthropometrics (BMI, Waist-to-Height Ratio WHtR, Body Roundness Index BRI).
 4. Hypertension & Type 2 Diabetes Risk Projections.
 """
@@ -122,17 +122,23 @@ class HealthRiskAnalyticsEngine:
         is_diabetic: bool = False,
     ) -> VascularAgeResult:
         """
-        Back-calculates Vascular Heart Age by comparing the individual's physiological and
-        hemodynamic profile against an optimal risk reference curve.
+        Back-calculates Vascular Heart Age anchored to Chronological Age.
+        Physiologically bounded in [Chronological Age - 10, Chronological Age + 20].
         """
-        stiffness_delta = (stiffness_index - 7.0) * 2.8
-        bp_delta = (systolic_bp - 118.0) * 0.28
-        agi_delta = (sdppg_aging_index - (-0.40)) * 14.0
-        risk_offset = (3.5 if is_smoker else 0.0) + (4.0 if is_diabetic else 0.0)
+        chrono = max(18.0, min(85.0, chronological_age))
 
-        v_age = chronological_age + stiffness_delta + bp_delta + agi_delta + risk_offset
-        v_age = float(np.clip(v_age, 18.0, 95.0))
-        age_delta = float(round(v_age - chronological_age, 1))
+        # Modulators
+        stiffness_delta = (stiffness_index - 7.0) * 1.8
+        bp_delta = (systolic_bp - 118.0) * 0.22
+        agi_delta = (sdppg_aging_index - (-0.40)) * 8.0
+        risk_offset = (2.5 if is_smoker else 0.0) + (3.0 if is_diabetic else 0.0)
+
+        raw_delta = stiffness_delta + bp_delta + agi_delta + risk_offset
+        # Strict physiological clamping [-10 years, +20 years]
+        clamped_delta = float(np.clip(raw_delta, -10.0, 20.0))
+
+        v_age = float(np.clip(chrono + clamped_delta, 18.0, 95.0))
+        age_delta = float(round(v_age - chrono, 1))
 
         if age_delta <= 1.0:
             status = "Optimal"
@@ -164,17 +170,13 @@ class HealthRiskAnalyticsEngine:
     ) -> CVDRiskResult:
         """
         Computes Framingham / ACC-AHA 10-Year ASCVD Risk using Cox proportional hazard coefficients.
-        Formula: Risk = 1 - S_10^exp(sum(beta_i * X_i) - Mean_Beta)
         """
         ln_age = math.log(max(20.0, min(79.0, age)))
         ln_sbp = math.log(max(90.0, min(200.0, systolic_bp)))
         ln_tc = math.log(max(130.0, min(320.0, total_cholesterol_mg_dl)))
         ln_hdl = math.log(max(20.0, min(100.0, hdl_cholesterol_mg_dl)))
 
-        # Framingham General Cardiovascular Risk Profile coefficients
         if is_male:
-            # Male model
-            # Coefficients: ln(Age): 3.06117, ln(TC): 1.12370, ln(HDL): -0.93263, ln(SBP): 1.93303, Smoker: 0.65451, DM: 0.57367
             mean_beta = 23.9802
             s10 = 0.88936
             linear_pred = (
@@ -186,8 +188,6 @@ class HealthRiskAnalyticsEngine:
                 (0.57367 if is_diabetic else 0.0)
             )
         else:
-            # Female model
-            # Coefficients: ln(Age): 2.32888, ln(TC): 1.20904, ln(HDL): -0.70833, ln(SBP): 2.76157, Smoker: 0.52873, DM: 0.69154
             mean_beta = 26.1931
             s10 = 0.95012
             linear_pred = (
@@ -199,7 +199,6 @@ class HealthRiskAnalyticsEngine:
                 (0.69154 if is_diabetic else 0.0)
             )
 
-        # Autonomic & BMI modulation
         autonomic_adj = max(0.0, (hr_bpm - 72.0) * 0.008) + max(0.0, (35.0 - min(100.0, rmssd_ms)) * 0.006)
         bmi_adj = max(0.0, (bmi - 23.0) * 0.015)
         

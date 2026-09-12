@@ -147,3 +147,8 @@ class MetabolicRiskEngine:
             disclaimer="Wellness & physiological risk indicator — not a clinical lab diagnosis for diabetes.",
             rejection_reason=None,
         )
+
+
+# Alias for backward compatibility
+MetabolicAnalyticsEngine = MetabolicRiskEngine
+
