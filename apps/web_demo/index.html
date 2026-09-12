@@ -682,7 +682,7 @@
         </div>
 
         <div class="controls-row">
-          <button class="btn-ctrl btn-primary" id="startBtn">Start 30s Scan</button>
+          <button class="btn-ctrl btn-primary" id="startBtn">Start 60s Scan</button>
           <button class="btn-ctrl btn-secondary" id="resetBtn">Reset</button>
         </div>
 
@@ -1194,9 +1194,17 @@
         });
         video.srcObject = stream;
         video.onloadedmetadata = () => {
-          overlayCanvas.width = video.videoWidth || 640;
-          overlayCanvas.height = video.videoHeight || 480;
-          statusBanner.innerText = "Camera locked. Ready for scan.";
+          const vw = video.videoWidth || 640;
+          const vh = video.videoHeight || 480;
+          overlayCanvas.width = vw;
+          overlayCanvas.height = vh;
+          sampleCanvas.width = vw;
+          sampleCanvas.height = vh;
+          const vp = document.querySelector('.video-viewport');
+          if (vp) {
+            vp.style.aspectRatio = `${vw} / ${vh}`;
+          }
+          statusBanner.innerText = "Camera locked. Align face inside guide.";
           triggerKeyframeDetection();
         };
       } catch (err) {
@@ -1218,7 +1226,7 @@
       scanStartTime = performance.now();
       waveformBuffer = [];
       startBtn.disabled = true;
-      startBtn.innerText = "Scanning in Progress (30s)...";
+      startBtn.innerText = "Scanning in Progress (60s)...";
       statusBanner.innerText = "Starting comprehensive health measurement...";
       statusBanner.style.borderLeftColor = "#06b6d4";
 
@@ -1266,7 +1274,7 @@
       scanCompleted = false;
       scanFramesCount = 0;
       startBtn.disabled = false;
-      startBtn.innerText = "Start 30s Scan";
+      startBtn.innerText = "Start 60s Scan";
       scanTimer.innerText = "Ready";
       telFps.innerText = "--";
       statusBanner.innerText = "Session reset. Ready for scan.";
@@ -1289,11 +1297,21 @@
       downloadAnchor.remove();
     });
 
+    let serverFrameSize = [640, 480];
+
     async function triggerKeyframeDetection() {
       if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
         isDetectingKeyframe = true;
-        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
-        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.50);
+        const vw = video.videoWidth || 640;
+        const vh = video.videoHeight || 480;
+        if (sampleCanvas.width !== vw || sampleCanvas.height !== vh) {
+          sampleCanvas.width = vw;
+          sampleCanvas.height = vh;
+          overlayCanvas.width = vw;
+          overlayCanvas.height = vh;
+        }
+        sampleCtx.drawImage(video, 0, 0, vw, vh);
+        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.65);
 
         try {
           const resp = await fetch("/api/detect_rois", {
@@ -1305,6 +1323,7 @@
           if (resp.ok) {
             const data = await resp.json();
             if (data.hasFace) {
+              serverFrameSize = [data.frameWidth || vw, data.frameHeight || vh];
               activeFaceBBox = data.faceBBox;
               activeROIs = data.rois;
               if (data.faceQuality) {
@@ -1381,10 +1400,10 @@
             const sustainedScanFps = (scanFramesCount / elapsed);
             telFps.innerText = `${sustainedScanFps.toFixed(1)} FPS (Locked)`;
             telFps.style.color = "#10b981";
-            scanTimer.innerText = "30s / 30s (Completed)";
+            scanTimer.innerText = "60s / 60s (Completed)";
             startBtn.disabled = false;
-            startBtn.innerText = "Start New 30s Scan";
-            statusBanner.innerText = "✅ 30s Scan Completed — Comprehensive Health Report Locked";
+            startBtn.innerText = "Start New 60s Scan";
+            statusBanner.innerText = "✅ 60s Scan Completed — Comprehensive Health Report Locked";
             statusBanner.style.borderLeftColor = "#10b981";
           } else {
             scanTimer.innerText = `${Math.floor(elapsed)}s / 30s`;
@@ -1432,27 +1451,75 @@
 
     requestAnimationFrame(highSpeedFrameLoop);
 
-    function renderOverlays() {
+        function renderOverlays() {
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-      const scaleX = overlayCanvas.width / sampleCanvas.width;
-      const scaleY = overlayCanvas.height / sampleCanvas.height;
+      const frameW = serverFrameSize[0] || overlayCanvas.width;
+      const frameH = serverFrameSize[1] || overlayCanvas.height;
+      const scaleX = overlayCanvas.width / frameW;
+      const scaleY = overlayCanvas.height / frameH;
 
-      if (!isScanning) {
+      // 1. Large Head Positioning Guide Oval (Visible to guide user to center their face)
+      if (!isScanning || !activeFaceBBox) {
         overlayCtx.save();
-        overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
-        overlayCtx.lineWidth = 2;
-        overlayCtx.setLineDash([6, 6]);
+        overlayCtx.strokeStyle = "rgba(0, 194, 215, 0.70)";
+        overlayCtx.lineWidth = 3.0;
+        overlayCtx.setLineDash([12, 8]);
         overlayCtx.beginPath();
-        overlayCtx.ellipse(
-          overlayCanvas.width / 2,
-          overlayCanvas.height / 2,
-          overlayCanvas.width * 0.22,
-          overlayCanvas.height * 0.35,
-          0, 0, 2 * Math.PI
-        );
+        const cx = overlayCanvas.width / 2.0;
+        const cy = overlayCanvas.height * 0.48;
+        const rx = overlayCanvas.width * 0.28;
+        const ry = overlayCanvas.height * 0.38;
+        overlayCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
         overlayCtx.stroke();
+
+        overlayCtx.fillStyle = "#00C2D7";
+        overlayCtx.font = "bold 14px sans-serif";
+        overlayCtx.textAlign = "center";
+        overlayCtx.fillText("Fit Your Face Inside Guide", cx, cy + ry + 26);
         overlayCtx.restore();
       }
+
+      // 2. Detected Face Bounding Box & Dynamic High-Perfusion ROIs
+      if (activeFaceBBox) {
+        const [bx, by, bw, bh] = activeFaceBBox;
+        
+        // Green Face Bounding Box
+        overlayCtx.strokeStyle = "#10B981";
+        overlayCtx.lineWidth = 2.8;
+        overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
+
+        // Face Status Pill
+        overlayCtx.fillStyle = "#10B981";
+        overlayCtx.font = "bold 12px sans-serif";
+        overlayCtx.textAlign = "left";
+        overlayCtx.fillText("● Face Locked", bx * scaleX + 4, by * scaleY - 8);
+
+        if (activeROIs) {
+          for (const [name, rData] of Object.entries(activeROIs)) {
+            const poly = rData.polygon;
+            if (poly && poly.length > 0) {
+              overlayCtx.beginPath();
+              overlayCtx.moveTo(poly[0][0] * scaleX, poly[0][1] * scaleY);
+              for (let i = 1; i < poly.length; i++) {
+                overlayCtx.lineTo(poly[i][0] * scaleX, poly[i][1] * scaleY);
+              }
+              overlayCtx.closePath();
+
+              overlayCtx.strokeStyle = rData.isValid ? "#00C2D7" : "#EF4444";
+              overlayCtx.lineWidth = 2.2;
+              overlayCtx.stroke();
+
+              // ROI Label in Research/Dev mode
+              if (currentProductMode === "research" || currentProductMode === "developer") {
+                overlayCtx.fillStyle = rData.isValid ? "#00C2D7" : "#EF4444";
+                overlayCtx.font = "bold 10px sans-serif";
+                overlayCtx.fillText(name.toUpperCase(), poly[0][0] * scaleX, poly[0][1] * scaleY - 4);
+              }
+            }
+          }
+        }
+      }
+    }
 
       if (activeFaceBBox) {
         const [bx, by, bw, bh] = activeFaceBBox;
@@ -1804,7 +1871,7 @@
       <div style="font-size: 12px; color: #9AA8B7; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #08121E; padding: 12px; border-radius: 8px;">
         <div>Session ID: <strong id="repSessionId" style="color:#fff;">--</strong></div>
         <div>Timestamp: <strong id="repTimestamp" style="color:#fff;">--</strong></div>
-        <div>Duration: <strong id="repDuration" style="color:#fff;">30 Seconds</strong></div>
+        <div>Duration: <strong id="repDuration" style="color:#fff;">60 Seconds</strong></div>
         <div>Signal Quality: <strong id="repSqi" style="color:#10B981;">--</strong></div>
       </div>
 

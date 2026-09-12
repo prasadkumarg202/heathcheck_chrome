@@ -162,6 +162,8 @@ async def detect_rois_keyframe(request):
 
         return JSONResponse(convert_to_serializable({
             "hasFace": True,
+            "frameWidth": int(frame.shape[1]),
+            "frameHeight": int(frame.shape[0]),
             "faceBBox": face_bbox,
             "faceQuality": {
                 "overall": float(round(face_q.overall_score, 1)),
