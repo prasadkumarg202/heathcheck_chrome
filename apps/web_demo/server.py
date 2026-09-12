@@ -1,7 +1,9 @@
 """
 Real-Time Ultra-High FPS Web Server for AuraPulse.
-Implements decoupled Keyframe Face Alignment (/api/detect_rois) and
-High-Speed Temporal Signal Ingestion (/api/push_signals) for locked 30+ FPS operation.
+Features:
+1. WebSocket streaming endpoint (/ws/signals) for locked 30+ FPS telemetry with microsecond latency.
+2. Keyframe Face Alignment (/api/detect_rois) executed once every ~1.5s.
+3. Batched & single HTTP fallback endpoints (/api/push_signals_batch, /api/push_signals).
 """
 
 from __future__ import annotations
@@ -10,11 +12,13 @@ import json
 import sys
 from pathlib import Path
 import time
+import asyncio
 import cv2
 import numpy as np
 from starlette.applications import Starlette
 from starlette.responses import HTMLResponse, JSONResponse
-from starlette.routing import Route
+from starlette.routing import Route, WebSocketRoute
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 root_dir = Path(__file__).parent.parent.parent.resolve()
 if str(root_dir) not in sys.path:
@@ -64,7 +68,7 @@ async def reset_session(request):
     engine.start_session()
     cached_vitals = engine.compute_vitals()
     last_vitals_compute_time = 0.0
-    return JSONResponse({"status": "SESSION_RESET", "timestamp": time.time()})
+    return JSONResponse({ "status": "SESSION_RESET", "timestamp": time.time() })
 
 
 async def detect_rois_keyframe(request):
@@ -77,7 +81,7 @@ async def detect_rois_keyframe(request):
         image_b64 = data.get("image", "")
 
         if not image_b64:
-            return JSONResponse({"error": "No image data"}, status_code=400)
+            return JSONResponse({ "error": "No image data" }, status_code=400)
 
         if "," in image_b64:
             image_b64 = image_b64.split(",", 1)[1]
@@ -87,9 +91,8 @@ async def detect_rois_keyframe(request):
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
         if frame is None:
-            return JSONResponse({"error": "Failed to decode frame"}, status_code=400)
+            return JSONResponse({ "error": "Failed to decode frame" }, status_code=400)
 
-        h, w = frame.shape[:2]
         has_face, landmarks, face_q = face_detector.detect(frame)
 
         if not has_face or landmarks is None:
@@ -128,43 +131,43 @@ async def detect_rois_keyframe(request):
         }))
 
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({ "error": str(e) }, status_code=500)
+
+
+def _ingest_roi_signals(timestamp_s: float, roi_signals: dict):
+    dummy_poly = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
+    roi_dict = {}
+    for r_name in ["forehead", "left_cheek", "right_cheek"]:
+        if r_name in roi_signals:
+            rgb = tuple(roi_signals[r_name])
+            roi_dict[r_name] = ROIData(
+                name=r_name,
+                polygon=dummy_poly,
+                mean_rgb=rgb,
+                median_rgb=rgb,
+                std_rgb=(1.0, 1.0, 1.0),
+                skin_pixel_pct=95.0,
+                num_valid_pixels=200,
+                is_valid=True
+            )
+    engine.signal_buffer.append(timestamp_s, roi_dict)
 
 
 async def push_signals_api(request):
     """
-    Ultra-Fast Signal Ingestion Endpoint (< 1ms execution):
-    Receives raw extracted RGB vectors from client at 30+ FPS,
-    appends to sliding buffer, and returns live vitals.
+    Ultra-Fast Signal Ingestion Endpoint:
+    Receives extracted RGB vectors from client, appends to buffer, and returns live vitals.
     """
     global cached_vitals, last_vitals_compute_time
     try:
         data = await request.json()
         timestamp_s = float(data.get("timestamp_s", time.time()))
-        roi_signals = data.get("signals", {})  # {"forehead": [R, G, B], "left_cheek": [...], "right_cheek": [...]}
+        roi_signals = data.get("signals", {})
 
-        dummy_poly = np.array([[0, 0], [1, 0], [1, 1], [0, 1]])
-        roi_dict = {}
-
-        for r_name in ["forehead", "left_cheek", "right_cheek"]:
-            if r_name in roi_signals:
-                rgb = tuple(roi_signals[r_name])
-                roi_dict[r_name] = ROIData(
-                    name=r_name,
-                    polygon=dummy_poly,
-                    mean_rgb=rgb,
-                    median_rgb=rgb,
-                    std_rgb=(1.0, 1.0, 1.0),
-                    skin_pixel_pct=95.0,
-                    num_valid_pixels=200,
-                    is_valid=True
-                )
-
-        # Append to engine buffer
-        engine.signal_buffer.append(timestamp_s, roi_dict)
+        _ingest_roi_signals(timestamp_s, roi_signals)
 
         now = time.perf_counter()
-        if (now - last_vitals_compute_time) >= 0.30:  # Compute vitals 3x per second
+        if (now - last_vitals_compute_time) >= 0.25:
             cached_vitals = engine.compute_vitals()
             last_vitals_compute_time = now
 
@@ -174,7 +177,77 @@ async def push_signals_api(request):
         }))
 
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+        return JSONResponse({ "error": str(e) }, status_code=500)
+
+
+async def push_signals_batch_api(request):
+    """
+    Batched Signal Ingestion Endpoint:
+    Receives an array of signal frames in one HTTP call.
+    """
+    global cached_vitals, last_vitals_compute_time
+    try:
+        data = await request.json()
+        frames = data.get("frames", [])
+        for f in frames:
+            ts = float(f.get("timestamp_s", time.time()))
+            sigs = f.get("signals", {})
+            _ingest_roi_signals(ts, sigs)
+
+        now = time.perf_counter()
+        if (now - last_vitals_compute_time) >= 0.20:
+            cached_vitals = engine.compute_vitals()
+            last_vitals_compute_time = now
+
+        return JSONResponse(convert_to_serializable({
+            "status": "OK",
+            "vitals": cached_vitals.to_dict()
+        }))
+    except Exception as e:
+        return JSONResponse({ "error": str(e) }, status_code=500)
+
+
+async def websocket_signals_endpoint(websocket: WebSocket):
+    """
+    WebSocket Telemetry Stream:
+    Microsecond bidirectional vector pipeline running at 30-60 Hz without HTTP latency.
+    """
+    global cached_vitals, last_vitals_compute_time
+    await websocket.accept()
+    try:
+        while True:
+            text = await websocket.receive_text()
+            data = json.loads(text)
+            
+            if data.get("type") == "reset":
+                engine.start_session()
+                cached_vitals = engine.compute_vitals()
+                last_vitals_compute_time = 0.0
+                await websocket.send_text(json.dumps({ "status": "SESSION_RESET" }))
+                continue
+
+            ts = float(data.get("timestamp_s", time.time()))
+            sigs = data.get("signals", {})
+            _ingest_roi_signals(ts, sigs)
+
+            now = time.perf_counter()
+            if (now - last_vitals_compute_time) >= 0.15:  # Update vitals ~6 times per second
+                cached_vitals = engine.compute_vitals()
+                last_vitals_compute_time = now
+
+                payload = convert_to_serializable({
+                    "status": "OK",
+                    "vitals": cached_vitals.to_dict()
+                })
+                await websocket.send_text(json.dumps(payload))
+
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 routes = [
@@ -182,6 +255,8 @@ routes = [
     Route("/api/reset", reset_session, methods=["POST"]),
     Route("/api/detect_rois", detect_rois_keyframe, methods=["POST"]),
     Route("/api/push_signals", push_signals_api, methods=["POST"]),
+    Route("/api/push_signals_batch", push_signals_batch_api, methods=["POST"]),
+    WebSocketRoute("/ws/signals", websocket_signals_endpoint),
 ]
 
 app = Starlette(debug=True, routes=routes)
