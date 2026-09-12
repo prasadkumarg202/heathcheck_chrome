@@ -1,0 +1,1736 @@
+master_prompt:
+
+  # ============================================================
+  # 0. MASTER OBJECTIVE
+  # ============================================================
+
+  project:
+    name: "AuraPulse Health AI"
+
+    product_name:
+      public: "AuraPulse"
+      product: "AuraPulse Contactless Health"
+      tagline: "60 Seconds. Camera-Based Health Intelligence."
+
+    objective: >
+      Build an independent, privacy-first, edge-processed camera-based
+      physiological sensing and health analytics platform.
+
+      The system must NOT depend on Binah.ai, Shen.AI, NuraLogix,
+      Anura, VitalLens, or any other proprietary commercial health SDK/API.
+
+      The long-term objective is to develop our own proprietary technology
+      stack for camera-based physiological signal extraction, signal quality
+      assessment, health analytics, and eventually commercial Web, Android,
+      and iOS SDKs.
+
+  # ============================================================
+  # 1. ABSOLUTE ARCHITECTURAL RULE
+  # ============================================================
+
+  independence_policy:
+
+    forbidden_as_runtime_dependencies:
+
+      - "Binah.ai API"
+      - "Binah.ai SDK"
+      - "Shen.AI SDK"
+      - "NuraLogix / Anura API"
+      - "VitalLens API"
+      - "Any proprietary rPPG API"
+      - "Any proprietary medical-vitals API"
+      - "Any cloud service required to calculate HR/RR"
+      - "Any external service required to calculate BVP"
+
+    allowed:
+
+      - "Open-source libraries with compatible licenses"
+      - "Academic papers"
+      - "Publicly available research"
+      - "Open datasets subject to their licenses"
+      - "Standard computer vision libraries"
+      - "Standard signal-processing libraries"
+      - "Our own implementations"
+      - "Our own trained models"
+      - "Public-domain mathematical methods"
+      - "Commercially licensed generic infrastructure"
+
+    critical_rule: >
+      Research repositories may be studied and benchmarked, but their source
+      code must NOT automatically be copied into the commercial AuraPulse
+      codebase.
+
+      Before reusing any code, model, weight, dataset, dependency, or asset,
+      verify its exact license and commercial compatibility.
+
+  # ============================================================
+  # 2. RESEARCH VS PRODUCTION SEPARATION
+  # ============================================================
+
+  repository_policy:
+
+    create_two_layers:
+
+      research_layer:
+        path: "/research"
+        purpose:
+          - "Experimentation"
+          - "Benchmarking"
+          - "Algorithm comparison"
+          - "Academic reproduction"
+          - "Dataset evaluation"
+
+      production_layer:
+        path: "/src"
+        purpose:
+          - "AuraPulse proprietary implementation"
+          - "Commercial application"
+          - "Production SDK"
+          - "Patient-facing software"
+
+    rule: >
+      Research code must never be imported directly into production unless
+      its license has been explicitly approved and documented.
+
+    create:
+      - "/research/licenses/"
+      - "/research/repositories/"
+      - "/research/datasets/"
+      - "/research/benchmarks/"
+      - "/research/papers/"
+      - "/src/core/"
+      - "/src/camera/"
+      - "/src/cv/"
+      - "/src/signal/"
+      - "/src/sqi/"
+      - "/src/metrics/"
+      - "/src/models/"
+      - "/src/reporting/"
+      - "/src/privacy/"
+
+  # ============================================================
+  # 3. LICENSE COMPLIANCE GATE
+  # ============================================================
+
+  license_gate:
+
+    mandatory_before_code_reuse: true
+
+    for_every_dependency:
+
+      record:
+
+        - "Package/repository"
+        - "Version/commit"
+        - "License"
+        - "Copyright owner"
+        - "Commercial-use permission"
+        - "Modification permission"
+        - "Distribution requirements"
+        - "Attribution requirements"
+        - "Copyleft obligations"
+        - "Healthcare restrictions"
+        - "Model-weight license"
+        - "Dataset license"
+
+    statuses:
+
+      - "APPROVED_FOR_PRODUCTION"
+      - "RESEARCH_ONLY"
+      - "LEGAL_REVIEW_REQUIRED"
+      - "REJECTED"
+
+    important:
+      >
+        Do not assume that a GitHub repository being public means its code
+        is commercially reusable.
+
+    forbidden:
+      >
+        Do not copy GPL code into a proprietary closed-source AuraPulse SDK
+        without explicit legal approval and an architecture compatible with
+        the applicable GPL obligations.
+
+  # ============================================================
+  # 4. RESEARCH REPOSITORY AUDIT
+  # ============================================================
+
+  research_repositories:
+
+    - name: "rPPG-Toolbox"
+      url: "https://github.com/ubicomplab/rPPG-Toolbox"
+      role:
+        - "Algorithm research"
+        - "Benchmarking"
+        - "Model architecture study"
+        - "Dataset pipeline study"
+      default_status: "RESEARCH_ONLY"
+
+    - name: "Contactless Vitals rPPG"
+      url: "https://github.com/harshidkoladara/contactless-vitals-rppg"
+      role:
+        - "Practical reference"
+        - "ROI extraction"
+        - "CHROM"
+        - "POS"
+        - "BVP"
+        - "Respiration"
+      default_status: "LICENSE_REVIEW_REQUIRED"
+
+    - name: "heartbeat"
+      url: "https://github.com/prouast/heartbeat"
+      role:
+        - "Historical rPPG implementation"
+        - "Signal processing reference"
+      default_status: "RESEARCH_ONLY"
+
+    - name: "heartbeat-js"
+      url: "https://github.com/prouast/heartbeat-js"
+      role:
+        - "Browser rPPG research"
+        - "JavaScript implementation study"
+      default_status: "RESEARCH_ONLY"
+
+  research_rule: >
+    Do not blindly fork these projects and rename them AuraPulse.
+
+    Extract the underlying scientific concepts and independently implement
+    AuraPulse modules after performing license and IP review.
+
+  # ============================================================
+  # 5. PRODUCT STRATEGY
+  # ============================================================
+
+  positioning:
+
+    primary:
+      - "Camera-based physiological sensing"
+      - "Contactless health monitoring"
+      - "Wellness analytics"
+      - "Health trends"
+      - "Privacy-first edge AI"
+
+    avoid_claiming:
+      - "60 laboratory tests"
+      - "Medical diagnosis from a selfie"
+      - "Clinical blood pressure without validation"
+      - "Clinical SpO2 without validation"
+      - "Disease diagnosis"
+      - "Hospital-grade measurements"
+
+    preferred_marketing:
+
+      - "60-Second AI Health Check"
+      - "Camera-Based Health Insights"
+      - "Contactless Physiological Monitoring"
+      - "Privacy-First On-Device Health Analytics"
+      - "Real-Time Physiological Signals"
+
+  # ============================================================
+  # 6. PRODUCT MODES
+  # ============================================================
+
+  modes:
+
+    patient_mode:
+      purpose: "Simple consumer experience"
+
+      hide:
+        - "CHROM"
+        - "POS"
+        - "FFT"
+        - "ROI coordinates"
+        - "BVP internals"
+        - "algorithm debug values"
+
+      display:
+        - "Camera status"
+        - "Face positioning"
+        - "Lighting"
+        - "Signal quality"
+        - "Measurement progress"
+        - "Health results"
+
+    research_mode:
+      purpose: "Algorithm development"
+
+      display:
+        - "ROI masks"
+        - "Face landmarks"
+        - "BVP"
+        - "POS"
+        - "CHROM"
+        - "FFT"
+        - "PSD"
+        - "SNR"
+        - "FPS"
+        - "Motion score"
+        - "Skin pixel percentage"
+        - "Algorithm agreement"
+        - "Per-ROI quality"
+
+    developer_mode:
+      purpose: "SDK diagnostics"
+
+      display:
+        - "Engine version"
+        - "Model version"
+        - "Processing latency"
+        - "CPU usage where available"
+        - "Memory"
+        - "FPS"
+        - "Dropped frames"
+        - "Pipeline state"
+        - "Error logs"
+
+  # ============================================================
+  # 7. CAMERA PIPELINE
+  # ============================================================
+
+  pipeline:
+
+    architecture:
+
+      - "Camera"
+      - "Frame timestamp"
+      - "Face detection"
+      - "Face tracking"
+      - "Face landmarks"
+      - "Pose estimation"
+      - "Face quality"
+      - "Skin segmentation"
+      - "Dynamic ROI generation"
+      - "RGB extraction"
+      - "Signal preprocessing"
+      - "rPPG extraction"
+      - "Signal quality"
+      - "Multi-ROI fusion"
+      - "Vital estimation"
+      - "Confidence"
+      - "Results"
+
+    privacy:
+      raw_video_upload: false
+      raw_video_storage: false
+      default_cloud_processing: false
+
+  # ============================================================
+  # 8. FACE DETECTION
+  # ============================================================
+
+  face_engine:
+
+    candidates:
+
+      - "MediaPipe Face Landmarker"
+      - "MediaPipe Face Mesh where appropriate"
+      - "OpenCV"
+      - "Lightweight ONNX face detector"
+
+    requirements:
+
+      - "One-face mode"
+      - "Reject multiple faces"
+      - "Face bounding box"
+      - "468+ landmarks where available"
+      - "Head pose"
+      - "Face size"
+      - "Face stability"
+      - "Occlusion detection"
+
+    patient_instruction:
+
+      >
+        Keep your face inside the guide and look directly at the camera.
+
+  # ============================================================
+  # 9. FACE ROI ENGINE
+  # ============================================================
+
+  roi_engine:
+
+    objective: >
+      Do not use fixed screen coordinates.
+
+      Generate facial measurement regions dynamically from landmarks.
+
+    primary_regions:
+
+      forehead:
+        type: "landmark-derived polygon"
+
+      left_cheek:
+        type: "landmark-derived polygon"
+
+      right_cheek:
+        type: "landmark-derived polygon"
+
+    exclude:
+
+      - "Eyes"
+      - "Eyebrows"
+      - "Lips"
+      - "Hair"
+      - "Background"
+      - "Glasses where they interfere with measurement"
+      - "Strong highlights"
+      - "Deep shadows"
+      - "Saturated pixels"
+
+    roi_quality:
+
+      calculate:
+        - "Valid skin pixel percentage"
+        - "Brightness"
+        - "Saturation"
+        - "Temporal stability"
+        - "Motion"
+        - "Signal amplitude"
+
+    adaptive_roi:
+      enabled: true
+
+    principle:
+      >
+        Select the best available facial skin regions dynamically rather than
+        assuming that every face has identical usable pixels.
+
+  # ============================================================
+  # 10. SIGNAL EXTRACTION
+  # ============================================================
+
+  signal_engine:
+
+    raw_inputs:
+
+      per_frame:
+        - "Mean RGB"
+        - "Median RGB"
+        - "RGB variance"
+        - "Brightness"
+        - "Saturation"
+        - "ROI coverage"
+        - "Motion"
+
+    algorithms:
+
+      baseline:
+        - "GREEN"
+
+      chrominance:
+        - "CHROM"
+
+      projection:
+        - "POS"
+
+      statistical:
+        - "PCA"
+        - "ICA"
+
+      advanced_research:
+        - "LGI"
+        - "PBV"
+        - "SSR"
+
+    interface:
+
+      extract:
+        input:
+          - "RGB time series"
+          - "timestamps"
+          - "ROI metadata"
+
+        output:
+          - "BVP"
+          - "quality"
+          - "algorithm"
+          - "processing_time"
+
+  # ============================================================
+  # 11. FILTERING
+  # ============================================================
+
+  preprocessing:
+
+    operations:
+
+      - "Detrending"
+      - "Normalization"
+      - "Bandpass filtering"
+      - "Motion artifact suppression"
+      - "Outlier rejection"
+      - "Windowing"
+
+    rule:
+      >
+        Frequency bands must be metric-specific.
+
+    heart_rate_research:
+      starting_range:
+        low_hz: 0.7
+        high_hz: 4.0
+
+    respiration:
+      separate_pipeline: true
+
+    important:
+      >
+        Do not blindly reuse the heart-rate band for respiration or other
+        physiological signals.
+
+  # ============================================================
+  # 12. HEART RATE
+  # ============================================================
+
+  heart_rate:
+
+    status: "MVP_TARGET"
+
+    methods:
+
+      - "Welch PSD"
+      - "FFT"
+      - "Autocorrelation"
+      - "Peak detection"
+
+    ensemble:
+
+      - "Green"
+      - "CHROM"
+      - "POS"
+      - "Multi-ROI"
+
+    output:
+
+      value:
+        unit: "BPM"
+
+      metadata:
+        - "confidence"
+        - "SQI"
+        - "duration"
+        - "algorithm"
+        - "engine_version"
+
+    invalid_conditions:
+
+      - "Low SQI"
+      - "Excessive motion"
+      - "Insufficient duration"
+      - "Poor lighting"
+      - "Multiple faces"
+      - "Insufficient ROI coverage"
+
+    response_when_invalid:
+      value: null
+      status: "unavailable"
+
+  # ============================================================
+  # 13. RESPIRATION
+  # ============================================================
+
+  respiration:
+
+    status: "MVP_TARGET"
+
+    methods:
+
+      - "Low-frequency modulation"
+      - "Amplitude modulation"
+      - "Baseline modulation"
+      - "Frequency analysis"
+
+    output:
+      unit: "breaths/min"
+
+    invalid:
+      value: null
+
+  # ============================================================
+  # 14. PRV
+  # ============================================================
+
+  prv:
+
+    terminology:
+      required: >
+        Use PRV for pulse-derived variability.
+
+      prohibited:
+        >
+          Do not automatically label camera-derived pulse intervals as
+          ECG-derived HRV.
+
+    metrics:
+
+      - "RMSSD"
+      - "SDNN"
+      - "Mean PPI"
+      - "PPI distribution"
+
+    requirements:
+
+      - "Reliable pulse peak detection"
+      - "Artifact rejection"
+      - "Minimum valid duration"
+      - "Quality gating"
+
+    output:
+      invalid:
+        value: null
+        status: "insufficient_signal"
+
+  # ============================================================
+  # 15. SIGNAL QUALITY ENGINE
+  # ============================================================
+
+  sqi:
+
+    purpose: >
+      Prevent the system from displaying plausible-looking but unreliable
+      measurements.
+
+    inputs:
+
+      - "Face stability"
+      - "Head pose"
+      - "Motion"
+      - "Blur"
+      - "Lighting"
+      - "Exposure"
+      - "Saturation"
+      - "Skin pixel percentage"
+      - "Spectral peak prominence"
+      - "SNR"
+      - "Cross-ROI agreement"
+      - "Algorithm agreement"
+      - "Temporal stability"
+
+    output:
+
+      score:
+        range: "0-100"
+
+      category:
+        - "Invalid"
+        - "Poor"
+        - "Fair"
+        - "Good"
+        - "Excellent"
+
+    rule:
+      >
+        SQI is a signal-quality indicator, not a medical accuracy probability.
+
+  # ============================================================
+  # 16. ENSEMBLE ENGINE
+  # ============================================================
+
+  ensemble:
+
+    strategy:
+
+      for_each:
+        - "ROI"
+        - "algorithm"
+        - "window"
+
+      calculate:
+        - "HR"
+        - "spectral peak"
+        - "SNR"
+        - "stability"
+        - "agreement"
+
+      fuse:
+        >
+          Weight only candidates that pass quality gates.
+
+    failure:
+
+      >
+        If independent algorithms disagree substantially, return unavailable
+        rather than forcing a result.
+
+  # ============================================================
+  # 17. BP
+  # ============================================================
+
+  blood_pressure:
+
+    status: "RESEARCH_ONLY"
+
+    production_enabled: false
+
+    never:
+
+      - "Generate fake SBP"
+      - "Generate fake DBP"
+      - "Use HR to invent BP"
+      - "Present BP as clinical"
+      - "Show BP numbers when model confidence is inadequate"
+
+    research_pipeline:
+
+      - "Collect reference cuff measurements"
+      - "Collect synchronized facial video"
+      - "Extract pulse morphology"
+      - "Build subject-independent models"
+      - "Evaluate calibration"
+      - "Evaluate subgroup performance"
+      - "Bland-Altman"
+      - "MAE"
+      - "RMSE"
+      - "Bias"
+      - "Limits of agreement"
+
+    UI_until_validated:
+      text: "Blood pressure estimation is not available in this version."
+
+  # ============================================================
+  # 18. SPO2
+  # ============================================================
+
+  spo2:
+
+    status: "RESEARCH_ONLY"
+
+    production_enabled: false
+
+    warning:
+      >
+        Standard RGB cameras do not automatically provide clinically reliable
+        oxygen saturation.
+
+    investigate:
+
+      - "Spectral response"
+      - "Camera characteristics"
+      - "Illumination"
+      - "Skin-tone effects"
+      - "Reference pulse oximeter"
+      - "Calibration"
+
+    default:
+      value: null
+
+  # ============================================================
+  # 19. STRESS
+  # ============================================================
+
+  stress:
+
+    name:
+      public: "Physiological Stress Indicator"
+
+    status: "EXPERIMENTAL"
+
+    inputs:
+
+      - "HR"
+      - "PRV"
+      - "Respiration"
+      - "Pulse dynamics"
+      - "Signal quality"
+
+    prohibited:
+
+      - "Mental-state diagnosis"
+      - "Psychiatric inference"
+      - "Clinical stress diagnosis"
+
+    output:
+
+      - "indicator"
+      - "confidence"
+      - "experimental_label"
+
+  # ============================================================
+  # 20. RISK ENGINE
+  # ============================================================
+
+  risk_engine:
+
+    separation:
+      >
+        Risk prediction must be independent from raw camera processing.
+
+    supported_only_when_validated:
+
+      - "Cardiovascular risk"
+      - "Hypertension risk"
+      - "Diabetes risk"
+      - "Vascular age"
+
+    architecture:
+
+      model_registry:
+
+        fields:
+          - "model_name"
+          - "model_version"
+          - "population"
+          - "required_inputs"
+          - "validation"
+          - "limitations"
+
+    rule:
+      >
+        If required validated inputs are unavailable, return:
+        "Risk assessment unavailable."
+
+  # ============================================================
+  # 21. LLM
+  # ============================================================
+
+  llm:
+
+    purpose:
+      >
+        The LLM is an explanation layer, NOT the physiological measurement
+        engine.
+
+    allowed:
+
+      - "Explain measurements"
+      - "Summarize trends"
+      - "Generate patient-friendly language"
+      - "Translate English to Telugu"
+      - "Explain limitations"
+
+    prohibited:
+
+      - "Calculate HR from video"
+      - "Calculate BP from video"
+      - "Invent health values"
+      - "Diagnose disease"
+      - "Override safety rules"
+      - "Create clinical thresholds dynamically"
+
+    providers_optional:
+
+      - "OpenAI"
+      - "Gemini"
+      - "Anthropic"
+      - "Local model"
+
+    architecture:
+      interface: "HealthExplanationProvider"
+
+  # ============================================================
+  # 22. NO LLM DEPENDENCY FOR CORE MEASUREMENT
+  # ============================================================
+
+  critical_architecture:
+
+    core_measurement:
+
+      must_work_without:
+        - "OpenAI"
+        - "Gemini"
+        - "Anthropic"
+        - "Internet"
+        - "Cloud AI"
+
+    requirement:
+      >
+        If the internet is disconnected, the core camera measurement pipeline
+        should continue to operate where the browser/device permits it.
+
+  # ============================================================
+  # 23. WEB APPLICATION
+  # ============================================================
+
+  frontend:
+
+    stack:
+
+      - "Next.js"
+      - "React"
+      - "TypeScript"
+      - "Tailwind CSS"
+      - "Web Workers"
+      - "Canvas"
+      - "WebRTC"
+
+    requirements:
+
+      - "Mobile-first"
+      - "Desktop"
+      - "Tablet"
+      - "Samsung Android browser"
+      - "Chrome"
+      - "Safari where supported"
+
+  # ============================================================
+  # 24. PATIENT UI
+  # ============================================================
+
+  scan_ui:
+
+    step_1:
+      title: "60-Second AI Health Check"
+
+    step_2:
+      title: "Allow Camera"
+
+    step_3:
+      title: "Position Your Face"
+
+      display:
+
+        large_dotted_oval:
+          meaning: "Head-positioning guide"
+
+        green_box:
+          meaning: "Detected face"
+
+        red_rois:
+          meaning:
+            - "Forehead measurement region"
+            - "Left cheek measurement region"
+            - "Right cheek measurement region"
+
+      patient_instruction:
+        >
+          You do NOT need to manually position your eyes inside the red boxes.
+          The system automatically places measurement regions based on your
+          facial landmarks.
+
+    step_4:
+      title: "Signal Check"
+
+      display:
+
+        - "Face detected"
+        - "Lighting"
+        - "Movement"
+        - "Skin visibility"
+        - "Signal quality"
+
+    step_5:
+      title: "Scanning"
+
+      duration:
+        target: "30-60 seconds"
+
+    step_6:
+      title: "Results"
+
+  # ============================================================
+  # 25. WEBSITE DESIGN
+  # ============================================================
+
+  website:
+
+    objective:
+      >
+        Create a premium enterprise health-tech website inspired by the
+        information architecture of leading digital-health companies but with
+        completely original branding, design, content, illustrations, and
+        implementation.
+
+    pages:
+
+      - "/"
+      - "/technology"
+      - "/contactless-vitals"
+      - "/solutions"
+      - "/solutions/clinics"
+      - "/solutions/hospitals"
+      - "/solutions/phc"
+      - "/solutions/corporate-wellness"
+      - "/developers"
+      - "/research"
+      - "/security"
+      - "/privacy"
+      - "/about"
+      - "/contact"
+
+    hero:
+
+      headline:
+        "Your Camera. Your Health Signals. Your Privacy."
+
+      subheadline:
+        >
+          AuraPulse uses on-device computer vision and physiological signal
+          processing to extract contactless health insights from ordinary
+          camera video.
+
+      CTA:
+        primary: "Try 60-Second Health Check"
+        secondary: "Explore the Technology"
+
+  # ============================================================
+  # 26. WEBSITE UI
+  # ============================================================
+
+  design_system:
+
+    style:
+      - "Premium"
+      - "Medical"
+      - "Enterprise"
+      - "AI"
+      - "Trustworthy"
+      - "Minimal"
+
+    colors:
+
+      background: "#07111F"
+      surface: "#0D1B2A"
+      primary: "#00C2D7"
+      secondary: "#36E0B5"
+      white: "#FFFFFF"
+      muted: "#9AA8B7"
+      border: "#1E334A"
+
+    components:
+
+      - "Hero"
+      - "Metric cards"
+      - "Interactive face scanner"
+      - "Animated waveform"
+      - "Technology diagram"
+      - "ROI visualization"
+      - "Health dashboard"
+      - "Research cards"
+      - "Security section"
+      - "CTA"
+      - "Enterprise footer"
+
+  # ============================================================
+  # 27. WEBSITE INTERACTIVE DEMO
+  # ============================================================
+
+  demo:
+
+    route:
+      "/demo"
+
+    experience:
+
+      - "Camera permission"
+      - "Face positioning"
+      - "Signal acquisition"
+      - "BVP animation"
+      - "HR calculation"
+      - "Respiration calculation"
+      - "SQI"
+      - "Results"
+
+    critical:
+      >
+        Demo results must come from the actual local signal-processing engine.
+
+    prohibited:
+      - "Random BPM"
+      - "Preprogrammed waveform"
+      - "Fake scanning animation"
+      - "Hardcoded health values"
+
+  # ============================================================
+  # 28. BACKEND
+  # ============================================================
+
+  backend:
+
+    principle:
+      >
+        Backend is optional for core measurement.
+
+    responsibilities:
+
+      - "Authentication"
+      - "User profiles"
+      - "Authorized measurement history"
+      - "Reports"
+      - "Analytics"
+      - "Research datasets"
+      - "Consent"
+      - "Audit"
+
+    technologies:
+
+      - "Supabase if already present"
+      - "PostgreSQL"
+      - "Object storage"
+
+  # ============================================================
+  # 29. DATA MODEL
+  # ============================================================
+
+  tables:
+
+    profiles:
+      fields:
+        - "id"
+        - "created_at"
+        - "preferences"
+
+    consent_records:
+      fields:
+        - "id"
+        - "user_id"
+        - "consent_type"
+        - "version"
+        - "timestamp"
+
+    measurement_sessions:
+      fields:
+        - "id"
+        - "user_id"
+        - "started_at"
+        - "ended_at"
+        - "duration"
+        - "device"
+        - "browser"
+        - "engine_version"
+        - "algorithm_version"
+        - "sqi"
+        - "status"
+
+    measurements:
+      fields:
+        - "id"
+        - "session_id"
+        - "metric"
+        - "value"
+        - "unit"
+        - "confidence"
+        - "sqi"
+        - "status"
+        - "provenance"
+
+  # ============================================================
+  # 30. SECURITY
+  # ============================================================
+
+  privacy:
+
+    default:
+
+      - "No raw video upload"
+      - "No raw video storage"
+      - "No unnecessary face image storage"
+      - "No biometric cloud processing"
+      - "No third-party health API"
+
+    requirements:
+
+      - "TLS"
+      - "Encryption"
+      - "RBAC"
+      - "Audit logs"
+      - "Consent"
+      - "Data deletion"
+      - "Data retention"
+      - "Secure secrets"
+      - "Least privilege"
+
+  # ============================================================
+  # 31. MOBILE ROADMAP
+  # ============================================================
+
+  mobile:
+
+    phase_1:
+      platform: "Android"
+      language: "Kotlin"
+
+    phase_2:
+      platform: "iOS"
+      language: "Swift"
+
+    architecture:
+
+      shared:
+        - "Signal algorithms"
+        - "Core data structures"
+        - "Model formats"
+
+      native:
+        - "Camera"
+        - "GPU"
+        - "Permissions"
+        - "Device optimization"
+
+  # ============================================================
+  # 32. EDGE AI
+  # ============================================================
+
+  model_runtime:
+
+    candidates:
+
+      - "ONNX Runtime"
+      - "TensorFlow Lite where appropriate"
+      - "Core ML for iOS"
+      - "NNAPI where appropriate"
+
+    optimization:
+
+      - "Quantization"
+      - "Model pruning"
+      - "Frame sampling"
+      - "GPU acceleration"
+      - "CPU fallback"
+
+    requirement:
+      >
+        Benchmark every model before adding it to the production pipeline.
+
+  # ============================================================
+  # 33. VALIDATION
+  # ============================================================
+
+  validation:
+
+    datasets:
+
+      research_candidates:
+
+        - "PURE"
+        - "UBFC-rPPG"
+        - "UBFC-Phys"
+        - "VIPL-HR"
+        - "MMSE-HR"
+        - "MAHNOB-HCI"
+        - "COHFACE"
+
+    rule:
+      >
+        Verify dataset availability, license, modality, labels, participant
+        count, and permitted use before use.
+
+    split:
+
+      required:
+        - "Subject-independent split"
+
+      prohibited:
+        >
+          Do not allow the same participant to appear in both training and
+          test sets.
+
+    metrics:
+
+      heart_rate:
+        - "MAE"
+        - "RMSE"
+        - "Pearson correlation"
+        - "Valid measurement rate"
+
+      respiration:
+        - "MAE"
+        - "RMSE"
+        - "Valid measurement rate"
+
+      quality:
+        - "False acceptance"
+        - "False rejection"
+        - "Invalid session rate"
+
+    subgroup_analysis:
+
+      - "Skin-tone diversity"
+      - "Age"
+      - "Sex"
+      - "Camera"
+      - "Lighting"
+      - "Motion"
+      - "Glasses"
+      - "Distance"
+
+  # ============================================================
+  # 34. REAL-WORLD TEST LAB
+  # ============================================================
+
+  device_testing:
+
+    phones:
+
+      - "Samsung Galaxy A-series"
+      - "Samsung Galaxy S-series"
+      - "Samsung Galaxy M-series"
+
+    environments:
+
+      - "Indoor daylight"
+      - "LED"
+      - "Fluorescent"
+      - "Low light"
+      - "Backlight"
+      - "Outdoor"
+      - "Different skin tones"
+      - "With glasses"
+      - "Without glasses"
+      - "Minor movement"
+
+    record:
+
+      - "FPS"
+      - "CPU"
+      - "memory"
+      - "latency"
+      - "signal quality"
+      - "valid measurement rate"
+      - "HR error"
+
+  # ============================================================
+  # 35. REPORT
+  # ============================================================
+
+  report:
+
+    include:
+
+      - "Patient/session ID"
+      - "Date"
+      - "Duration"
+      - "Device"
+      - "Engine version"
+      - "Algorithm version"
+      - "Signal quality"
+      - "Measurements"
+      - "Confidence"
+      - "Experimental indicators"
+      - "Limitations"
+
+    wording:
+
+      >
+        Camera-based measurements are intended for wellness, research, or
+        screening purposes unless separately validated and authorized for
+        clinical use.
+
+  # ============================================================
+  # 36. FHIR
+  # ============================================================
+
+  fhir:
+
+    future_phase: true
+
+    resources:
+
+      - "Patient"
+      - "Encounter"
+      - "Observation"
+      - "Device"
+
+    only_export:
+      >
+        Measurements that have appropriate provenance and clearly defined
+        measurement semantics.
+
+  # ============================================================
+  # 37. WHATSAPP
+  # ============================================================
+
+  whatsapp:
+
+    future_phase: true
+
+    strategy:
+
+      preferred:
+        >
+          Send a secure, expiring report link using an approved WhatsApp
+          Business integration.
+
+    prohibited:
+      - "Unofficial WhatsApp automation"
+      - "Exposing health data through insecure URLs"
+
+  # ============================================================
+  # 38. FUTURE COMMERCIAL SDK
+  # ============================================================
+
+  sdk:
+
+    name: "AuraPulse SDK"
+
+    target:
+
+      - "Web"
+      - "Android"
+      - "iOS"
+
+    API:
+
+      initialize:
+        "initialize(config)"
+
+      session:
+        "startSession()"
+
+      frame:
+        "processFrame(frame, timestamp)"
+
+      realtime:
+        "getRealtimeMetrics()"
+
+      quality:
+        "getSignalQuality()"
+
+      stop:
+        "stopSession()"
+
+      result:
+        "getSessionResult()"
+
+    result_contract:
+
+      status:
+        - "valid"
+        - "invalid"
+        - "insufficient_signal"
+        - "insufficient_duration"
+        - "processing_error"
+
+      metrics:
+
+        heart_rate:
+          value: null
+          unit: "bpm"
+          confidence: null
+          sqi: null
+          status: "unavailable"
+
+        respiration_rate:
+          value: null
+          unit: "breaths/min"
+          confidence: null
+          sqi: null
+          status: "unavailable"
+
+        prv:
+          rmssd: null
+          sdnn: null
+          unit: "ms"
+          confidence: null
+          status: "unavailable"
+
+  # ============================================================
+  # 39. VERSIONING
+  # ============================================================
+
+  provenance:
+
+    every_result_must_record:
+
+      - "engine_version"
+      - "algorithm_version"
+      - "model_version"
+      - "configuration_version"
+      - "device"
+      - "browser/app"
+      - "measurement_duration"
+      - "SQI"
+
+  # ============================================================
+  # 40. NO FABRICATION POLICY
+  # ============================================================
+
+  absolute_rules:
+
+    never:
+
+      - "Hardcode HR"
+      - "Hardcode RR"
+      - "Hardcode PRV"
+      - "Generate fake BVP"
+      - "Generate fake BP"
+      - "Generate fake SpO2"
+      - "Generate fake stress"
+      - "Generate fake confidence"
+      - "Generate fake clinical accuracy"
+      - "Generate fake research results"
+
+    unavailable_values:
+      >
+        Use null and a meaningful status instead of zero or invented numbers.
+
+  # ============================================================
+  # 41. DEVELOPMENT WORKFLOW
+  # ============================================================
+
+  workflow:
+
+    before_coding:
+
+      - "Inspect existing AuraPulse project"
+      - "Identify framework"
+      - "Identify camera implementation"
+      - "Identify signal-processing implementation"
+      - "Identify database"
+      - "Identify Supabase"
+      - "Identify authentication"
+      - "Identify mocked values"
+      - "Run application"
+      - "Create backup/branch"
+      - "Create architecture document"
+
+    phase_0:
+
+      deliverables:
+
+        - "Existing project audit"
+        - "Dependency inventory"
+        - "License inventory"
+        - "Research repository audit"
+        - "Research/production boundary"
+        - "Risk register"
+
+    phase_1:
+
+      deliver:
+
+        - "Real camera"
+        - "Face tracking"
+        - "Landmarks"
+        - "Dynamic ROI"
+        - "Skin mask"
+        - "Lighting detection"
+        - "Motion detection"
+
+    phase_2:
+
+      deliver:
+
+        - "GREEN"
+        - "CHROM"
+        - "POS"
+        - "BVP"
+        - "SQI"
+        - "HR"
+
+    phase_3:
+
+      deliver:
+
+        - "Respiration"
+        - "PRV"
+        - "Multi-ROI ensemble"
+
+    phase_4:
+
+      deliver:
+
+        - "Research stress indicator"
+        - "Trend engine"
+        - "Research metrics"
+
+    phase_5:
+
+      deliver:
+
+        - "Dashboard"
+        - "History"
+        - "Reports"
+        - "Privacy controls"
+
+    phase_6:
+
+      deliver:
+
+        - "ML research pipeline"
+        - "Benchmarking"
+        - "ONNX"
+        - "Edge inference"
+
+    phase_7:
+
+      deliver:
+
+        - "Android SDK"
+
+    phase_8:
+
+      deliver:
+
+        - "iOS SDK"
+
+    phase_9:
+
+      deliver:
+
+        - "Clinical/research validation"
+
+  # ============================================================
+  # 42. CODING AGENT RULES
+  # ============================================================
+
+  coding_agent:
+
+    must:
+
+      - "Inspect before modifying"
+      - "Use existing architecture where appropriate"
+      - "Make incremental changes"
+      - "Write tests"
+      - "Run tests"
+      - "Benchmark"
+      - "Document"
+      - "Track licenses"
+      - "Track algorithm provenance"
+      - "Track model provenance"
+
+    must_not:
+
+      - "Invent APIs"
+      - "Invent repository capabilities"
+      - "Invent clinical validation"
+      - "Claim tests passed when they were not run"
+      - "Claim accuracy without evidence"
+      - "Copy proprietary Binah/Shen implementation"
+      - "Copy proprietary website assets"
+      - "Introduce fake measurements"
+
+  # ============================================================
+  # 43. ACCEPTANCE CRITERIA
+  # ============================================================
+
+  MVP:
+
+    required:
+
+      - "Real webcam"
+      - "Real face detection"
+      - "Real facial landmarks"
+      - "Dynamic forehead ROI"
+      - "Dynamic cheek ROIs"
+      - "Real RGB extraction"
+      - "GREEN"
+      - "CHROM"
+      - "POS"
+      - "Real BVP"
+      - "Real SQI"
+      - "Real HR estimation"
+      - "Measurement rejection"
+      - "No hardcoded vitals"
+      - "On-device processing"
+      - "Responsive UI"
+      - "Research mode"
+      - "Patient mode"
+
+    disabled_until_validated:
+
+      - "Clinical BP"
+      - "Clinical SpO2"
+      - "Clinical vascular age"
+      - "Disease diagnosis"
+      - "Clinical stress diagnosis"
+
+  # ============================================================
+  # 44. BUSINESS MODEL
+  # ============================================================
+
+  future_business:
+
+    B2C:
+      - "Free basic health check"
+      - "Premium health trends"
+
+    B2B:
+      - "Clinic dashboard"
+      - "Hospital integration"
+      - "Corporate wellness"
+      - "PHC deployment"
+
+    developer:
+      - "AuraPulse Web SDK"
+      - "AuraPulse Android SDK"
+      - "AuraPulse iOS SDK"
+
+    enterprise:
+      - "On-premise"
+      - "Private cloud"
+      - "Edge deployment"
+      - "FHIR integration"
+
+  # ============================================================
+  # 45. FINAL PRODUCT VISION
+  # ============================================================
+
+  final_architecture:
+
+    camera:
+      ↓
+    face_detection:
+      ↓
+    landmarks:
+      ↓
+    dynamic_skin_ROI:
+      ↓
+    RGB_signal:
+      ↓
+    rPPG_algorithms:
+      ↓
+    BVP:
+      ↓
+    SQI:
+      ↓
+    ensemble:
+      ↓
+    HR:
+      ↓
+    respiration:
+      ↓
+    PRV:
+      ↓
+    research_analytics:
+      ↓
+    trends:
+      ↓
+    optional_LLM_explanation:
+      ↓
+    report:
+      ↓
+    optional_FHIR:
+      ↓
+    optional_secure_sharing
+
+  core_principle:
+
+    statement: >
+      AuraPulse must own the measurement pipeline.
+
+      No Binah API.
+      No Shen API.
+      No proprietary health SDK.
+
+      Research code may teach us how to build the system, but the production
+      product must be independently implemented, license-compliant,
+      reproducible, testable, measurable, and progressively validated.
+
+  start_instruction:
+
+    first_action: >
+      DO NOT immediately rewrite the existing application.
+
+      First inspect the existing AuraPulse codebase.
+
+      Produce:
+
+      1. Current architecture map.
+      2. Existing camera pipeline.
+      3. Existing face detection.
+      4. Existing ROI implementation.
+      5. Existing signal-processing implementation.
+      6. Existing mocked values.
+      7. Existing database.
+      8. Existing Supabase integration.
+      9. Existing dependencies.
+      10. Existing licenses.
+      11. Research repository license analysis.
+      12. Production-safe dependency list.
+      13. Phase-1 implementation plan.
+
+      Then implement Phase 1 incrementally.
+
+      Do not proceed to BP, SpO2, or clinical disease-risk functionality
+      until the underlying measurement pipeline has been independently
+      validated.
