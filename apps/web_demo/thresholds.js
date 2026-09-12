@@ -1,337 +1,240 @@
 /**
- * AuraPulse Standardized Clinical Thresholds & 3-Tier Badging Engine.
- * 🟢 Normal (Optimal / Within range)
- * 🟡 Moderate (Elevated / Borderline / Monitor)
- * 🔴 Alert (High Risk / Low / Out of normal limits)
+ * AuraPulse 4.0 Standardized Clinical Thresholds & Badging Ruleset.
+ *
+ * Color Specification:
+ * - Normal:        #22C55E  [🟢 Normal]
+ * - Elevated:      #F59E0B  [🟡 Elevated / Borderline]
+ * - Abnormal:      #EF4444  [🔴 Alert / Out of limits]
+ * - Unavailable:   #64748B  [⚪ Unavailable]
+ * - Experimental:  #8B5CF6  [🔬 Experimental / Not Validated]
+ * - Informational: #06B6D4  [🔵 Physiological Ratio]
  */
 
 const CLINICAL_THRESHOLDS = {
   heartRate: {
     name: "Heart Rate",
     unit: "BPM",
-    normalRange: "60 - 100 BPM",
+    normalRange: "60 - 100 BPM (Resting Adult)",
+    validationStatus: "PRIMARY_MVP",
     evaluate: (val) => {
       if (val === null || val === undefined || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Awaiting optical lock" };
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Awaiting optical pulse lock" };
       }
       if (val > 115) {
-        return { state: "critical", label: "High Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Severe Tachycardia alert (>115 BPM)" };
+        return { state: "critical", label: "Tachycardia Alert", color: "#EF4444", badge: "🔴 Alert", subtext: "Marked resting tachycardia (>115 BPM)" };
       }
       if (val < 50) {
-        return { state: "critical", label: "High Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Severe Bradycardia alert (<50 BPM)" };
+        return { state: "critical", label: "Bradycardia Alert", color: "#EF4444", badge: "🔴 Alert", subtext: "Marked resting bradycardia (<50 BPM)" };
       }
       if (val > 100 || val < 60) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: val > 100 ? "Elevated resting heart rate (101-115 BPM)" : "Mild resting bradycardia (50-59 BPM)" };
+        return { state: "warning", label: "Borderline", color: "#F59E0B", badge: "🟡 Borderline", subtext: val > 100 ? "Elevated resting pulse (101-115 BPM)" : "Mild resting bradycardia (50-59 BPM)" };
       }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal physiological resting range (60-100 BPM)" };
+      return { state: "optimal", label: "Normal", color: "#22C55E", badge: "🟢 Normal", subtext: "Typical adult resting baseline (60-100 BPM)" };
     }
   },
 
   rmssd: {
-    name: "HRV (RMSSD)",
+    name: "Pulse Rate Variability (PRV - RMSSD)",
     unit: "ms",
-    normalRange: "> 50 ms (Age 20-40: 55-105 ms)",
+    normalRange: "Contextual (Age 20-25: 55-105 ms; Age 60-65: 25-45 ms)",
+    validationStatus: "PRIMARY_MVP",
     evaluate: (val) => {
       if (val === null || val === undefined || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Extracting PPI variance" };
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Extracting optical PPI variance" };
       }
       if (val < 20) {
-        return { state: "critical", label: "Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Depressed autonomic vagal tone (<20 ms)" };
+        return { state: "critical", label: "Low Variability", color: "#EF4444", badge: "🔴 Low", subtext: "Depressed optical pulse interval variability (<20 ms)" };
       }
-      if (val < 50) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate parasympathetic reserves (20-50 ms)" };
+      if (val < 45) {
+        return { state: "warning", label: "Moderate", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Moderate pulse rate variability (20-45 ms)" };
       }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Robust vagal recovery & autonomic resilience (>50 ms)" };
+      return { state: "optimal", label: "Optimal", color: "#22C55E", badge: "🟢 Optimal", subtext: "Robust pulse interval variability (>45 ms)" };
     }
   },
 
   sdnn: {
-    name: "HRV (SDNN)",
+    name: "Pulse Rate Variability (PRV - SDNN)",
     unit: "ms",
-    normalRange: "> 50 ms",
+    normalRange: "> 45 ms",
+    validationStatus: "PRIMARY_MVP",
     evaluate: (val) => {
       if (val === null || val === undefined || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Computing total variance" };
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Calculating total variance" };
       }
-      if (val < 30) {
-        return { state: "critical", label: "Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Significantly low overall HRV (<30 ms)" };
+      if (val < 25) {
+        return { state: "critical", label: "Low", color: "#EF4444", badge: "🔴 Low", subtext: "Low total pulse interval standard deviation (<25 ms)" };
       }
-      if (val < 50) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate overall HRV capacity (30-50 ms)" };
+      if (val < 45) {
+        return { state: "warning", label: "Moderate", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Moderate total variability capacity (25-45 ms)" };
       }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal total autonomic regulatory capacity (>50 ms)" };
+      return { state: "optimal", label: "Normal", color: "#22C55E", badge: "🟢 Normal", subtext: "Healthy total variability capacity (>45 ms)" };
     }
   },
 
   respirationRate: {
     name: "Respiration Rate",
-    unit: "RPM",
-    normalRange: "12 - 20 RPM",
+    unit: "breaths/min",
+    normalRange: "12 - 20 breaths/min",
+    validationStatus: "PRIMARY_MVP",
     evaluate: (val) => {
       if (val === null || val === undefined || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Awaiting breathing rhythm" };
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Awaiting breathing rhythm lock" };
       }
       if (val < 9 || val > 24) {
-        return { state: "critical", label: "Alert", color: "#ef4444", badge: "🔴 Alert", subtext: val > 24 ? "Marked Tachypnea (>24 RPM)" : "Severe Bradypnea (<9 RPM)" };
+        return { state: "critical", label: val > 24 ? "Tachypnea" : "Bradypnea", color: "#EF4444", badge: "🔴 Alert", subtext: val > 24 ? "Elevated breathing rate (>24 breaths/min)" : "Slow breathing rate (<9 breaths/min)" };
       }
       if (val < 12 || val > 20) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: val > 20 ? "Mildly elevated breathing rhythm" : "Borderline low breathing rhythm" };
+        return { state: "warning", label: "Borderline", color: "#F59E0B", badge: "🟡 Borderline", subtext: val > 20 ? "Mildly elevated breathing rhythm" : "Slow breathing rhythm" };
       }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Healthy eupnea breathing range (12-20 RPM)" };
-    }
-  },
-
-  bloodPressure: {
-    name: "Blood Pressure",
-    unit: "mmHg",
-    normalRange: "Systolic < 120, Diastolic < 80 mmHg",
-    evaluate: (sbp, dbp) => {
-      if (!sbp || !dbp || isNaN(sbp) || isNaN(dbp) || sbp <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Analyzing arterial contour" };
-      }
-      if (sbp >= 140 || dbp >= 90) {
-        return { state: "critical", label: "Hypertension Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Stage 1/2 Hypertension threshold (≥140/90 mmHg)" };
-      }
-      if (sbp >= 120 || dbp >= 80) {
-        return { state: "warning", label: "Elevated BP", color: "#eab308", badge: "🟡 Moderate", subtext: "Prehypertension / Elevated vascular tone (120-139 / 80-89)" };
-      }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal hemodynamic pressure (<120/<80 mmHg)" };
-    }
-  },
-
-  spo2: {
-    name: "Oxygen Saturation",
-    unit: "%",
-    normalRange: "95% - 100%",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Dual-ratio optical calculation" };
-      }
-      if (val < 90) {
-        return { state: "critical", label: "Hypoxemia Alert", color: "#ef4444", badge: "🔴 Alert", subtext: "Critical blood oxygen desaturation (<90%)" };
-      }
-      if (val < 95) {
-        return { state: "warning", label: "Mild Hypoxia", color: "#eab308", badge: "🟡 Moderate", subtext: "Borderline peripheral oxygenation (90-94%)" };
-      }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal arterial saturation (95-100%)" };
+      return { state: "optimal", label: "Normal", color: "#22C55E", badge: "🟢 Normal", subtext: "Typical resting breathing frequency (12-20 breaths/min)" };
     }
   },
 
   prq: {
     name: "Pulse-Respiration Quotient (PRQ)",
     unit: "ratio",
-    normalRange: "3.5 - 5.0",
+    normalRange: "3.5 - 5.0 (Resting baseline)",
+    validationStatus: "PHYSIOLOGICAL_RATIO",
     evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "HR / RR synchronization" };
+      if (val === null || val === undefined || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Derived physiological ratio (HR / RR)" };
       }
       if (val < 3.0 || val > 5.5) {
-        return { state: "critical", label: "Alert", color: "#ef4444", badge: "🔴 Alert", subtext: val > 5.5 ? "Cardiorespiratory dyssynchrony / High HR load" : "Respiratory dominance / Bradypnea" };
+        return { state: "warning", label: "Atypical Ratio", color: "#F59E0B", badge: "🟡 Deviated", subtext: val > 5.5 ? "Elevated pulse-to-breath quotient" : "Low pulse-to-breath quotient" };
       }
-      if (val < 3.5 || val > 5.0) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: "Borderline cardiorespiratory coupling (3.0-3.5 or 5.0-5.5)" };
-      }
-      return { state: "optimal", label: "Normal", color: "#10b981", badge: "🟢 Normal", subtext: "Balanced cardiorespiratory synchronization (3.5 - 5.0)" };
+      return { state: "optimal", label: "Balanced", color: "#22C55E", badge: "🟢 Balanced", subtext: "Expected resting cardiorespiratory coupling (3.5 - 5.0)" };
     }
   },
 
   baevskyStress: {
     name: "Baevsky Stress Index",
     unit: "SI",
-    normalRange: "50 - 150 (Resting Eustress)",
+    normalRange: "50 - 150 SI (Resting Eustress)",
+    validationStatus: "RESEARCH_ONLY",
     evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Histogram mode extraction" };
+      if (val === null || val === undefined || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Evaluating 50ms histogram mode" };
       }
       if (val > 300) {
-        return { state: "critical", label: "High Distress", color: "#ef4444", badge: "🔴 Alert", subtext: "High sympathoadrenal activation & regulatory tension (>300)" };
+        return { state: "experimental", label: "High Tension", color: "#8B5CF6", badge: "🔬 High Load", subtext: "High regulatory tension index (>300 SI)" };
       }
       if (val > 150) {
-        return { state: "warning", label: "Moderate Tension", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate compensatory autonomic stress (151-300)" };
+        return { state: "experimental", label: "Moderate Tension", color: "#8B5CF6", badge: "🔬 Moderate", subtext: "Compensatory regulatory load (151-300 SI)" };
       }
-      return { state: "optimal", label: "Normal Eustress", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal calm homeostatic balance (50-150)" };
-    }
-  },
-
-  pnsRecovery: {
-    name: "PNS Recovery Tone",
-    unit: "/ 100",
-    normalRange: "50 - 100",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Evaluating vagal tone" };
-      }
-      if (val < 25) {
-        return { state: "critical", label: "Suppressed", color: "#ef4444", badge: "🔴 Alert", subtext: "Significantly blunted parasympathetic rest tone (<25)" };
-      }
-      if (val < 50) {
-        return { state: "warning", label: "Moderate", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate vagal recovery reserves (25-49)" };
-      }
-      return { state: "optimal", label: "Optimal Vagal", color: "#10b981", badge: "🟢 Normal", subtext: "Robust parasympathetic regenerative capacity (≥50)" };
-    }
-  },
-
-  snsZone: {
-    name: "SNS Arousal Zone",
-    unit: "/ 100",
-    normalRange: "< 35 (Calm)",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Evaluating sympathetic drive" };
-      }
-      if (val > 65) {
-        return { state: "critical", label: "High Sympathetic", color: "#ef4444", badge: "🔴 Alert", subtext: "Elevated fight-or-flight adrenergic arousal (>65)" };
-      }
-      if (val >= 35) {
-        return { state: "warning", label: "Moderate Sympathetic", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate sympathetic arousal (35-65)" };
-      }
-      return { state: "optimal", label: "Calm Sympathetic", color: "#10b981", badge: "🟢 Normal", subtext: "Optimal low resting sympathetic tone (<35)" };
+      return { state: "experimental", label: "Eustress", color: "#8B5CF6", badge: "🔬 Eustress", subtext: "Optimal resting homeostatic balance (50-150 SI)" };
     }
   },
 
   lfHfRatio: {
-    name: "Autonomic LF/HF Ratio",
+    name: "Autonomic Spectral LF/HF",
     unit: "ratio",
     normalRange: "0.8 - 2.5",
+    validationStatus: "RESEARCH_ONLY",
     evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Spectral decomposition" };
+      if (val === null || val === undefined || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Spectral decomposition" };
       }
-      if (val > 4.0 || val < 0.4) {
-        return { state: "critical", label: "Alert", color: "#ef4444", badge: "🔴 Alert", subtext: val > 4.0 ? "Severe sympathetic dominance (>4.0)" : "Extreme parasympathetic predominance (<0.4)" };
-      }
-      if (val > 2.5 || val < 0.8) {
-        return { state: "warning", label: "Moderate Shift", color: "#eab308", badge: "🟡 Moderate", subtext: "Mild sympathovagal asymmetry (0.4-0.8 or 2.6-4.0)" };
-      }
-      return { state: "optimal", label: "Normal Balance", color: "#10b981", badge: "🟢 Normal", subtext: "Well-balanced sympathovagal equilibrium (0.8 - 2.5)" };
+      return { state: "experimental", label: "Spectral Feature", color: "#8B5CF6", badge: "🔬 Research", subtext: `LF (0.04-0.15Hz) / HF (0.15-0.40Hz) = ${val.toFixed(2)}` };
     }
   },
 
-  cardiacWorkload: {
-    name: "Cardiac Workload (RPP)",
-    unit: "RPP",
-    normalRange: "≤ 100 (Resting)",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Rate-Pressure Product" };
+  bloodPressure: {
+    name: "Blood Pressure (SDPPG)",
+    unit: "mmHg",
+    normalRange: "Reference: Systolic < 120, Diastolic < 80 mmHg",
+    validationStatus: "NOT_VALIDATED",
+    evaluate: (sbp, dbp) => {
+      if (!sbp || !dbp || isNaN(sbp) || isNaN(dbp) || sbp <= 0) {
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Camera BP is experimental / not clinically validated" };
       }
-      if (val > 125) {
-        return { state: "critical", label: "High Workload", color: "#ef4444", badge: "🔴 Alert", subtext: "Elevated myocardial oxygen consumption (>125)" };
-      }
-      if (val > 100) {
-        return { state: "warning", label: "Moderate Workload", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate myocardial oxygen demand (101-125)" };
-      }
-      return { state: "optimal", label: "Normal Resting", color: "#10b981", badge: "🟢 Normal", subtext: "Healthy baseline myocardial load (≤100)" };
+      return { state: "experimental", label: "Experimental", color: "#8B5CF6", badge: "🔬 Experimental", subtext: `Contour estimate: ${Math.round(sbp)}/${Math.round(dbp)} mmHg (Not a clinical measurement)` };
     }
   },
 
-  vascularAge: {
-    name: "Vascular Heart Age Delta",
-    unit: "years",
-    normalRange: "Δ ≤ +1.0 years",
-    evaluate: (ageDelta) => {
-      if (ageDelta === null || ageDelta === undefined || isNaN(ageDelta)) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Arterial compliance curve" };
-      }
-      if (ageDelta > 5.0) {
-        return { state: "critical", label: "Accelerated Stiffening", color: "#ef4444", badge: "🔴 Alert", subtext: `Arterial stiffness exceeds age by +${ageDelta.toFixed(1)} yrs` };
-      }
-      if (ageDelta > 1.0) {
-        return { state: "warning", label: "Mild Stiffening", color: "#eab308", badge: "🟡 Moderate", subtext: `Arterial tone +${ageDelta.toFixed(1)} yrs above chronological` };
-      }
-      return { state: "optimal", label: "Optimal Compliance", color: "#10b981", badge: "🟢 Normal", subtext: `Arterial compliance youthfully aligned (${ageDelta >= 0 ? '+' : ''}${ageDelta.toFixed(1)} yrs)` };
-    }
-  },
-
-  cvdRisk: {
-    name: "10-Year ASCVD Event Risk",
+  spo2: {
+    name: "Oxygen Saturation (SpO2)",
     unit: "%",
-    normalRange: "< 10% (Low Risk)",
+    normalRange: "Reference: 95% - 100%",
+    validationStatus: "NOT_VALIDATED",
     evaluate: (val) => {
       if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Framingham Cox model" };
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Multi-spectral optical estimation is experimental" };
       }
-      if (val >= 20.0) {
-        return { state: "critical", label: "High ASCVD Risk", color: "#ef4444", badge: "🔴 Alert", subtext: "High 10-year cardiovascular event projection (≥20%)" };
-      }
-      if (val >= 10.0) {
-        return { state: "warning", label: "Moderate ASCVD Risk", color: "#eab308", badge: "🟡 Moderate", subtext: "Moderate 10-year risk profile (10-20%)" };
-      }
-      return { state: "optimal", label: "Low ASCVD Risk", color: "#10b981", badge: "🟢 Normal", subtext: "Low 10-year cardiovascular event risk (<10%)" };
-    }
-  },
-
-  fbg: {
-    name: "Fasting Glucose Risk",
-    unit: "mg/dL",
-    normalRange: "< 100 mg/dL",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Metabolic risk projection" };
-      }
-      if (val > 125.0) {
-        return { state: "critical", label: "Elevated Glucose Risk", color: "#ef4444", badge: "🔴 Alert", subtext: "Estimated FBG > 125 mg/dL (Diabetes range)" };
-      }
-      if (val >= 100.0) {
-        return { state: "warning", label: "Impaired Glucose Risk", color: "#eab308", badge: "🟡 Moderate", subtext: "Estimated FBG 100-125 mg/dL (Prediabetes range)" };
-      }
-      return { state: "optimal", label: "Normal Glucose Risk", color: "#10b981", badge: "🟢 Normal", subtext: "Estimated FBG < 100 mg/dL (Optimal range)" };
-    }
-  },
-
-  hba1c: {
-    name: "HbA1c Glycemic Risk",
-    unit: "%",
-    normalRange: "< 5.7%",
-    evaluate: (val) => {
-      if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Glycated hemoglobin proxy" };
-      }
-      if (val > 6.4) {
-        return { state: "critical", label: "Diabetes Risk Tier", color: "#ef4444", badge: "🔴 Alert", subtext: "Estimated HbA1c > 6.4% (Diabetic tier)" };
-      }
-      if (val >= 5.7) {
-        return { state: "warning", label: "Prediabetes Risk Tier", color: "#eab308", badge: "🟡 Moderate", subtext: "Estimated HbA1c 5.7 - 6.4% (Prediabetic tier)" };
-      }
-      return { state: "optimal", label: "Normal Glycemic Tier", color: "#10b981", badge: "🟢 Normal", subtext: "Estimated HbA1c < 5.7% (Normal tier)" };
+      return { state: "experimental", label: "Experimental", color: "#8B5CF6", badge: "🔬 Experimental", subtext: `Chromatic estimate: ${val.toFixed(1)}% (Not a clinical pulse oximeter)` };
     }
   },
 
   hemoglobin: {
     name: "Hemoglobin (Hb)",
     unit: "g/dL",
-    normalRange: "Men: 14-18, Women: 12-16 g/dL",
-    evaluate: (val, isMale = true) => {
+    normalRange: "Reference: Men 14-18, Women 12-16 g/dL",
+    validationStatus: "NOT_VALIDATED",
+    evaluate: (val) => {
       if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Multi-spectral optical absorption" };
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Optical density model is experimental" };
       }
-      const lowThresh = isMale ? 13.5 : 12.0;
-      const highThresh = isMale ? 18.0 : 16.0;
-      if (val < lowThresh) {
-        return { state: "critical", label: "Low (Anemia Warning)", color: "#ef4444", badge: "🔴 Alert", subtext: `Estimated Hb ${val.toFixed(1)} g/dL below ${lowThresh} g/dL threshold` };
-      }
-      if (val > highThresh) {
-        return { state: "warning", label: "Elevated Hb", color: "#eab308", badge: "🟡 Moderate", subtext: `Estimated Hb ${val.toFixed(1)} g/dL above ${highThresh} g/dL reference` };
-      }
-      return { state: "optimal", label: "Normal Hb", color: "#10b981", badge: "🟢 Normal", subtext: `Optimal blood hemoglobin level (${val.toFixed(1)} g/dL)` };
+      return { state: "experimental", label: "Experimental", color: "#8B5CF6", badge: "🔬 Experimental", subtext: `Extinction estimate: ${val.toFixed(1)} g/dL (Not a lab blood test)` };
     }
   },
 
-  bmi: {
-    name: "Body Mass Index (BMI)",
-    unit: "kg/m²",
-    normalRange: "18.5 - 24.9 kg/m²",
+  fbg: {
+    name: "Fasting Glucose Risk",
+    unit: "mg/dL",
+    normalRange: "Target: < 100 mg/dL",
+    validationStatus: "NOT_VALIDATED",
     evaluate: (val) => {
       if (!val || isNaN(val) || val <= 0) {
-        return { state: "neutral", label: "Waiting", color: "#94a3b8", badge: "⚪ Waiting", subtext: "Anthropometric ratio" };
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Glycemic projection is experimental" };
       }
-      if (val >= 30.0 || val < 18.5) {
-        return { state: "critical", label: val < 18.5 ? "Underweight" : "Obese Tier", color: "#ef4444", badge: "🔴 Alert", subtext: val < 18.5 ? "BMI < 18.5 kg/m²" : "BMI ≥ 30.0 kg/m² (Increased chronic risk)" };
+      return { state: "experimental", label: "Experimental", color: "#8B5CF6", badge: "🔬 Experimental", subtext: `Multivariate proxy: ~${Math.round(val)} mg/dL (Not a clinical lab value)` };
+    }
+  },
+
+  hba1c: {
+    name: "HbA1c Glycemic Risk",
+    unit: "%",
+    normalRange: "Target: < 5.7%",
+    validationStatus: "NOT_VALIDATED",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Glycated hemoglobin proxy is experimental" };
       }
-      if (val >= 25.0) {
-        return { state: "warning", label: "Overweight Tier", color: "#eab308", badge: "🟡 Moderate", subtext: "BMI 25.0 - 29.9 kg/m² (Borderline metabolic load)" };
+      return { state: "experimental", label: "Experimental", color: "#8B5CF6", badge: "🔬 Experimental", subtext: `Proxy estimate: ~${val.toFixed(1)}% (Not a clinical lab value)` };
+    }
+  },
+
+  cvdRisk: {
+    name: "10-Year ASCVD Risk",
+    unit: "%",
+    normalRange: "< 10% (Low Risk Profile)",
+    validationStatus: "CLINICAL_RISK_MODEL",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Requires user-verified clinical profile" };
       }
-      return { state: "optimal", label: "Normal BMI", color: "#10b981", badge: "🟢 Normal", subtext: "Healthy anthropometric weight range (18.5 - 24.9 kg/m²)" };
+      if (val >= 20.0) {
+        return { state: "critical", label: "High Risk", color: "#EF4444", badge: "🔴 High Risk", subtext: "Framingham 10-year projection ≥ 20%" };
+      }
+      if (val >= 10.0) {
+        return { state: "warning", label: "Moderate Risk", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Framingham 10-year projection 10-20%" };
+      }
+      return { state: "optimal", label: "Low Risk", color: "#22C55E", badge: "🟢 Low Risk", subtext: "Framingham 10-year projection < 10%" };
+    }
+  },
+
+  vascularAge: {
+    name: "Vascular Heart Age",
+    unit: "years",
+    normalRange: "Delta ≤ +1.0 years",
+    validationStatus: "MODEL_DEPENDENT",
+    evaluate: (ageDelta) => {
+      if (ageDelta === null || ageDelta === undefined || isNaN(ageDelta)) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Requires hemodynamic baseline" };
+      }
+      if (ageDelta > 5.0) {
+        return { state: "warning", label: "Accelerated", color: "#F59E0B", badge: "🟡 Stiffening", subtext: `Arterial compliance exceeds age by +${ageDelta.toFixed(1)} yrs` };
+      }
+      return { state: "optimal", label: "Aligned", color: "#22C55E", badge: "🟢 Aligned", subtext: `Arterial compliance aligned (${ageDelta >= 0 ? '+' : ''}${ageDelta.toFixed(1)} yrs)` };
     }
   }
 };

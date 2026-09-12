@@ -55,7 +55,7 @@ def test_fitzpatrick_scale_robustness_benchmark():
             engine.signal_buffer.append(t_s, roi_dict)
 
         res = engine.compute_vitals()
-        assert res.status == "VALID", f"Failed for Fitzpatrick scale {fitz_type}: {res.reason}"
+        assert res.status in ("valid", "VALID"), f"Failed for Fitzpatrick scale {fitz_type}: {res.reason}"
         err = abs(res.heart_rate["value"] - target_hr)
         errors.append(err)
 
@@ -95,5 +95,5 @@ def test_snr_noise_stress_benchmark():
         engine.signal_buffer.append(t_s, roi_dict)
 
     res_clean = engine.compute_vitals()
-    assert res_clean.status == "VALID"
+    assert res_clean.status in ("valid", "VALID")
     assert abs(res_clean.heart_rate["value"] - target_hr) <= 1.5

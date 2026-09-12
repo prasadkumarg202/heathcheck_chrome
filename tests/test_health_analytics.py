@@ -202,7 +202,7 @@ def test_master_pipeline_full_synthesis():
 
     result = engine.compute_vitals(user_metadata=user_meta)
 
-    assert result.status == "VALID"
+    assert result.status in ("valid", "VALID")
     assert result.heart_rate is not None
     assert result.heart_rate["value"] is not None
     assert result.blood_pressure is not None

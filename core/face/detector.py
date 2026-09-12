@@ -37,6 +37,7 @@ class FaceQualityScore:
     blur_score: float
     multiple_faces_detected: bool
     rejection_reason: Optional[str] = None
+    user_guidance: Optional[str] = None
 
 
 class FaceDetector:
@@ -168,7 +169,8 @@ class FaceDetector:
                 motion_score=0.0,
                 blur_score=0.0,
                 multiple_faces_detected=False,
-                rejection_reason="NO_FACE_DETECTED"
+                rejection_reason="NO_FACE_DETECTED",
+                user_guidance="Place your face inside the guide."
             )
 
         detected_faces.sort(key=lambda c: c[2] * c[3], reverse=True)
@@ -278,16 +280,28 @@ class FaceDetector:
         overall = float(np.clip(overall, 0.0, 100.0))
 
         rejection_reason = None
-        if face_size_ratio < self.min_face_size_ratio:
+        user_guidance = None
+        if num_faces > 1:
+            rejection_reason = "MULTIPLE_FACES_DETECTED"
+            user_guidance = "Only one person should be visible during the scan."
+        elif face_size_ratio < self.min_face_size_ratio:
             rejection_reason = "FACE_TOO_SMALL"
+            user_guidance = "Move slightly closer to the camera."
+        elif face_size_ratio > 0.65:
+            rejection_reason = "FACE_TOO_LARGE"
+            user_guidance = "Move slightly farther from the camera."
         elif illum_score < 15.0:
             rejection_reason = "POOR_LIGHTING"
+            user_guidance = "Move to an evenly lit area."
         elif pose_score < 15.0:
             rejection_reason = "EXCESSIVE_HEAD_ROTATION"
-        elif motion_score < 10.0:
+            user_guidance = "Face the camera directly."
+        elif motion_score < 15.0:
             rejection_reason = "EXCESSIVE_MOTION"
-        elif overall < 20.0:
+            user_guidance = "Keep your head still."
+        elif overall < 25.0:
             rejection_reason = "LOW_OVERALL_FACE_QUALITY"
+            user_guidance = "Position your face steadily within the guide."
 
         quality = FaceQualityScore(
             overall_score=overall,
@@ -299,6 +313,7 @@ class FaceDetector:
             blur_score=80.0,
             multiple_faces_detected=(num_faces > 1),
             rejection_reason=rejection_reason,
+            user_guidance=user_guidance,
         )
 
         self.last_landmarks = landmarks

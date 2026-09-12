@@ -1,7 +1,8 @@
 """
-Master AuraPulse Engine Pipeline.
+Master AuraPulse 4.0 Engine Pipeline.
 Coordinates video frame ingestion, face/ROI tracking, multi-algorithm rPPG extraction,
 signal quality evaluation, vital signs computation, and standardized API result dispatch.
+Follows non-negotiable scientific integrity rules and explicit measurement status conventions.
 """
 
 from __future__ import annotations
@@ -34,7 +35,7 @@ from core.analytics.metabolic_models import MetabolicRiskEngine, MetabolicRiskRe
 
 @dataclass
 class HealthMeasurementResult:
-    status: str                         # "VALID" or "UNAVAILABLE"
+    status: str                         # "valid", "collecting", "insufficient_signal", "insufficient_duration"
     heart_rate: Optional[Dict[str, Any]] = None
     respiration_rate: Optional[Dict[str, Any]] = None
     pulse_rate_variability: Optional[Dict[str, Any]] = None
@@ -53,7 +54,7 @@ class HealthMeasurementResult:
     quality_category: str = "Invalid"
     face_quality: float = 0.0
     measurement_duration_s: float = 0.0
-    algorithm_version: str = "0.3.0"
+    algorithm_version: str = "4.0.0"
     engine: str = "AuraPulse-Clinical-Edge"
     validation_status: str = "On-Device Synthesis Core (rPPG + Biomarkers)"
     reason: Optional[str] = None
@@ -159,6 +160,7 @@ class AuraPulseEngine:
         user_waist = float(meta.get("waist_cm", 0.0)) if meta.get("waist_cm") else None
         user_smoker = bool(meta.get("is_smoker", False))
         user_diabetic = bool(meta.get("is_diabetic", False))
+        clinical_sbp = float(meta.get("clinical_sbp", 0.0)) if meta.get("clinical_sbp") else None
 
         t_uniform, roi_rgbs, duration = self.signal_buffer.get_window(
             duration_s=self.window_duration_s,
@@ -167,7 +169,7 @@ class AuraPulseEngine:
 
         if duration < self.min_measurement_duration_s or not roi_rgbs:
             return HealthMeasurementResult(
-                status="UNAVAILABLE",
+                status="collecting",
                 measurement_duration_s=round(duration, 1),
                 signal_quality=0.0,
                 quality_category="Invalid",
@@ -208,7 +210,7 @@ class AuraPulseEngine:
 
         if not roi_signals:
             return HealthMeasurementResult(
-                status="UNAVAILABLE",
+                status="invalid_roi",
                 measurement_duration_s=round(duration, 1),
                 signal_quality=0.0,
                 quality_category="Invalid",
@@ -228,14 +230,14 @@ class AuraPulseEngine:
         # Fail-Safe Gate: If SQI is too low, reject measurement
         if not overall_sqi.is_acceptable:
             return HealthMeasurementResult(
-                status="UNAVAILABLE",
+                status="insufficient_signal",
                 measurement_duration_s=round(duration, 1),
                 signal_quality=overall_sqi.sqi_score,
                 quality_category=overall_sqi.category,
                 reason=f"SIGNAL_QUALITY_TOO_LOW ({overall_sqi.category})",
             )
 
-        # 4. Heart Rate Computation
+        # 4. Heart Rate Computation (Primary MVP)
         hr_res = self.hr_engine.estimate_hr(
             fused_bvp,
             fs=self.target_fs,
@@ -244,14 +246,14 @@ class AuraPulseEngine:
 
         if not hr_res.is_valid:
             return HealthMeasurementResult(
-                status="UNAVAILABLE",
+                status="insufficient_signal",
                 measurement_duration_s=round(duration, 1),
                 signal_quality=overall_sqi.sqi_score,
                 quality_category=overall_sqi.category,
                 reason=hr_res.rejection_reason or "HEART_RATE_INDETERMINATE",
             )
 
-        # 5. Respiration Rate Computation
+        # 5. Respiration Rate Computation (Primary MVP)
         fh_rgb = roi_rgbs.get("forehead", next(iter(roi_rgbs.values())))
         raw_green = fh_rgb[:, 1] if fh_rgb.ndim == 2 else fused_bvp
         rr_res = self.respiration_engine.estimate_rr(
@@ -260,7 +262,7 @@ class AuraPulseEngine:
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 6. Pulse Rate Variability (PRV) Computation
+        # 6. Pulse Rate Variability (PRV) Computation (Primary MVP)
         prv_res = self.prv_engine.compute_prv(
             fused_bvp,
             fs=self.target_fs,
@@ -268,7 +270,7 @@ class AuraPulseEngine:
             hr_bpm_hint=hr_res.hr_bpm
         )
 
-        # 7. Continuous Blood Pressure Estimation
+        # 7. Blood Pressure Estimation (Research Only / Experimental)
         bp_res = self.bp_engine.estimate_blood_pressure(
             bvp_signal=fused_bvp,
             fs=self.target_fs,
@@ -280,14 +282,14 @@ class AuraPulseEngine:
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 8. Oxygen Saturation (SpO2) Estimation
+        # 8. Oxygen Saturation (SpO2) Estimation (Research Only / Experimental)
         spo2_res = self.spo2_engine.estimate_spo2(
             rgb_temporal=fh_rgb,
             fs=self.target_fs,
             sqi_score=overall_sqi.sqi_score
         )
 
-        # 9. Hemoglobin (Hb) Estimation
+        # 9. Hemoglobin (Hb) Estimation (Research Only / Experimental)
         hb_res = self.hb_engine.estimate_hemoglobin(
             rgb_temporal=fh_rgb,
             is_male=user_is_male,
@@ -297,12 +299,12 @@ class AuraPulseEngine:
         # 10. Cardiac Workload (Rate-Pressure Product)
         cardiac_res = self.cardiac_workload_engine.compute_workload(
             hr_bpm=hr_res.hr_bpm,
-            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
             confidence_hr=hr_res.confidence,
             confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8
         )
 
-        # 11. Advanced Physiological Stress & Autonomic Recovery
+        # 11. Advanced Physiological Stress & Autonomic Recovery (Research Only)
         stress_res = self.stress_engine.compute_stress_index(
             hr_bpm=hr_res.hr_bpm,
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
@@ -321,10 +323,10 @@ class AuraPulseEngine:
             waist_cm=user_waist
         )
 
-        # 13. Vascular Age Estimation
+        # 13. Vascular Age Estimation (Model Dependent)
         vasc_age_res = self.risk_engine.estimate_vascular_age(
             chronological_age=user_age,
-            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
             stiffness_index=bp_res.stiffness_index_ms if bp_res.is_valid else 7.5,
             sdppg_aging_index=bp_res.sdppg_aging_index if bp_res.is_valid else -0.35,
             confidence_bp=bp_res.confidence if bp_res.is_valid else 0.8,
@@ -333,11 +335,12 @@ class AuraPulseEngine:
             is_diabetic=user_diabetic,
         )
 
-        # 14. 10-Year Cardiovascular & Stroke Risk Projection
+        # 14. 10-Year Cardiovascular & Stroke Risk Projection (Clinical Risk Model)
+        # Note: Uses clinical SBP if provided by user; otherwise calibrated baseline
         cvd_risk_res = self.risk_engine.estimate_10yr_cvd_risk(
             age=user_age,
             is_male=user_is_male,
-            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
             is_smoker=user_smoker,
             is_diabetic=user_diabetic,
             bmi=body_comp_res.bmi,
@@ -345,11 +348,11 @@ class AuraPulseEngine:
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0
         )
 
-        # 15. Metabolic & Glycemic Risk Model (FBG + HbA1c)
+        # 15. Metabolic & Glycemic Risk Model (Research Only / Experimental)
         metabolic_res = self.metabolic_engine.estimate_metabolic_risks(
             rmssd_ms=prv_res.rmssd_ms if prv_res.is_valid else 35.0,
             lf_hf_ratio=stress_res.lf_hf_ratio if stress_res.is_valid else 1.5,
-            systolic_bp=bp_res.systolic_bp if bp_res.is_valid else 120.0,
+            systolic_bp=clinical_sbp or (bp_res.systolic_bp if bp_res.is_valid else 120.0),
             age=user_age,
             bmi=body_comp_res.bmi,
             stiffness_index=bp_res.stiffness_index_ms if bp_res.is_valid else 7.5,
@@ -361,20 +364,31 @@ class AuraPulseEngine:
         waveform_sample = [round(float(v), 4) for v in fused_bvp[-120:]]
 
         return HealthMeasurementResult(
-            status="VALID",
+            status="valid",
             heart_rate={
                 "value": hr_res.hr_bpm,
-                "unit": "bpm",
+                "unit": "BPM",
                 "confidence": hr_res.confidence,
-                "signalQuality": overall_sqi.sqi_score,
+                "signal_quality": overall_sqi.sqi_score,
+                "measurement_status": "valid",
+                "validation_status": "PRIMARY_MVP",
+                "algorithm_version": "4.0.0",
+                "source": "Ensemble (Welch PSD, FFT, Autocorrelation, Peak Interval)",
                 "methods": hr_res.method_estimates,
-                "status": "Tachycardia" if hr_res.hr_bpm > 100.0 else ("Bradycardia" if hr_res.hr_bpm < 60.0 else "Normal")
+                "status": "Tachycardia" if hr_res.hr_bpm > 100.0 else ("Bradycardia" if hr_res.hr_bpm < 60.0 else "Normal"),
+                "limitations": "Subject must remain stationary without speech.",
             },
             respiration_rate={
                 "value": rr_res.rr_rpm if rr_res.is_valid else None,
                 "unit": "breaths/min",
-                "confidence": rr_res.confidence if rr_res.is_valid else 0.0,
-                "status": "Tachypnea" if (rr_res.is_valid and rr_res.rr_rpm > 20.0) else ("Bradypnea" if (rr_res.is_valid and rr_res.rr_rpm < 12.0) else "Optimal")
+                "confidence": rr_res.confidence if rr_res.is_valid else None,
+                "signal_quality": overall_sqi.sqi_score if rr_res.is_valid else None,
+                "measurement_status": "valid" if rr_res.is_valid else "insufficient_duration",
+                "validation_status": "PRIMARY_MVP",
+                "algorithm_version": "4.0.0",
+                "source": "Demodulated Baseline & Amplitude Variation (RIBV/RIAV)",
+                "status": "Tachypnea" if (rr_res.is_valid and rr_res.rr_rpm > 20.0) else ("Bradypnea" if (rr_res.is_valid and rr_res.rr_rpm < 12.0) else "Optimal"),
+                "limitations": "Requires at least 10s of continuous steady breathing.",
             },
             pulse_rate_variability={
                 "rmssd": prv_res.rmssd_ms if prv_res.is_valid else None,
@@ -384,9 +398,13 @@ class AuraPulseEngine:
                 "sd1": prv_res.sd1_ms if prv_res.is_valid else None,
                 "sd2": prv_res.sd2_ms if prv_res.is_valid else None,
                 "unit": "ms",
-                "confidence": prv_res.confidence if prv_res.is_valid else 0.0,
-                "label": prv_res.label,
-                "status": "VALID" if prv_res.is_valid else "INSUFFICIENT_DATA",
+                "confidence": prv_res.confidence if prv_res.is_valid else None,
+                "measurement_status": "valid" if prv_res.is_valid else "insufficient_duration",
+                "validation_status": "PRIMARY_MVP",
+                "algorithm_version": "4.0.0",
+                "label": "Pulse Rate Variability (PRV - Optical BVP)",
+                "source": "Sub-sample Parabolic Peak Interpolation",
+                "limitations": "Camera-derived PRV reflects optical pulse timing and differs from ECG-derived HRV.",
             },
             blood_pressure={
                 "systolic": bp_res.systolic_bp if bp_res.is_valid else None,
@@ -397,15 +415,23 @@ class AuraPulseEngine:
                 "stiffnessIndex": bp_res.stiffness_index_ms if bp_res.is_valid else None,
                 "augmentationIndex": bp_res.augmentation_index_pct if bp_res.is_valid else None,
                 "agingIndex": bp_res.sdppg_aging_index if bp_res.is_valid else None,
-                "confidence": bp_res.confidence if bp_res.is_valid else 0.0,
-                "status": "VALID" if bp_res.is_valid else "INSUFFICIENT_DATA",
+                "confidence": bp_res.confidence if bp_res.is_valid else None,
+                "measurement_status": "experimental",
+                "validation_status": "NOT_VALIDATED (Research Only)",
+                "algorithm_version": "4.0.0",
+                "source": "SDPPG Pulse Contour & Morphometry Model",
+                "limitations": "Research-only pulse morphology estimate; not validated as clinical blood pressure.",
             },
             spo2={
                 "value": spo2_res.spo2_pct if spo2_res.is_valid else None,
                 "category": spo2_res.category if spo2_res.is_valid else "Unknown",
                 "ratioOfRatios": spo2_res.ratio_of_ratios if spo2_res.is_valid else None,
-                "confidence": spo2_res.confidence if spo2_res.is_valid else 0.0,
-                "status": "VALID" if spo2_res.is_valid else "INSUFFICIENT_DATA",
+                "confidence": spo2_res.confidence if spo2_res.is_valid else None,
+                "measurement_status": "experimental",
+                "validation_status": "NOT_VALIDATED (Research Only)",
+                "algorithm_version": "4.0.0",
+                "source": "Dual-Wavelength Chromatic Extinction Calibration",
+                "limitations": "Subject to ambient lighting spectrum and camera RGB filter sensitivity.",
             },
             hemoglobin={
                 "value": hb_res.hb_g_dl if hb_res.is_valid else None,
@@ -413,16 +439,24 @@ class AuraPulseEngine:
                 "category": hb_res.category if hb_res.is_valid else "Unknown",
                 "referenceRange": hb_res.reference_range if hb_res.is_valid else "14.0 - 18.0 g/dL",
                 "attenuationRatio": hb_res.attenuation_ratio if hb_res.is_valid else None,
-                "confidence": hb_res.confidence if hb_res.is_valid else 0.0,
-                "status": "VALID" if hb_res.is_valid else "INSUFFICIENT_DATA",
+                "confidence": hb_res.confidence if hb_res.is_valid else None,
+                "measurement_status": "experimental",
+                "validation_status": "NOT_VALIDATED (Research Only)",
+                "algorithm_version": "4.0.0",
+                "source": "Multi-Spectral Optical Density Differential Attenuation",
                 "disclaimer": hb_res.disclaimer,
+                "limitations": "Cannot be used for anemia diagnosis without clinical laboratory testing.",
             },
             cardiac_workload={
                 "rpp": cardiac_res.rpp_score if cardiac_res.is_valid else None,
                 "category": cardiac_res.workload_category if cardiac_res.is_valid else "Unknown",
                 "loadIndex": cardiac_res.myocardial_load_index if cardiac_res.is_valid else None,
-                "confidence": cardiac_res.confidence if cardiac_res.is_valid else 0.0,
-                "status": "VALID" if cardiac_res.is_valid else "INSUFFICIENT_DATA",
+                "confidence": cardiac_res.confidence if cardiac_res.is_valid else None,
+                "measurement_status": "valid" if cardiac_res.is_valid else "insufficient_data",
+                "validation_status": "PHYSIOLOGICAL_RATIO",
+                "algorithm_version": "4.0.0",
+                "source": "Rate-Pressure Product Deterministic Formulation",
+                "limitations": "Reflects resting myocardial oxygen demand proxy.",
             },
             stress_index={
                 "score": stress_res.stress_score if stress_res.is_valid else None,
@@ -434,8 +468,13 @@ class AuraPulseEngine:
                 "lfPower": stress_res.lf_power if stress_res.is_valid else None,
                 "hfPower": stress_res.hf_power if stress_res.is_valid else None,
                 "lfHfRatio": stress_res.lf_hf_ratio if stress_res.is_valid else None,
-                "confidence": stress_res.confidence if stress_res.is_valid else 0.0,
+                "confidence": stress_res.confidence if stress_res.is_valid else None,
+                "measurement_status": "research_only",
+                "validation_status": "RESEARCH_ONLY",
+                "algorithm_version": "4.0.0",
+                "source": "Baevsky Histogram (50ms) + Welch Spectral Autonomic Features",
                 "disclaimer": stress_res.disclaimer,
+                "limitations": "Autonomic spectral features are research indices and not direct clinical biomarkers.",
             },
             metabolic_risks={
                 "fbgMgDl": metabolic_res.estimated_fbg_mg_dl if metabolic_res.is_valid else None,
@@ -447,14 +486,24 @@ class AuraPulseEngine:
                 "metabolicScore": metabolic_res.metabolic_score if metabolic_res.is_valid else None,
                 "riskLevel": metabolic_res.risk_level if metabolic_res.is_valid else "Unknown",
                 "keyFactors": metabolic_res.key_factors if metabolic_res.is_valid else [],
-                "confidence": metabolic_res.confidence if metabolic_res.is_valid else 0.0,
+                "confidence": metabolic_res.confidence if metabolic_res.is_valid else None,
+                "measurement_status": "experimental",
+                "validation_status": "NOT_VALIDATED (Research Only)",
+                "algorithm_version": "4.0.0",
+                "source": "Multivariate Hemodynamic-Autonomic Risk Projection",
                 "disclaimer": metabolic_res.disclaimer,
+                "limitations": "Not a substitute for fasting plasma glucose or laboratory HbA1c venipuncture.",
             },
             vascular_age={
                 "estimatedAge": vasc_age_res.vascular_age_years,
                 "ageDelta": vasc_age_res.age_delta,
                 "status": vasc_age_res.stiffness_status,
                 "confidence": vasc_age_res.confidence,
+                "measurement_status": "valid",
+                "validation_status": "MODEL_DEPENDENT",
+                "algorithm_version": "4.0.0",
+                "source": "Framingham Optimal Baseline Vascular Age Regression",
+                "limitations": "Reflects calculated biological vascular age relative to chronological baseline.",
             },
             cvd_risk={
                 "tenYearRiskPct": cvd_risk_res.ten_year_risk_pct,
@@ -464,6 +513,11 @@ class AuraPulseEngine:
                 "diabetesScore": cvd_risk_res.diabetes_risk_score,
                 "keyDrivers": cvd_risk_res.key_drivers,
                 "confidence": cvd_risk_res.confidence,
+                "measurement_status": "valid",
+                "validation_status": "CLINICAL_RISK_MODEL",
+                "algorithm_version": "4.0.0",
+                "source": "Framingham General Cardiovascular Risk Profile (Cox Proportional Hazard)",
+                "limitations": "Calculated using demographic and risk factor inputs for 10-year projection.",
             },
             body_composition={
                 "bmi": body_comp_res.bmi,
@@ -472,6 +526,9 @@ class AuraPulseEngine:
                 "whtrCategory": body_comp_res.whtr_category,
                 "bri": body_comp_res.body_roundness_index,
                 "briCategory": body_comp_res.bri_category,
+                "measurement_status": "valid",
+                "validation_status": "PHYSIOLOGICAL_RATIO",
+                "algorithm_version": "4.0.0",
             },
             wellness_indices={
                 "baevskyStress": stress_res.baevsky_stress_index if stress_res.is_valid else None,
@@ -486,7 +543,7 @@ class AuraPulseEngine:
             quality_category=overall_sqi.category,
             face_quality=100.0,
             measurement_duration_s=round(duration, 1),
-            algorithm_version="0.3.0",
+            algorithm_version="4.0.0",
             engine="AuraPulse-Clinical-Edge",
             validation_status="On-Device Synthesis Core (rPPG + Biomarkers)",
             reason=None,
