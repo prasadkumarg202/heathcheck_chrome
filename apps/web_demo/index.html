@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AuraPulse — 60 Seconds. Camera-Based Health Intelligence.</title>
+  <title>AuraPulse Enterprise — Contactless Health & Risk Analytics Platform</title>
   <style>
     :root {
-      --bg-dark: #07111F;
-      --surface-bg: #0D1B2A;
-      --card-bg: rgba(13, 27, 42, 0.88);
-      --border-color: #1E334A;
-      --primary-cyan: #00C2D7;
-      --secondary-green: #36E0B5;
-      --badge-green: #10B981;
-      --badge-yellow: #F59E0B;
-      --badge-red: #EF4444;
-      --accent-purple: #8B5CF6;
-      --text-main: #FFFFFF;
-      --text-muted: #9AA8B7;
+      --bg-dark: #070b12;
+      --panel-bg: #0f172a;
+      --card-bg: rgba(15, 23, 42, 0.85);
+      --border-color: #1e293b;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #eab308;
+      --accent-red: #ef4444;
+      --accent-purple: #8b5cf6;
+      --accent-blue: #3b82f6;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
     }
 
     * {
@@ -40,50 +40,511 @@
       justify-content: space-between;
       align-items: center;
       padding: 14px 28px;
-      background: rgba(13, 27, 42, 0.96);
+      background: rgba(15, 23, 42, 0.95);
       border-bottom: 1px solid var(--border-color);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+      backdrop-filter: blur(10px);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .logo-badge {
-      background: linear-gradient(135deg, var(--primary-cyan), var(--secondary-green));
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-green));
       color: #000;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12px;
       padding: 6px 12px;
       border-radius: 8px;
       letter-spacing: 0.8px;
     }
 
-    .brand-text h1 {
-      font-size: 18px;
+    .brand h1 {
+      font-size: 19px;
       font-weight: 700;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.4px;
     }
-    .brand-text p {
+
+    .brand span {
+      color: var(--accent-cyan);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .privacy-tag {
+      font-size: 11px;
+      padding: 5px 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      border-radius: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-profile-toggle {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-profile-toggle:hover {
+      background: #334155;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1.05fr 1.25fr;
+      gap: 20px;
+      padding: 20px 28px;
+      max-width: 1560px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .video-panel {
+      background: var(--panel-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .video-viewport {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    }
+
+    video {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    canvas#overlayCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .status-banner {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 8px 14px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 600;
+      border-left: 4px solid var(--accent-cyan);
+      z-index: 10;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    button.btn-ctrl {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), #0284c7);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #1e293b;
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .telemetry-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: #090e17;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
       font-size: 11px;
       color: var(--text-muted);
-      letter-spacing: 0.3px;
     }
 
-    .mode-switcher {
-      display: flex;
-      background: #091320;
+    .telemetry-item strong {
+      color: var(--text-main);
+    }
+
+    .chart-container {
+      background: var(--panel-bg);
       border: 1px solid var(--border-color);
-      padding: 3px;
-      border-radius: 10px;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      color: var(--text-muted);
+    }
+
+    canvas#waveformCanvas {
+      width: 100%;
+      height: 90px;
+      background: #090e17;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Right Metrics Panel */
+    .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: #1e293b;
+      color: var(--accent-cyan);
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tab-content.active {
+      display: flex;
+    }
+
+    .grid-vitals {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+
+    .vital-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+    }
+
+    .vital-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--accent-cyan);
+    }
+
+    .card-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    /* Pill Badges */
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .badge-pill.optimal {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+    }
+    .badge-pill.warning {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+    .badge-pill.critical {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--accent-red);
+      color: var(--accent-red);
+    }
+    .badge-pill.neutral {
+      background: rgba(148, 163, 184, 0.12);
+      border: 1px solid #475569;
+      color: var(--text-muted);
+    }
+
+    .card-value-group {
+      margin: 10px 0;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .card-value {
+      font-size: 34px;
+      font-weight: 800;
+      color: #fff;
+      transition: color 0.3s ease;
+    }
+
+    .card-unit {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .card-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 500;
+      line-height: 1.3;
+      transition: color 0.3s ease;
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 6px;
+    }
+
+    /* Risk & Body Comp Cards */
+    .risk-banner-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .risk-score-badge {
+      font-size: 28px;
+      font-weight: 800;
+      padding: 8px 18px;
+      border-radius: 12px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+      text-align: center;
+    }
+
+    .risk-score-badge.moderate {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: var(--accent-yellow);
+      color: var(--accent-yellow);
+    }
+    .risk-score-badge.high {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    /* Modal Styling */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
       gap: 4px;
     }
+    .form-group label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .form-group input, .form-group select {
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 13px;
+    }
 
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 28px;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid var(--border-color);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .btn-export {
+      background: var(--accent-cyan);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-export:hover {
+      opacity: 0.9;
+    }
+  
     .mode-btn {
       background: transparent;
       border: none;
@@ -98,495 +559,92 @@
       align-items: center;
       gap: 6px;
     }
-
     .mode-btn:hover {
       color: var(--text-main);
     }
-
     .mode-btn.active {
-      background: var(--border-color);
-      color: var(--primary-cyan);
+      background: #1e293b;
+      color: var(--accent-cyan);
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     }
 
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .privacy-badge {
-      font-size: 11px;
-      padding: 5px 12px;
-      background: rgba(54, 224, 181, 0.12);
-      border: 1px solid var(--secondary-green);
-      color: var(--secondary-green);
-      border-radius: 20px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-header {
-      background: var(--surface-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-header:hover {
-      background: var(--border-color);
-    }
-
-    .main-layout {
-      display: grid;
-      grid-template-columns: 1.05fr 1.25fr;
-      gap: 24px;
-      padding: 24px 28px;
-      max-width: 1600px;
-      margin: 0 auto;
-      width: 100%;
-      flex: 1;
-    }
-
-    @media (max-width: 1024px) {
-      .main-layout {
-        grid-template-columns: 1fr;
-        padding: 16px;
-      }
-    }
-
-    /* Left Panel: Camera & Diagnostic Canvas */
-    .camera-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .viewport-box {
-      background: var(--surface-bg);
-      border-radius: 16px;
-      border: 1px solid var(--border-color);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-    }
-
-    .viewport-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4/3;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
-    }
-
-    video#webcam {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1); /* Mirror for natural user intuition */
-    }
-
-    canvas#canvasOverlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      transform: scaleX(-1);
-    }
-
-    /* SVG Head Positioning Oval Guide */
-    .oval-guide-svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 10;
-      transition: opacity 0.3s;
-    }
-
-    .oval-path {
-      fill: none;
-      stroke: var(--primary-cyan);
-      stroke-width: 2.5;
-      stroke-dasharray: 8 6;
-      opacity: 0.75;
-      animation: ovalPulse 3s infinite ease-in-out;
-    }
-
-    @keyframes ovalPulse {
-      0%, 100% { opacity: 0.6; stroke: var(--primary-cyan); }
-      50% { opacity: 0.95; stroke: var(--secondary-green); }
-    }
-
-    .viewport-overlay-status {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      right: 14px;
-      background: rgba(7, 17, 31, 0.85);
-      backdrop-filter: blur(10px);
-      padding: 8px 14px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      font-weight: 600;
-      border-left: 4px solid var(--primary-cyan);
-      z-index: 20;
-    }
-
-    .scan-countdown-ring {
-      position: absolute;
-      bottom: 14px;
-      right: 14px;
-      background: rgba(7, 17, 31, 0.85);
-      backdrop-filter: blur(8px);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--primary-cyan);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      z-index: 20;
-      border: 1px solid var(--border-color);
-    }
-
-    .controls-grid {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-action {
-      flex: 1;
-      padding: 12px 18px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      border: none;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary-cyan), #0284C7);
-      color: #000;
-    }
-    .btn-primary:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
-
-    .btn-secondary {
-      background: var(--surface-bg);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-    }
-    .btn-secondary:hover {
-      background: var(--border-color);
-    }
-
-    /* Telemetry Info Bar */
-    .telemetry-row {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      background: #08121E;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .telemetry-item strong {
-      color: var(--text-main);
-      font-size: 12px;
-    }
-
-    /* Waveform & Spectrum Canvases */
-    .graph-card {
-      background: var(--surface-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .graph-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      color: var(--text-muted);
-    }
-
-    canvas.signal-canvas {
-      width: 100%;
-      height: 85px;
-      background: #060D17;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-    }
-
-    /* Right Panel: Vitals & Clinical Risk Cards */
-    .metrics-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-
-    .tabs-bar {
-      display: flex;
-      gap: 8px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 8px;
-    }
-
-    .tab-item {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-item.active {
-      background: #15263A;
-      color: var(--primary-cyan);
-    }
-
-    .vitals-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-
-    @media (max-width: 600px) {
-      .vitals-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .vital-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 14px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(10px);
-      transition: transform 0.2s ease, border-color 0.2s ease;
-    }
-
-    .vital-card:hover {
-      border-color: #2D4C6E;
-      transform: translateY(-2px);
-    }
-
-    .vital-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .vital-title {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .vital-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    .badge-good {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--badge-green);
-      border: 1px solid var(--badge-green);
-    }
-
-    .badge-moderate {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--badge-yellow);
-      border: 1px solid var(--badge-yellow);
-    }
-
-    .badge-critical {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--badge-red);
-      border: 1px solid var(--badge-red);
-    }
-
-    .badge-research {
-      background: rgba(139, 92, 246, 0.15);
-      color: var(--accent-purple);
-      border: 1px solid var(--accent-purple);
-    }
-
-    .vital-value-row {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .vital-value {
-      font-size: 32px;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.5px;
-    }
-
-    .vital-unit {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .vital-desc {
-      font-size: 11px;
-      color: var(--text-muted);
-      line-height: 1.4;
-    }
-
-    /* Modal Styling for Health Report & Profile */
-    .modal-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-
-    .modal-box {
-      background: #0D1B2A;
-      border: 1px solid var(--border-color);
-      border-radius: 18px;
-      width: 100%;
-      max-width: 680px;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 14px;
-    }
-
-    .modal-header h2 {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary-cyan);
-    }
-
-    .btn-close {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .report-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-
-    .report-table th, .report-table td {
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--border-color);
-      text-align: left;
-    }
-
-    .report-table th {
-      color: var(--text-muted);
-      font-weight: 700;
-      background: #091320;
-    }
-
-    .disclaimer-box {
-      background: rgba(139, 92, 246, 0.08);
-      border: 1px solid rgba(139, 92, 246, 0.3);
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 11px;
-      color: #C4B5FD;
-      line-height: 1.4;
-    }
   </style>
+  <script src="/thresholds.js">
+    let currentProductMode = "patient";
+
+    function setProductMode(mode) {
+      currentProductMode = mode;
+      document.getElementById("btnModePatient").classList.toggle("active", mode === "patient");
+      document.getElementById("btnModeResearch").classList.toggle("active", mode === "research");
+      document.getElementById("btnModeDev").classList.toggle("active", mode === "developer");
+
+      const researchCard = document.getElementById("researchCard");
+      const devCard = document.getElementById("devCard");
+
+      if (mode === "patient") {
+        if (researchCard) researchCard.style.display = "none";
+        if (devCard) devCard.style.display = "none";
+      } else if (mode === "research") {
+        if (researchCard) researchCard.style.display = "flex";
+        if (devCard) devCard.style.display = "none";
+      } else if (mode === "developer") {
+        if (researchCard) researchCard.style.display = "none";
+        if (devCard) devCard.style.display = "flex";
+      }
+    }
+
+    function openReportModal() {
+      if (latestResultPayload && latestResultPayload.vitals) {
+        const v = latestResultPayload.vitals;
+        document.getElementById("repSessionId").innerText = "SESS-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+        document.getElementById("repTimestamp").innerText = new Date().toUTCString();
+        document.getElementById("repSqi").innerText = `${Math.round(v.signal_quality || 85)}% (${v.quality_category || "Optimal"})`;
+
+        if (v.heart_rate && v.heart_rate.value) {
+          document.getElementById("repValHr").innerText = `${v.heart_rate.value.toFixed(1)} BPM`;
+          document.getElementById("repBadgeHr").innerText = v.heart_rate.status || "Normal";
+        }
+        if (v.respiration_rate && v.respiration_rate.value) {
+          document.getElementById("repValRr").innerText = `${v.respiration_rate.value.toFixed(1)} RPM`;
+          document.getElementById("repBadgeRr").innerText = v.respiration_rate.status || "Optimal";
+        }
+        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
+          document.getElementById("repValRmssd").innerText = `${v.pulse_rate_variability.rmssd.toFixed(1)} ms`;
+        }
+        if (v.stress_index && v.stress_index.score) {
+          document.getElementById("repValStress").innerText = `${v.stress_index.score.toFixed(0)} SI`;
+        }
+        if (v.cardiac_workload && v.cardiac_workload.rpp) {
+          document.getElementById("repValRpp").innerText = v.cardiac_workload.rpp.toFixed(1);
+        }
+        if (v.vascular_age && v.vascular_age.estimatedAge) {
+          document.getElementById("repValVascAge").innerText = `${v.vascular_age.estimatedAge.toFixed(1)} Years`;
+        }
+        if (v.cvd_risk && v.cvd_risk.tenYearRiskPct) {
+          document.getElementById("repValCvd").innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)} %`;
+        }
+      }
+      document.getElementById("reportModal").style.display = "flex";
+    }
+
+    function closeReportModal() {
+      document.getElementById("reportModal").style.display = "none";
+    }
+
+  </script>
 </head>
 <body>
-
-  <!-- Top Header Navigation -->
   <header>
-    <div class="brand">
+        <div class="brand">
       <div class="logo-badge">AURAPULSE</div>
       <div class="brand-text">
-        <h1>AuraPulse Health AI</h1>
-        <p>60 Seconds. Camera-Based Health Intelligence.</p>
+        <h1 style="font-size: 18px; font-weight: 700;">AuraPulse Health AI</h1>
+        <p style="font-size: 11px; color: var(--text-muted);">60 Seconds. Camera-Based Health Intelligence.</p>
       </div>
     </div>
 
     <!-- 3-Tier Product Mode Switcher -->
-    <div class="mode-switcher">
+    <div class="mode-switcher" style="display: flex; background: #091320; border: 1px solid var(--border-color); padding: 3px; border-radius: 10px; gap: 4px;">
       <button class="mode-btn active" id="btnModePatient" onclick="setProductMode('patient')">
         <span>👤</span> Patient Mode
       </button>
@@ -598,774 +656,1214 @@
       </button>
     </div>
 
-    <div class="header-right">
-      <div class="privacy-badge">
-        <span>🔒</span> 100% On-Device / RAM Only
+    <div class="header-actions">
+      <div class="privacy-tag">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        100% On-Device / RAM Only
       </div>
-      <button class="btn-header" onclick="openProfileModal()">👤 Profile</button>
-      <button class="btn-header" onclick="openReportModal()">📄 Report</button>
+      <button class="btn-profile-toggle" onclick="openReportModal()">
+        <span>📄</span> View Report
+      </button>
+      <button class="btn-profile-toggle" id="profileToggleBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Subject Profile
+      </button>
     </div>
   </header>
 
-  <!-- Main Grid Dashboard -->
-  <main class="main-layout">
-
-    <!-- Left Column: Camera Viewport & Diagnostic Signals -->
-    <div class="camera-panel">
-      
-      <div class="viewport-box">
-        <div class="viewport-container">
-          <video id="webcam" playsinline autoplay muted></video>
-          <canvas id="canvasOverlay"></canvas>
-
-          <!-- SVG Head Positioning Oval Guide (Visible in Patient Mode) -->
-          <svg class="oval-guide-svg" id="headOvalGuide" viewBox="0 0 400 300">
-            <ellipse class="oval-path" cx="200" cy="150" rx="90" ry="120" />
-            <text x="200" y="285" fill="#00C2D7" font-size="11" text-anchor="middle" font-weight="600">
-              Align Face Inside Guide
-            </text>
-          </svg>
-
-          <!-- Floating Status Overlay -->
-          <div class="viewport-overlay-status">
-            <div id="cameraStatusText">📷 Camera Ready • Click Start Scan</div>
-            <div id="sqiBadgeTop" class="vital-badge badge-good">SQI: 0%</div>
-          </div>
-
-          <!-- 60s Scan Countdown -->
-          <div class="scan-countdown-ring" id="scanTimerBox" style="display: none;">
-            <span>⏱️</span> <span id="scanTimerText">00:60</span>
-          </div>
+  <div class="container">
+    <!-- Left Column: Video & Telemetry -->
+    <div class="left-panel">
+      <div class="video-panel">
+        <div class="video-viewport">
+          <div class="status-banner" id="diagnosticStatus">Initializing AuraPulse biomedical stream...</div>
+          <video id="videoElement" autoplay playsinline muted></video>
+          <canvas id="overlayCanvas"></canvas>
         </div>
 
-        <!-- Controls -->
-        <div class="controls-grid">
-          <button class="btn-action btn-primary" id="btnStartScan" onclick="toggleScan()">
-            <span>▶</span> Start 60-Second Scan
-          </button>
-          <button class="btn-action btn-secondary" onclick="resetSession()">
-            <span>🔄</span> Reset
-          </button>
+        <div class="controls-row">
+          <button class="btn-ctrl btn-primary" id="startBtn">Start 30s Scan</button>
+          <button class="btn-ctrl btn-secondary" id="resetBtn">Reset</button>
         </div>
 
-        <!-- Real-Time Telemetry Bar -->
-        <div class="telemetry-row">
+        <div class="telemetry-bar">
           <div class="telemetry-item">
-            <div>FPS:</div>
-            <strong id="valFps">0.0</strong>
+            <div>Timer: <strong id="scanTimer">Ready</strong></div>
           </div>
           <div class="telemetry-item">
-            <div>SQI:</div>
-            <strong id="valSqi">0 / 100</strong>
+            <div>SQI: <strong id="sqiValue">--/100</strong></div>
           </div>
           <div class="telemetry-item">
-            <div>Lighting:</div>
-            <strong id="valLighting">Checking...</strong>
+            <div>Lighting: <strong id="telLighting">--%</strong></div>
           </div>
           <div class="telemetry-item">
-            <div>Stability:</div>
-            <strong id="valStability">Stable</strong>
+            <div>FPS: <strong id="telFps">--</strong></div>
           </div>
         </div>
       </div>
 
-      <!-- Real-Time BVP Pulse Waveform Canvas -->
-      <div class="graph-card">
-        <div class="graph-header">
-          <span>BLOOD VOLUME PULSE (BVP) WAVEFORM</span>
-          <span id="algoLabel">ALGORITHM: POS TEMPORAL PROJECTION</span>
+      <!-- Real-Time Waveform -->
+      <div class="chart-container">
+        <div class="chart-header">
+          <span>REAL-TIME PHOTOPLETHYSMOGRAM PULSE WAVEFORM (BVP)</span>
+          <span id="algoLabel">Plane-Orthogonal-to-Skin (POS)</span>
         </div>
-        <canvas id="canvasWaveform" class="signal-canvas"></canvas>
+        <canvas id="waveformCanvas" width="600" height="90"></canvas>
       </div>
-
-      <!-- Research Mode Exclusive: FFT Power Spectral Density & Algorithm Comparison -->
-      <div class="graph-card" id="researchGraphCard" style="display: none;">
-        <div class="graph-header">
-          <span>FFT POWER SPECTRAL DENSITY (0.7 - 3.5 Hz)</span>
-          <span id="snrLabel">SNR: +12.4 dB</span>
-        </div>
-        <canvas id="canvasFft" class="signal-canvas"></canvas>
-      </div>
-
-      <!-- Developer Mode Exclusive: Telemetry Matrix -->
-      <div class="graph-card" id="devTelemetryCard" style="display: none;">
-        <div class="graph-header">
-          <span>SYSTEM & SDK DIAGNOSTICS</span>
-          <span>AuraPulse 2.0.0-prod</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; font-size: 11px;">
-          <div>Latency: <strong id="devLatency">0 ms</strong></div>
-          <div>Ring Buffer: <strong id="devBuffer">0 / 300</strong></div>
-          <div>Dropped Frames: <strong id="devDropped">0</strong></div>
-          <div>Engine: <strong>100% Client Ephemeral RAM</strong></div>
-          <div>CV Model: <strong>YuNet-ONNX Mar2023</strong></div>
-          <div>State: <strong id="devState">READY</strong></div>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Right Column: Physiological Metrics & Biomarkers -->
-    <div class="metrics-panel">
-      
-      <div class="tabs-bar">
-        <button class="tab-item active" id="tabVitals" onclick="switchTab('vitals')">Core Vitals</button>
-        <button class="tab-item" id="tabCardio" onclick="switchTab('cardio')">Cardiovascular & Stress</button>
-        <button class="tab-item" id="tabMetabolic" onclick="switchTab('metabolic')">Risk Analytics</button>
+    <!-- Right Column: Multi-Tab Metrics -->
+    <div class="right-panel">
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="tab-vitals">Core Vitals</button>
+        <button class="tab-btn" data-tab="tab-wellness">Stress & Autonomic</button>
+        <button class="tab-btn" data-tab="tab-risks">Cardiovascular & Metabolic Risk</button>
       </div>
 
-      <!-- TAB 1: Core Vitals -->
-      <div id="panelVitals" class="vitals-grid">
-        
-        <!-- Heart Rate -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Heart Rate (rPPG)</span>
-            <span class="vital-badge badge-good" id="badgeHr">Normal</span>
+      <!-- TAB 1: CORE VITALS -->
+      <div class="tab-content active" id="tab-vitals">
+        <div class="grid-vitals">
+          <!-- Heart Rate -->
+          <div class="vital-card card-hr" id="cardHr">
+            <div class="card-header-row">
+              <span class="card-title">Heart Rate (rPPG)</span>
+              <span class="badge-pill neutral" id="hrBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="hrValue">--</span>
+              <span class="card-unit">BPM</span>
+            </div>
+            <div class="card-subtext" id="hrSubtext">Normal resting baseline (60-100 BPM)</div>
+            <div class="card-meta">
+              <span>Confidence: <strong id="hrConf">--%</strong></span>
+              <span>Harmonic Multi-ROI</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valHr">--</span>
-            <span class="vital-unit">BPM</span>
-          </div>
-          <p class="vital-desc">Normal resting pulse is 60–100 BPM. Filtered via sub-bin FFT peak refinement.</p>
-        </div>
 
-        <!-- Respiration Rate -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Respiration Rate</span>
-            <span class="vital-badge badge-good" id="badgeRr">Optimal</span>
+          <!-- Respiration Rate -->
+          <div class="vital-card card-rr" id="cardRr">
+            <div class="card-header-row">
+              <span class="card-title">Respiration Rate</span>
+              <span class="badge-pill neutral" id="rrBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="rrValue">--</span>
+              <span class="card-unit">RPM</span>
+            </div>
+            <div class="card-subtext" id="rrSubtext">Healthy eupnea range (12-20 RPM)</div>
+            <div class="card-meta">
+              <span>Confidence: <strong id="rrConf">--%</strong></span>
+              <span>AM/FM Demodulation</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valRr">--</span>
-            <span class="vital-unit">RPM</span>
-          </div>
-          <p class="vital-desc">Respiratory modulation extracted from temporal low-frequency rPPG baseline.</p>
-        </div>
 
-        <!-- Pulse Rate Variability (RMSSD) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Pulse Variability (RMSSD)</span>
-            <span class="vital-badge badge-good" id="badgeRmssd">High Recovery</span>
+          <!-- Blood Pressure -->
+          <div class="vital-card card-bp" id="cardBp">
+            <div class="card-header-row">
+              <span class="card-title">Blood Pressure (SDPPG)</span>
+              <span class="badge-pill neutral" id="bpBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="bpValue">-- / --</span>
+              <span class="card-unit">mmHg</span>
+            </div>
+            <div class="card-subtext" id="bpSubtext">AHA Clinical Guideline Stratification</div>
+            <div class="card-meta">
+              <span>MAP: <strong id="mapValue">--</strong> mmHg</span>
+              <span>Stiffness Index</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valRmssd">--</span>
-            <span class="vital-unit">ms</span>
-          </div>
-          <p class="vital-desc">Root-mean-square of successive differences (PRV parasympathetic index).</p>
-        </div>
 
-        <!-- Autonomic Balance (PNS Recovery) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Autonomic Balance</span>
-            <span class="vital-badge badge-good" id="badgePns">Balanced</span>
+          <!-- SpO2 -->
+          <div class="vital-card card-spo2" id="cardSpo2">
+            <div class="card-header-row">
+              <span class="card-title">Oxygen Saturation</span>
+              <span class="badge-pill neutral" id="spo2Badge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="spo2Value">--</span>
+              <span class="card-unit">% SpO2</span>
+            </div>
+            <div class="card-subtext" id="spo2Subtext">Chromatic Ratio-of-Ratios Calibration</div>
+            <div class="card-meta">
+              <span>Ratio (R): <strong id="spo2Ratio">--</strong></span>
+              <span>Norm: 95-100%</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valPns">--</span>
-            <span class="vital-unit">/ 100</span>
-          </div>
-          <p class="vital-desc">Autonomic nervous system recovery and vagal tone modulation.</p>
-        </div>
 
-        <!-- Blood Pressure (Research Gated) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Blood Pressure [Research]</span>
-            <span class="vital-badge badge-research" id="badgeBp">Experimental</span>
+          <!-- HRV RMSSD / SDNN -->
+          <div class="vital-card card-prv" id="cardPrv">
+            <div class="card-header-row">
+              <span class="card-title">Heart Rate Variability</span>
+              <span class="badge-pill neutral" id="prvBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="prvValue">--</span>
+              <span class="card-unit">ms (RMSSD)</span>
+            </div>
+            <div class="card-subtext" id="prvSubtext">Autonomic vagal recovery indicator</div>
+            <div class="card-meta">
+              <span>SDNN: <strong id="sdnnValue">--</strong> ms</span>
+              <span>pNN50: <strong id="pnn50Value">--%</strong></span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valBp">-- / --</span>
-            <span class="vital-unit">mmHg</span>
-          </div>
-          <p class="vital-desc">Non-diagnostic arterial pulse morphology estimation. For research purposes only.</p>
-        </div>
 
-        <!-- Oxygen Saturation (Research Gated) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Oxygen Saturation [Research]</span>
-            <span class="vital-badge badge-research" id="badgeSpo2">Experimental</span>
+          <!-- Cardiac Workload -->
+          <div class="vital-card card-workload" id="cardWorkload">
+            <div class="card-header-row">
+              <span class="card-title">Cardiac Workload (RPP)</span>
+              <span class="badge-pill neutral" id="workloadBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="rppValue">--</span>
+              <span class="card-unit">RPP</span>
+            </div>
+            <div class="card-subtext" id="workloadSubtext">Rate-Pressure Product (HR × SBP / 100)</div>
+            <div class="card-meta">
+              <span>Myocardial Load</span>
+              <span>Norm: ≤100</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valSpo2">--</span>
-            <span class="vital-unit">%</span>
-          </div>
-          <p class="vital-desc">Dual-wavelength ambient optical ratio. Uncalibrated screening indicator.</p>
         </div>
-
       </div>
 
-      <!-- TAB 2: Cardiovascular & Stress -->
-      <div id="panelCardio" class="vitals-grid" style="display: none;">
-        
-        <!-- Baevsky Stress Index -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Physiological Stress Index</span>
-            <span class="vital-badge badge-good" id="badgeStress">Low Stress</span>
+      <!-- TAB 2: STRESS & AUTONOMIC -->
+      <div class="tab-content" id="tab-wellness">
+        <div class="grid-vitals">
+          <!-- Baevsky Stress Index -->
+          <div class="vital-card card-hr" id="cardBaevsky">
+            <div class="card-header-row">
+              <span class="card-title">Baevsky Stress Index</span>
+              <span class="badge-pill neutral" id="baevskyBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="baevskyValue">--</span>
+              <span class="card-unit">SI</span>
+            </div>
+            <div class="card-subtext" id="baevskySubtext">Sympathetic tension & mobilization</div>
+            <div class="card-meta">
+              <span>Autonomic Tension</span>
+              <span>Norm: 50-150</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valStress">--</span>
-            <span class="vital-unit">SI</span>
-          </div>
-          <p class="vital-desc">Baevsky regulatory strain index computed from peak-to-peak distribution.</p>
-        </div>
 
-        <!-- Cardiac Workload (Rate-Pressure Product) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Cardiac Workload (RPP)</span>
-            <span class="vital-badge badge-good" id="badgeRpp">Normal</span>
+          <!-- Parasympathetic Tone -->
+          <div class="vital-card card-spo2" id="cardPns">
+            <div class="card-header-row">
+              <span class="card-title">Parasympathetic Recovery</span>
+              <span class="badge-pill neutral" id="pnsBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="pnsValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-subtext" id="pnsSubtext">Vagal tone & physiological resilience</div>
+            <div class="card-meta">
+              <span>Vagal Tone</span>
+              <span>PNS Index</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valRpp">--</span>
-            <span class="vital-unit">mmHg·bpm/100</span>
-          </div>
-          <p class="vital-desc">Myocardial oxygen consumption index (HR × Systolic BP / 100).</p>
-        </div>
 
-        <!-- Pulse-Respiration Quotient -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Pulse-Respiration Quotient</span>
-            <span class="vital-badge badge-good" id="badgePrq">4.5:1</span>
+          <!-- Pulse-Respiration Quotient -->
+          <div class="vital-card card-rr" id="cardPrq">
+            <div class="card-header-row">
+              <span class="card-title">Pulse-Respiration Ratio</span>
+              <span class="badge-pill neutral" id="prqBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="prqValue">--</span>
+              <span class="card-unit">PRQ</span>
+            </div>
+            <div class="card-subtext" id="prqSubtext">Cardiopulmonary coupling index</div>
+            <div class="card-meta">
+              <span>Coupling Ratio</span>
+              <span>Norm: 4.0 - 5.0</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valPrq">--</span>
-            <span class="vital-unit">HR/RR</span>
-          </div>
-          <p class="vital-desc">Cardiorespiratory coordination ratio (optimal resting ~ 4.0 : 1).</p>
-        </div>
 
-        <!-- Arterial Stiffness Index -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Arterial Stiffness Index</span>
-            <span class="vital-badge badge-good" id="badgeStiffness">Compliant</span>
+          <!-- Composite Stress Score -->
+          <div class="vital-card card-workload" id="cardStress">
+            <div class="card-header-row">
+              <span class="card-title">Composite Stress Load</span>
+              <span class="badge-pill neutral" id="stressLevelBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="stressValue">--</span>
+              <span class="card-unit">/ 100</span>
+            </div>
+            <div class="card-subtext" id="stressSubtext">Multi-biomarker arousal score</div>
+            <div class="card-meta">
+              <span>Sympathovagal Balance</span>
+              <span>Research Scale</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valStiffness">--</span>
-            <span class="vital-unit">m/s</span>
-          </div>
-          <p class="vital-desc">Pulse propagation compliance from photoplethysmographic crest time.</p>
         </div>
-
       </div>
 
-      <!-- TAB 3: Risk Analytics -->
-      <div id="panelMetabolic" class="vitals-grid" style="display: none;">
-        
-        <!-- Vascular Age -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Estimated Vascular Age</span>
-            <span class="vital-badge badge-good" id="badgeVascAge">Optimal</span>
+      <!-- TAB 3: CARDIOVASCULAR & METABOLIC RISKS -->
+      <div class="tab-content" id="tab-risks">
+        <div class="risk-banner-card">
+          <div>
+            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">10-Year Cardiovascular (CVD) & Stroke Projection</div>
+            <div style="font-size: 18px; font-weight: 800; margin-top: 4px;" id="cvdCatLabel">Low Risk (<10%)</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="cvdSubtext">Framingham / WHO-ISH Hemodynamic-Metabolic Calibration</div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valVascAge">--</span>
-            <span class="vital-unit">Years</span>
-          </div>
-          <p class="vital-desc">Biological vascular age derived from arterial pulse wave elasticity.</p>
+          <div class="risk-score-badge" id="cvdRiskScore">--%</div>
         </div>
 
-        <!-- 10-Year CVD Risk -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">10-Year CVD Risk Projection</span>
-            <span class="vital-badge badge-good" id="badgeCvd">Low (&lt;10%)</span>
+        <div class="grid-vitals">
+          <!-- Vascular Age -->
+          <div class="vital-card card-bp" id="cardVasc">
+            <div class="card-header-row">
+              <span class="card-title">Vascular Biological Age</span>
+              <span class="badge-pill neutral" id="vascStatusBadge">Waiting</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="vascAgeValue">--</span>
+              <span class="card-unit">Years</span>
+            </div>
+            <div class="card-subtext" id="vascSubtext">Arterial compliance & Aging Index (AGI)</div>
+            <div class="card-meta">
+              <span>Delta: <strong id="vascDeltaValue">-- yrs</strong></span>
+              <span>Arterial Stiffness</span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valCvd">--</span>
-            <span class="vital-unit">%</span>
-          </div>
-          <p class="vital-desc">Calibrated cardiovascular & stroke risk model based on age & hemodynamic profile.</p>
-        </div>
 
-        <!-- Body Composition: BMI -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Body Mass Index (BMI)</span>
-            <span class="vital-badge badge-good" id="badgeBmi">Normal</span>
+          <!-- Body Composition -->
+          <div class="vital-card card-workload" id="cardBmi">
+            <div class="card-header-row">
+              <span class="card-title">Body Composition (BMI & BRI)</span>
+              <span class="badge-pill neutral" id="bmiBadge">Normal</span>
+            </div>
+            <div class="card-value-group">
+              <span class="card-value" id="bmiValue">--</span>
+              <span class="card-unit">kg/m² (BMI)</span>
+            </div>
+            <div class="card-subtext" id="bmiSubtext">Anthropometric body roundness analysis</div>
+            <div class="card-meta">
+              <span>BRI: <strong id="briValue">--</strong></span>
+              <span>WHtR: <strong id="whtrValue">--</strong></span>
+            </div>
           </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valBmi">23.5</span>
-            <span class="vital-unit">kg/m²</span>
-          </div>
-          <p class="vital-desc">Body composition metric derived from anthropometric parameters.</p>
         </div>
-
-        <!-- Body Roundness Index (BRI) -->
-        <div class="vital-card">
-          <div class="vital-card-header">
-            <span class="vital-title">Body Roundness Index</span>
-            <span class="vital-badge badge-good" id="badgeBri">Low Risk</span>
-          </div>
-          <div class="vital-value-row">
-            <span class="vital-value" id="valBri">2.8</span>
-            <span class="vital-unit">BRI</span>
-          </div>
-          <p class="vital-desc">Visceral adiposity indicator calculated from waist and height geometry.</p>
-        </div>
-
       </div>
-
     </div>
+  </div>
 
-  </main>
-
-  <!-- Health Report Modal -->
-  <div class="modal-backdrop" id="reportModal">
-    <div class="modal-box">
+  <!-- Patient Metadata Modal -->
+  <div class="modal-backdrop" id="profileModal">
+    <div class="modal-content">
       <div class="modal-header">
-        <h2>AuraPulse Health Report</h2>
-        <button class="btn-close" onclick="closeReportModal()">✕</button>
+        <h3>Patient Profile & Demographic Priors</h3>
+        <button class="btn-close-modal" id="closeModalBtn">&times;</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Age (Years)</label>
+          <input type="number" id="inputAge" value="35" min="18" max="100" />
+        </div>
+        <div class="form-group">
+          <label>Biological Sex</label>
+          <select id="inputSex">
+            <option value="male" selected>Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Height (cm)</label>
+          <input type="number" id="inputHeight" value="175" min="100" max="230" />
+        </div>
+        <div class="form-group">
+          <label>Weight (kg)</label>
+          <input type="number" id="inputWeight" value="72" min="30" max="250" />
+        </div>
+        <div class="form-group">
+          <label>Waist Circumference (cm)</label>
+          <input type="number" id="inputWaist" value="84" min="40" max="180" />
+        </div>
+        <div class="form-group">
+          <label>Smoking Status</label>
+          <select id="inputSmoker">
+            <option value="no" selected>Non-Smoker</option>
+            <option value="yes">Smoker</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-ctrl btn-primary" id="saveProfileBtn">Save Profile & Recalculate Risks</button>
+    </div>
+  </div>
+
+  <footer>
+    <span><strong>AuraPulse Clinical-Edge AI</strong> — Contactless Photoplethysmography & Hemodynamic Risk Synthesis. General wellness & research analytics.</span>
+    <button class="btn-export" id="downloadBtn">Export Session JSON Report</button>
+  </footer>
+
+  <script>
+    // Tab Switching
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+        const tabId = btn.getAttribute("data-tab");
+        document.getElementById(tabId).classList.add("active");
+      });
+    });
+
+    // Profile Modal
+    const profileModal = document.getElementById("profileModal");
+    const profileToggleBtn = document.getElementById("profileToggleBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const saveProfileBtn = document.getElementById("saveProfileBtn");
+
+    profileToggleBtn.addEventListener("click", () => profileModal.classList.add("open"));
+    closeModalBtn.addEventListener("click", () => profileModal.classList.remove("open"));
+
+    let userProfile = {
+      age: 35,
+      is_male: true,
+      height_cm: 175,
+      weight_kg: 72,
+      waist_cm: 84,
+      is_smoker: false,
+      is_diabetic: false
+    };
+
+    saveProfileBtn.addEventListener("click", async () => {
+      userProfile.age = parseFloat(document.getElementById("inputAge").value) || 35;
+      userProfile.is_male = document.getElementById("inputSex").value === "male";
+      userProfile.height_cm = parseFloat(document.getElementById("inputHeight").value) || 175;
+      userProfile.weight_kg = parseFloat(document.getElementById("inputWeight").value) || 72;
+      userProfile.waist_cm = parseFloat(document.getElementById("inputWaist").value) || 84;
+      userProfile.is_smoker = document.getElementById("inputSmoker").value === "yes";
+
+      if (wsReady && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "update_profile", profile: userProfile }));
+      } else {
+        await fetch("/api/update_profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userProfile)
+        });
+      }
+      profileModal.classList.remove("open");
+    });
+
+    const video = document.getElementById("videoElement");
+    const overlayCanvas = document.getElementById("overlayCanvas");
+    const overlayCtx = overlayCanvas.getContext("2d");
+    const waveformCanvas = document.getElementById("waveformCanvas");
+    const waveCtx = waveformCanvas.getContext("2d");
+
+    const startBtn = document.getElementById("startBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const statusBanner = document.getElementById("diagnosticStatus");
+    const scanTimer = document.getElementById("scanTimer");
+
+    // Vitals Elements
+    const hrValue = document.getElementById("hrValue");
+    const hrConf = document.getElementById("hrConf");
+    const hrBadge = document.getElementById("hrBadge");
+    const hrSubtext = document.getElementById("hrSubtext");
+
+    const rrValue = document.getElementById("rrValue");
+    const rrConf = document.getElementById("rrConf");
+    const rrBadge = document.getElementById("rrBadge");
+    const rrSubtext = document.getElementById("rrSubtext");
+
+    const bpValue = document.getElementById("bpValue");
+    const bpBadge = document.getElementById("bpBadge");
+    const bpSubtext = document.getElementById("bpSubtext");
+    const mapValue = document.getElementById("mapValue");
+
+    const spo2Value = document.getElementById("spo2Value");
+    const spo2Badge = document.getElementById("spo2Badge");
+    const spo2Subtext = document.getElementById("spo2Subtext");
+    const spo2Ratio = document.getElementById("spo2Ratio");
+
+    const prvValue = document.getElementById("prvValue");
+    const prvBadge = document.getElementById("prvBadge");
+    const prvSubtext = document.getElementById("prvSubtext");
+    const sdnnValue = document.getElementById("sdnnValue");
+    const pnn50Value = document.getElementById("pnn50Value");
+
+    const rppValue = document.getElementById("rppValue");
+    const workloadBadge = document.getElementById("workloadBadge");
+    const workloadSubtext = document.getElementById("workloadSubtext");
+
+    // Stress Elements
+    const baevskyValue = document.getElementById("baevskyValue");
+    const baevskyBadge = document.getElementById("baevskyBadge");
+    const baevskySubtext = document.getElementById("baevskySubtext");
+
+    const pnsValue = document.getElementById("pnsValue");
+    const pnsBadge = document.getElementById("pnsBadge");
+    const pnsSubtext = document.getElementById("pnsSubtext");
+
+    const prqValue = document.getElementById("prqValue");
+    const prqBadge = document.getElementById("prqBadge");
+    const prqSubtext = document.getElementById("prqSubtext");
+
+    const stressValue = document.getElementById("stressValue");
+    const stressLevelBadge = document.getElementById("stressLevelBadge");
+    const stressSubtext = document.getElementById("stressSubtext");
+
+    // Risk Elements
+    const cvdRiskScore = document.getElementById("cvdRiskScore");
+    const cvdCatLabel = document.getElementById("cvdCatLabel");
+    const cvdSubtext = document.getElementById("cvdSubtext");
+
+    const vascAgeValue = document.getElementById("vascAgeValue");
+    const vascDeltaValue = document.getElementById("vascDeltaValue");
+    const vascStatusBadge = document.getElementById("vascStatusBadge");
+    const vascSubtext = document.getElementById("vascSubtext");
+
+    const bmiValue = document.getElementById("bmiValue");
+    const bmiBadge = document.getElementById("bmiBadge");
+    const bmiSubtext = document.getElementById("bmiSubtext");
+    const briValue = document.getElementById("briValue");
+    const whtrValue = document.getElementById("whtrValue");
+
+    const sqiValue = document.getElementById("sqiValue");
+    const telLighting = document.getElementById("telLighting");
+    const telFps = document.getElementById("telFps");
+
+    let isScanning = false;
+    let scanCompleted = false;
+    let scanStartTime = 0;
+    let scanFramesCount = 0;
+    let frameTimestamps = [];
+    let latestResultPayload = null;
+    let waveformBuffer = [];
+
+    let activeFaceBBox = null;
+    let activeROIs = null;
+    let isDetectingKeyframe = false;
+    let lastKeyframeTime = 0;
+
+    const sampleCanvas = document.createElement("canvas");
+    sampleCanvas.width = 320;
+    sampleCanvas.height = 240;
+    const sampleCtx = sampleCanvas.getContext("2d", { willReadFrequently: true });
+
+    let ws = null;
+    let wsReady = false;
+
+    function connectWebSocket() {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const wsUrl = `${protocol}//${window.location.host}/ws/signals`;
+
+      try {
+        ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+          wsReady = true;
+          console.log("[AuraPulse] High-speed clinical WebSocket established.");
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.vitals && isScanning) {
+              latestResultPayload = data;
+              updateDashboard(data);
+            }
+          } catch (e) {}
+        };
+
+        ws.onclose = () => {
+          wsReady = false;
+          setTimeout(connectWebSocket, 2000);
+        };
+        ws.onerror = () => { wsReady = false; };
+      } catch (err) {
+        wsReady = false;
+      }
+    }
+
+    connectWebSocket();
+
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640, max: 640 },
+            height: { ideal: 480, max: 480 },
+            frameRate: { ideal: 30, min: 25 }
+          }
+        });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          overlayCanvas.width = video.videoWidth || 640;
+          overlayCanvas.height = video.videoHeight || 480;
+          statusBanner.innerText = "Camera locked. Ready for scan.";
+          triggerKeyframeDetection();
+        };
+      } catch (err) {
+        statusBanner.innerText = "Camera access denied or unavailable.";
+      }
+    }
+
+    initCamera();
+
+    startBtn.addEventListener("click", async () => {
+      if (wsReady && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "reset" }));
+      } else {
+        await fetch("/api/reset", { method: "POST" });
+      }
+      isScanning = true;
+      scanCompleted = false;
+      scanFramesCount = 0;
+      scanStartTime = performance.now();
+      waveformBuffer = [];
+      startBtn.disabled = true;
+      startBtn.innerText = "Scanning in Progress (30s)...";
+      statusBanner.innerText = "Starting comprehensive health measurement...";
+      statusBanner.style.borderLeftColor = "#06b6d4";
+
+      // Reset values
+      hrValue.innerText = "--";
+      hrValue.style.color = "#fff";
+      hrBadge.className = "badge-pill neutral";
+      hrBadge.innerText = "Measuring";
+      hrSubtext.innerText = "Analyzing harmonic rPPG...";
+
+      rrValue.innerText = "--";
+      rrValue.style.color = "#fff";
+      rrBadge.className = "badge-pill neutral";
+      rrBadge.innerText = "Measuring";
+
+      bpValue.innerText = "-- / --";
+      bpValue.style.color = "#fff";
+      bpBadge.className = "badge-pill neutral";
+      bpBadge.innerText = "Measuring";
+
+      spo2Value.innerText = "--";
+      spo2Value.style.color = "#fff";
+      spo2Badge.className = "badge-pill neutral";
+      spo2Badge.innerText = "Measuring";
+
+      prvValue.innerText = "--";
+      prvValue.style.color = "#fff";
+      prvBadge.className = "badge-pill neutral";
+      prvBadge.innerText = "Measuring";
+
+      rppValue.innerText = "--";
+      rppValue.style.color = "#fff";
+      workloadBadge.className = "badge-pill neutral";
+
+      waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+    });
+
+    resetBtn.addEventListener("click", async () => {
+      if (wsReady && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "reset" }));
+      } else {
+        await fetch("/api/reset", { method: "POST" });
+      }
+      isScanning = false;
+      scanCompleted = false;
+      scanFramesCount = 0;
+      startBtn.disabled = false;
+      startBtn.innerText = "Start 30s Scan";
+      scanTimer.innerText = "Ready";
+      telFps.innerText = "--";
+      statusBanner.innerText = "Session reset. Ready for scan.";
+      statusBanner.style.borderLeftColor = "#06b6d4";
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+    });
+
+    downloadBtn.addEventListener("click", () => {
+      if (!latestResultPayload) {
+        alert("No active measurement data to export.");
+        return;
+      }
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(latestResultPayload, null, 2));
+      const downloadAnchor = document.createElement("a");
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `AuraPulse_Clinical_Report_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    async function triggerKeyframeDetection() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA && !isDetectingKeyframe) {
+        isDetectingKeyframe = true;
+        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+        const base64Img = sampleCanvas.toDataURL("image/jpeg", 0.50);
+
+        try {
+          const resp = await fetch("/api/detect_rois", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: base64Img })
+          });
+
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.hasFace) {
+              activeFaceBBox = data.faceBBox;
+              activeROIs = data.rois;
+              if (data.faceQuality) {
+                telLighting.innerText = `${Math.round(data.faceQuality.illumination)}%`;
+              }
+            }
+          }
+        } catch (e) {} finally {
+          isDetectingKeyframe = false;
+          lastKeyframeTime = performance.now();
+        }
+      }
+    }
+
+    function extractROIMeanRGB(polyScaled) {
+      if (!polyScaled || polyScaled.length < 3) return [125, 110, 100];
+
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (let i = 0; i < polyScaled.length; i++) {
+        const pt = polyScaled[i];
+        if (pt[0] < minX) minX = pt[0];
+        if (pt[1] < minY) minY = pt[1];
+        if (pt[0] > maxX) maxX = pt[0];
+        if (pt[1] > maxY) maxY = pt[1];
+      }
+
+      minX = Math.max(0, Math.min(sampleCanvas.width - 1, Math.floor(minX)));
+      minY = Math.max(0, Math.min(sampleCanvas.height - 1, Math.floor(minY)));
+      const w = Math.max(2, Math.min(sampleCanvas.width - minX, Math.ceil(maxX - minX)));
+      const h = Math.max(2, Math.min(sampleCanvas.height - minY, Math.ceil(maxY - minY)));
+
+      try {
+        const imgData = sampleCtx.getImageData(minX, minY, w, h).data;
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        const step = 8;
+
+        for (let i = 0; i < imgData.length; i += step) {
+          const r = imgData[i];
+          const g = imgData[i + 1];
+          const b = imgData[i + 2];
+          if (r > 30 && g > 20) {
+            sumR += r;
+            sumG += g;
+            sumB += b;
+            count++;
+          }
+        }
+        if (count > 0) return [sumR / count, sumG / count, sumB / count];
+      } catch (e) {}
+
+      return [130, 105, 95];
+    }
+
+    function highSpeedFrameLoop() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        const nowMs = performance.now();
+
+        if (!scanCompleted) {
+          frameTimestamps.push(nowMs);
+          if (frameTimestamps.length > 30) frameTimestamps.shift();
+          if (frameTimestamps.length >= 2) {
+            const fps = (frameTimestamps.length - 1) / ((frameTimestamps[frameTimestamps.length - 1] - frameTimestamps[0]) / 1000.0);
+            telFps.innerText = `${fps.toFixed(1)} FPS`;
+            telFps.style.color = fps >= 25 ? "#10b981" : (fps >= 18 ? "#eab308" : "#ef4444");
+          }
+        }
+
+        if (isScanning) {
+          scanFramesCount++;
+          const elapsed = (nowMs - scanStartTime) / 1000.0;
+          if (elapsed >= 30.0) {
+            isScanning = false;
+            scanCompleted = true;
+            const sustainedScanFps = (scanFramesCount / elapsed);
+            telFps.innerText = `${sustainedScanFps.toFixed(1)} FPS (Locked)`;
+            telFps.style.color = "#10b981";
+            scanTimer.innerText = "30s / 30s (Completed)";
+            startBtn.disabled = false;
+            startBtn.innerText = "Start New 30s Scan";
+            statusBanner.innerText = "✅ 30s Scan Completed — Comprehensive Health Report Locked";
+            statusBanner.style.borderLeftColor = "#10b981";
+          } else {
+            scanTimer.innerText = `${Math.floor(elapsed)}s / 30s`;
+          }
+        }
+
+        sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
+        renderOverlays();
+
+        if (nowMs - lastKeyframeTime > 1500) {
+          triggerKeyframeDetection();
+        }
+
+        if (activeROIs && isScanning) {
+          const roiSignals = {};
+          for (const [rName, rData] of Object.entries(activeROIs)) {
+            roiSignals[rName] = extractROIMeanRGB(rData.polygon);
+          }
+
+          const payload = {
+            timestamp_s: nowMs / 1000.0,
+            signals: roiSignals,
+            profile: userProfile
+          };
+
+          if (wsReady && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify(payload));
+          } else {
+            fetch("/api/push_signals", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(payload)
+            }).then(r => r.json()).then(data => {
+              if (data && data.vitals && isScanning) {
+                latestResultPayload = data;
+                updateDashboard(data);
+              }
+            }).catch(() => {});
+          }
+        }
+      }
+
+      requestAnimationFrame(highSpeedFrameLoop);
+    }
+
+    requestAnimationFrame(highSpeedFrameLoop);
+
+    function renderOverlays() {
+      overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+      const scaleX = overlayCanvas.width / sampleCanvas.width;
+      const scaleY = overlayCanvas.height / sampleCanvas.height;
+
+      if (!isScanning) {
+        overlayCtx.save();
+        overlayCtx.strokeStyle = "rgba(6, 182, 212, 0.35)";
+        overlayCtx.lineWidth = 2;
+        overlayCtx.setLineDash([6, 6]);
+        overlayCtx.beginPath();
+        overlayCtx.ellipse(
+          overlayCanvas.width / 2,
+          overlayCanvas.height / 2,
+          overlayCanvas.width * 0.22,
+          overlayCanvas.height * 0.35,
+          0, 0, 2 * Math.PI
+        );
+        overlayCtx.stroke();
+        overlayCtx.restore();
+      }
+
+      if (activeFaceBBox) {
+        const [bx, by, bw, bh] = activeFaceBBox;
+        // Green Face Bounding Box
+        overlayCtx.strokeStyle = "#10b981";
+        overlayCtx.lineWidth = 2.5;
+        overlayCtx.strokeRect(bx * scaleX, by * scaleY, bw * scaleX, bh * scaleY);
+
+        // Face Label Tag
+        overlayCtx.fillStyle = "#10b981";
+        overlayCtx.font = "bold 11px sans-serif";
+        overlayCtx.fillText("Face Locked", bx * scaleX + 4, by * scaleY - 6);
+
+        if (activeROIs) {
+          for (const [name, rData] of Object.entries(activeROIs)) {
+            const poly = rData.polygon;
+            if (poly && poly.length > 0) {
+              overlayCtx.beginPath();
+              overlayCtx.moveTo(poly[0][0] * scaleX, poly[0][1] * scaleY);
+              for (let i = 1; i < poly.length; i++) {
+                overlayCtx.lineTo(poly[i][0] * scaleX, poly[i][1] * scaleY);
+              }
+              overlayCtx.closePath();
+              // In Research Mode, red/cyan wireframes; in Patient mode, bright cyan
+              overlayCtx.strokeStyle = rData.isValid ? "#06b6d4" : "#ef4444";
+              overlayCtx.lineWidth = 2;
+              overlayCtx.stroke();
+
+              // ROI Label
+              if (currentProductMode === "research" || currentProductMode === "developer") {
+                overlayCtx.fillStyle = rData.isValid ? "#06b6d4" : "#ef4444";
+                overlayCtx.font = "10px sans-serif";
+                overlayCtx.fillText(name.toUpperCase(), poly[0][0] * scaleX, poly[0][1] * scaleY - 4);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function updateDashboard(data) {
+      const v = data.vitals;
+      if (v.status === "VALID") {
+        statusBanner.innerText = `● Pulse Signal Locked (Quality: ${v.quality_category})`;
+        statusBanner.style.borderLeftColor = "#10b981";
+
+        const CT = window.CLINICAL_THRESHOLDS || {};
+
+        // 1. Heart Rate
+        if (v.heart_rate && v.heart_rate.value) {
+          const hrVal = v.heart_rate.value;
+          hrValue.innerText = hrVal.toFixed(1);
+          hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
+
+          if (CT.heartRate) {
+            const evalHr = CT.heartRate.evaluate(hrVal);
+            hrBadge.innerText = evalHr.label;
+            hrBadge.className = `badge-pill ${evalHr.state}`;
+            hrValue.style.color = evalHr.state === "optimal" ? "#fff" : evalHr.color;
+            hrSubtext.innerText = evalHr.subtext;
+            hrSubtext.style.color = evalHr.state === "optimal" ? "var(--text-muted)" : evalHr.color;
+          }
+        }
+
+        // 2. Respiration Rate
+        if (v.respiration_rate && v.respiration_rate.value) {
+          const rrVal = v.respiration_rate.value;
+          rrValue.innerText = rrVal.toFixed(1);
+          rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
+
+          if (CT.respirationRate) {
+            const evalRr = CT.respirationRate.evaluate(rrVal);
+            rrBadge.innerText = evalRr.label;
+            rrBadge.className = `badge-pill ${evalRr.state}`;
+            rrValue.style.color = evalRr.state === "optimal" ? "#fff" : evalRr.color;
+            rrSubtext.innerText = evalRr.subtext;
+            rrSubtext.style.color = evalRr.state === "optimal" ? "var(--text-muted)" : evalRr.color;
+          }
+        }
+
+        // 3. Blood Pressure
+        if (v.blood_pressure && v.blood_pressure.systolic) {
+          const sbp = v.blood_pressure.systolic;
+          const dbp = v.blood_pressure.diastolic;
+          bpValue.innerText = `${Math.round(sbp)} / ${Math.round(dbp)}`;
+          mapValue.innerText = Math.round(v.blood_pressure.map);
+
+          if (CT.bloodPressure) {
+            const evalBp = CT.bloodPressure.evaluate(sbp, dbp);
+            bpBadge.innerText = evalBp.label;
+            bpBadge.className = `badge-pill ${evalBp.state}`;
+            bpValue.style.color = evalBp.state === "optimal" ? "#fff" : evalBp.color;
+            bpSubtext.innerText = evalBp.subtext;
+            bpSubtext.style.color = evalBp.state === "optimal" ? "var(--text-muted)" : evalBp.color;
+          }
+        }
+
+        // 4. Oxygen Saturation (SpO2)
+        if (v.spo2 && v.spo2.value) {
+          const spo2Val = v.spo2.value;
+          spo2Value.innerText = spo2Val.toFixed(1);
+          spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
+
+          if (CT.spo2) {
+            const evalSpo2 = CT.spo2.evaluate(spo2Val);
+            spo2Badge.innerText = evalSpo2.label;
+            spo2Badge.className = `badge-pill ${evalSpo2.state}`;
+            spo2Value.style.color = evalSpo2.state === "optimal" ? "#fff" : evalSpo2.color;
+            spo2Subtext.innerText = evalSpo2.subtext;
+            spo2Subtext.style.color = evalSpo2.state === "optimal" ? "var(--text-muted)" : evalSpo2.color;
+          }
+        }
+
+        // 5. HRV (RMSSD)
+        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
+          const rmssdVal = v.pulse_rate_variability.rmssd;
+          prvValue.innerText = rmssdVal.toFixed(1);
+          sdnnValue.innerText = v.pulse_rate_variability.sdnn ? v.pulse_rate_variability.sdnn.toFixed(1) : "--";
+          pnn50Value.innerText = v.pulse_rate_variability.pnn50 ? `${Math.round(v.pulse_rate_variability.pnn50)}%` : "--%";
+
+          if (CT.rmssd) {
+            const evalRmssd = CT.rmssd.evaluate(rmssdVal);
+            prvBadge.innerText = evalRmssd.label;
+            prvBadge.className = `badge-pill ${evalRmssd.state}`;
+            prvValue.style.color = evalRmssd.state === "optimal" ? "#fff" : evalRmssd.color;
+            prvSubtext.innerText = evalRmssd.subtext;
+            prvSubtext.style.color = evalRmssd.state === "optimal" ? "var(--text-muted)" : evalRmssd.color;
+          }
+        }
+
+        // 6. Cardiac Workload
+        if (v.cardiac_workload && v.cardiac_workload.rpp) {
+          const rppVal = v.cardiac_workload.rpp;
+          rppValue.innerText = rppVal.toFixed(1);
+
+          if (CT.cardiacWorkload) {
+            const evalRpp = CT.cardiacWorkload.evaluate(rppVal);
+            workloadBadge.innerText = evalRpp.label;
+            workloadBadge.className = `badge-pill ${evalRpp.state}`;
+            rppValue.style.color = evalRpp.state === "optimal" ? "#fff" : evalRpp.color;
+            workloadSubtext.innerText = evalRpp.subtext;
+            workloadSubtext.style.color = evalRpp.state === "optimal" ? "var(--text-muted)" : evalRpp.color;
+          }
+        }
+
+        // 7. Stress & Autonomic Indices
+        if (v.stress_index) {
+          const sVal = v.stress_index.score;
+          stressValue.innerText = sVal ? sVal.toFixed(0) : "--";
+          if (CT.stressIndex && sVal !== null && sVal !== undefined) {
+            const evalStress = CT.stressIndex.evaluate(sVal);
+            stressLevelBadge.innerText = evalStress.label;
+            stressLevelBadge.className = `badge-pill ${evalStress.state}`;
+            stressValue.style.color = evalStress.state === "optimal" ? "#fff" : evalStress.color;
+            stressSubtext.innerText = evalStress.subtext;
+            stressSubtext.style.color = evalStress.state === "optimal" ? "var(--text-muted)" : evalStress.color;
+          }
+
+          if (v.stress_index.baevskyIndex) {
+            const bVal = v.stress_index.baevskyIndex;
+            baevskyValue.innerText = bVal.toFixed(0);
+            if (bVal > 250) {
+              baevskyBadge.innerText = "🔴 High Tension";
+              baevskyBadge.className = "badge-pill critical";
+              baevskyValue.style.color = "#ef4444";
+              baevskySubtext.innerText = "Elevated central sympathovagal regulation";
+            } else if (bVal > 150) {
+              baevskyBadge.innerText = "🟡 Moderate";
+              baevskyBadge.className = "badge-pill warning";
+              baevskyValue.style.color = "#eab308";
+              baevskySubtext.innerText = "Mild compensatory strain";
+            } else {
+              baevskyBadge.innerText = "🟢 Normotension";
+              baevskyBadge.className = "badge-pill optimal";
+              baevskyValue.style.color = "#fff";
+              baevskySubtext.innerText = "Optimal homeostatic equilibrium (50-150)";
+            }
+          }
+
+          if (v.stress_index.parasympatheticScore) {
+            const pVal = v.stress_index.parasympatheticScore;
+            pnsValue.innerText = pVal.toFixed(0);
+            pnsBadge.innerText = pVal >= 50 ? "🟢 Good" : "🟡 Low";
+            pnsBadge.className = `badge-pill ${pVal >= 50 ? "optimal" : "warning"}`;
+          }
+
+          if (v.stress_index.prq) {
+            const prq = v.stress_index.prq;
+            prqValue.innerText = prq.toFixed(2);
+            const isNormPrq = prq >= 3.8 && prq <= 5.2;
+            prqBadge.innerText = isNormPrq ? "🟢 Balanced" : "🟡 Deviated";
+            prqBadge.className = `badge-pill ${isNormPrq ? "optimal" : "warning"}`;
+          }
+        }
+
+        // 8. Cardiovascular & Metabolic Risks
+        if (v.cvd_risk) {
+          const cvdVal = v.cvd_risk.tenYearRiskPct;
+          cvdRiskScore.innerText = `${cvdVal.toFixed(1)}%`;
+          cvdCatLabel.innerText = `${v.cvd_risk.category} Risk`;
+          if (CT.cvdRisk) {
+            const evalCvd = CT.cvdRisk.evaluate(cvdVal);
+            cvdRiskScore.className = "risk-score-badge " + (evalCvd.state === "critical" ? "high" : (evalCvd.state === "warning" ? "moderate" : ""));
+            cvdSubtext.innerText = evalCvd.subtext;
+          }
+        }
+
+        if (v.vascular_age) {
+          vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
+          const delta = v.vascular_age.ageDelta;
+          vascDeltaValue.innerText = `${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs`;
+          const isAcc = delta > 4.0;
+          vascStatusBadge.innerText = isAcc ? "🟡 Stiffening" : "🟢 Optimal";
+          vascStatusBadge.className = `badge-pill ${isAcc ? "warning" : "optimal"}`;
+        }
+
+        if (v.body_composition) {
+          const bmi = v.body_composition.bmi;
+          bmiValue.innerText = bmi.toFixed(1);
+          const isBmiNorm = bmi >= 18.5 && bmi < 25.0;
+          bmiBadge.innerText = isBmiNorm ? "🟢 Normal" : (bmi < 30 ? "🟡 Overweight" : "🔴 Obese");
+          bmiBadge.className = `badge-pill ${isBmiNorm ? "optimal" : (bmi < 30 ? "warning" : "critical")}`;
+          briValue.innerText = v.body_composition.bri.toFixed(1);
+          whtrValue.innerText = v.body_composition.whtr.toFixed(2);
+        }
+
+        sqiValue.innerText = `${Math.round(v.signal_quality)} / 100`;
+
+        if (v.pulse_waveform && v.pulse_waveform.length > 0) {
+          waveformBuffer = v.pulse_waveform;
+          drawWaveform(waveformBuffer);
+        }
+      } else {
+        const elapsed = (performance.now() - scanStartTime) / 1000;
+        if (elapsed < 6.0) {
+          statusBanner.innerText = `Accumulating pulse buffer (${Math.floor(elapsed)}s / 6s)...`;
+        } else {
+          statusBanner.innerText = v.reason || "Analyzing multi-spectral facial signal...";
+        }
+        statusBanner.style.borderLeftColor = "#eab308";
+        sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
+      }
+    }
+
+    function drawWaveform(points) {
+      waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      if (points.length < 2) return;
+
+      waveCtx.strokeStyle = "rgba(30, 41, 59, 0.8)";
+      waveCtx.lineWidth = 1;
+      waveCtx.setLineDash([4, 4]);
+      waveCtx.beginPath();
+      waveCtx.moveTo(0, waveformCanvas.height / 2);
+      waveCtx.lineTo(waveformCanvas.width, waveformCanvas.height / 2);
+      waveCtx.stroke();
+      waveCtx.setLineDash([]);
+
+      waveCtx.strokeStyle = "#06b6d4";
+      waveCtx.lineWidth = 2.2;
+      waveCtx.beginPath();
+
+      const minVal = Math.min(...points);
+      const maxVal = Math.max(...points);
+      const range = (maxVal - minVal) || 1;
+      const step = waveformCanvas.width / (points.length - 1);
+
+      for (let i = 0; i < points.length; i++) {
+        const x = i * step;
+        const normalized = (points[i] - minVal) / range;
+        const y = waveformCanvas.height - (normalized * (waveformCanvas.height - 20) + 10);
+        if (i === 0) waveCtx.moveTo(x, y);
+        else waveCtx.lineTo(x, y);
+      }
+      waveCtx.stroke();
+    }
+  
+    let currentProductMode = "patient";
+
+    function setProductMode(mode) {
+      currentProductMode = mode;
+      document.getElementById("btnModePatient").classList.toggle("active", mode === "patient");
+      document.getElementById("btnModeResearch").classList.toggle("active", mode === "research");
+      document.getElementById("btnModeDev").classList.toggle("active", mode === "developer");
+
+      const researchCard = document.getElementById("researchCard");
+      const devCard = document.getElementById("devCard");
+
+      if (mode === "patient") {
+        if (researchCard) researchCard.style.display = "none";
+        if (devCard) devCard.style.display = "none";
+      } else if (mode === "research") {
+        if (researchCard) researchCard.style.display = "flex";
+        if (devCard) devCard.style.display = "none";
+      } else if (mode === "developer") {
+        if (researchCard) researchCard.style.display = "none";
+        if (devCard) devCard.style.display = "flex";
+      }
+    }
+
+    function openReportModal() {
+      if (latestResultPayload && latestResultPayload.vitals) {
+        const v = latestResultPayload.vitals;
+        document.getElementById("repSessionId").innerText = "SESS-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+        document.getElementById("repTimestamp").innerText = new Date().toUTCString();
+        document.getElementById("repSqi").innerText = `${Math.round(v.signal_quality || 85)}% (${v.quality_category || "Optimal"})`;
+
+        if (v.heart_rate && v.heart_rate.value) {
+          document.getElementById("repValHr").innerText = `${v.heart_rate.value.toFixed(1)} BPM`;
+          document.getElementById("repBadgeHr").innerText = v.heart_rate.status || "Normal";
+        }
+        if (v.respiration_rate && v.respiration_rate.value) {
+          document.getElementById("repValRr").innerText = `${v.respiration_rate.value.toFixed(1)} RPM`;
+          document.getElementById("repBadgeRr").innerText = v.respiration_rate.status || "Optimal";
+        }
+        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
+          document.getElementById("repValRmssd").innerText = `${v.pulse_rate_variability.rmssd.toFixed(1)} ms`;
+        }
+        if (v.stress_index && v.stress_index.score) {
+          document.getElementById("repValStress").innerText = `${v.stress_index.score.toFixed(0)} SI`;
+        }
+        if (v.cardiac_workload && v.cardiac_workload.rpp) {
+          document.getElementById("repValRpp").innerText = v.cardiac_workload.rpp.toFixed(1);
+        }
+        if (v.vascular_age && v.vascular_age.estimatedAge) {
+          document.getElementById("repValVascAge").innerText = `${v.vascular_age.estimatedAge.toFixed(1)} Years`;
+        }
+        if (v.cvd_risk && v.cvd_risk.tenYearRiskPct) {
+          document.getElementById("repValCvd").innerText = `${v.cvd_risk.tenYearRiskPct.toFixed(1)} %`;
+        }
+      }
+      document.getElementById("reportModal").style.display = "flex";
+    }
+
+    function closeReportModal() {
+      document.getElementById("reportModal").style.display = "none";
+    }
+
+  </script>
+  <!-- Health Report Modal -->
+  <div class="modal" id="reportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: #0D1B2A; border: 1px solid #1E334A; border-radius: 16px; width: 90%; max-width: 680px; max-height: 90vh; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(0,0,0,0.8);">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1E334A; padding-bottom: 12px;">
+        <h2 style="font-size: 19px; font-weight: 800; color: #00C2D7; display: flex; align-items: center; gap: 8px;">
+          <span>📄</span> AuraPulse Health Intelligence Report
+        </h2>
+        <button class="modal-close" onclick="closeReportModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer;">✕</button>
       </div>
 
-      <div style="font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <div style="font-size: 12px; color: #9AA8B7; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #08121E; padding: 12px; border-radius: 8px;">
         <div>Session ID: <strong id="repSessionId" style="color:#fff;">--</strong></div>
-        <div>Date/Time: <strong id="repTimestamp" style="color:#fff;">--</strong></div>
-        <div>Duration: <strong id="repDuration" style="color:#fff;">60 Seconds</strong></div>
+        <div>Timestamp: <strong id="repTimestamp" style="color:#fff;">--</strong></div>
+        <div>Duration: <strong id="repDuration" style="color:#fff;">30 Seconds</strong></div>
         <div>Signal Quality: <strong id="repSqi" style="color:#10B981;">--</strong></div>
       </div>
 
-      <table class="report-table">
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
         <thead>
-          <tr>
-            <th>Biomarker / Vital</th>
-            <th>Value</th>
-            <th>Status / Rating</th>
+          <tr style="border-bottom: 1px solid #1E334A; color: #9AA8B7; background: #091320;">
+            <th style="padding: 8px 12px;">Biomarker / Vital</th>
+            <th style="padding: 8px 12px;">Extracted Value</th>
+            <th style="padding: 8px 12px;">Clinical Assessment</th>
           </tr>
         </thead>
         <tbody id="reportBodyRows">
-          <tr><td>Heart Rate</td><td id="repValHr">-- BPM</td><td><span class="vital-badge badge-good" id="repBadgeHr">Normal</span></td></tr>
-          <tr><td>Respiration Rate</td><td id="repValRr">-- RPM</td><td><span class="vital-badge badge-good" id="repBadgeRr">Optimal</span></td></tr>
-          <tr><td>Pulse Variability (RMSSD)</td><td id="repValRmssd">-- ms</td><td><span class="vital-badge badge-good" id="repBadgeRmssd">High</span></td></tr>
-          <tr><td>Physiological Stress</td><td id="repValStress">-- SI</td><td><span class="vital-badge badge-good" id="repBadgeStress">Low</span></td></tr>
-          <tr><td>Cardiac Workload (RPP)</td><td id="repValRpp">--</td><td><span class="vital-badge badge-good" id="repBadgeRpp">Normal</span></td></tr>
-          <tr><td>Estimated Vascular Age</td><td id="repValVascAge">-- Years</td><td><span class="vital-badge badge-good" id="repBadgeVascAge">Optimal</span></td></tr>
-          <tr><td>10-Year CVD Risk</td><td id="repValCvd">-- %</td><td><span class="vital-badge badge-good" id="repBadgeCvd">Low</span></td></tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Heart Rate (rPPG)</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValHr">-- BPM</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeHr">Normal</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Respiration Rate</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRr">-- RPM</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRr">Optimal</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Pulse Variability (RMSSD)</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRmssd">-- ms</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRmssd">High</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Physiological Stress Index</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValStress">-- SI</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeStress">Low</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Cardiac Workload (RPP)</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValRpp">--</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeRpp">Normal</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">Estimated Vascular Age</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValVascAge">-- Years</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeVascAge">Optimal</span></td>
+          </tr>
+          <tr style="border-bottom: 1px solid #1E334A;">
+            <td style="padding: 8px 12px; font-weight: 600;">10-Year CVD Risk</td>
+            <td style="padding: 8px 12px; color: #fff; font-weight: 700;" id="repValCvd">-- %</td>
+            <td style="padding: 8px 12px;"><span class="badge-pill optimal" id="repBadgeCvd">Low</span></td>
+          </tr>
         </tbody>
       </table>
 
-      <div class="disclaimer-box">
+      <div style="background: rgba(139, 92, 246, 0.08); border: 1px solid rgba(139, 92, 246, 0.3); padding: 12px; border-radius: 8px; font-size: 11px; color: #C4B5FD; line-height: 1.4;">
         <strong>Notice:</strong> This report is generated on-device for wellness, fitness, and research screening purposes. It is not a medical diagnosis. Consult a licensed healthcare provider for clinical evaluation.
       </div>
 
       <div style="display: flex; gap: 10px;">
-        <button class="btn-action btn-primary" onclick="window.print()">🖨️ Print / Save PDF</button>
-        <button class="btn-action btn-secondary" onclick="closeReportModal()">Close</button>
+        <button class="btn-export" onclick="window.print()" style="flex: 1; padding: 10px; background: #00C2D7; color: #000; font-weight: 700; border: none; border-radius: 8px; cursor: pointer;">🖨️ Print / Save PDF</button>
+        <button class="btn-export" onclick="closeReportModal()" style="flex: 1; padding: 10px; background: #1E334A; color: #fff; font-weight: 600; border: 1px solid #2D4C6E; border-radius: 8px; cursor: pointer;">Close</button>
       </div>
     </div>
   </div>
-
-  <!-- Profile Modal -->
-  <div class="modal-backdrop" id="profileModal">
-    <div class="modal-box" style="max-width: 480px;">
-      <div class="modal-header">
-        <h2>Subject Profile</h2>
-        <button class="btn-close" onclick="closeProfileModal()">✕</button>
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
-        <label>Age: <input type="number" id="profAge" value="35" style="width: 100%; padding: 8px; background: #07111F; border: 1px solid var(--border-color); color: #fff; border-radius: 6px;" /></label>
-        <label>Height (cm): <input type="number" id="profHeight" value="175" style="width: 100%; padding: 8px; background: #07111F; border: 1px solid var(--border-color); color: #fff; border-radius: 6px;" /></label>
-        <label>Weight (kg): <input type="number" id="profWeight" value="72" style="width: 100%; padding: 8px; background: #07111F; border: 1px solid var(--border-color); color: #fff; border-radius: 6px;" /></label>
-        <label>Waist Circumference (cm): <input type="number" id="profWaist" value="84" style="width: 100%; padding: 8px; background: #07111F; border: 1px solid var(--border-color); color: #fff; border-radius: 6px;" /></label>
-      </div>
-      <button class="btn-action btn-primary" onclick="saveProfile()">Save Profile</button>
-    </div>
-  </div>
-
-  <!-- Application Logic & Signal Pipeline -->
-  <script src="/thresholds.js"></script>
-  <script>
-    let currentMode = 'patient';
-    let isScanning = false;
-    let scanSecondsRemaining = 60;
-    let scanInterval = null;
-    let ws = null;
-    let video = document.getElementById('webcam');
-    let overlayCanvas = document.getElementById('canvasOverlay');
-    let ctxOverlay = overlayCanvas.getContext('2d');
-    let waveformCanvas = document.getElementById('canvasWaveform');
-    let ctxWaveform = waveformCanvas.getContext('2d');
-    let fftCanvas = document.getElementById('canvasFft');
-    let ctxFft = fftCanvas ? fftCanvas.getContext('2d') : null;
-
-    let waveformHistory = [];
-    let fpsHistory = [];
-    let lastFrameTime = performance.now();
-    let currentVitals = null;
-    let lastDetectedROIs = null;
-
-    // Initialize Camera
-    async function initCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } },
-          audio: false
-        });
-        video.srcObject = stream;
-        video.onloadedmetadata = () => {
-          overlayCanvas.width = video.videoWidth;
-          overlayCanvas.height = video.videoHeight;
-          requestAnimationFrame(frameLoop);
-        };
-        initWebSocket();
-      } catch (err) {
-        console.error("Camera access error:", err);
-        document.getElementById('cameraStatusText').textContent = "⚠️ Camera Access Denied";
-      }
-    }
-
-    // Connect WebSocket
-    function initWebSocket() {
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${window.location.host}/ws/signals`;
-      ws = new WebSocket(wsUrl);
-
-      ws.onopen = () => {
-        console.log("AuraPulse WebSocket Connected");
-        document.getElementById('devState').textContent = "CONNECTED";
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.vitals) {
-            currentVitals = data.vitals;
-            updateVitalsUI(data.vitals);
-          }
-        } catch (e) {
-          console.error("WS Parse Error:", e);
-        }
-      };
-
-      ws.onclose = () => {
-        console.log("WebSocket Disconnected. Reconnecting...");
-        setTimeout(initWebSocket, 2000);
-      };
-    }
-
-    // Mode Switcher
-    function setProductMode(mode) {
-      currentMode = mode;
-      document.getElementById('btnModePatient').classList.toggle('active', mode === 'patient');
-      document.getElementById('btnModeResearch').classList.toggle('active', mode === 'research');
-      document.getElementById('btnModeDev').classList.toggle('active', mode === 'developer');
-
-      const ovalGuide = document.getElementById('headOvalGuide');
-      const researchGraph = document.getElementById('researchGraphCard');
-      const devCard = document.getElementById('devTelemetryCard');
-
-      if (mode === 'patient') {
-        ovalGuide.style.display = 'block';
-        researchGraph.style.display = 'none';
-        devCard.style.display = 'none';
-      } else if (mode === 'research') {
-        ovalGuide.style.display = 'none';
-        researchGraph.style.display = 'flex';
-        devCard.style.display = 'none';
-      } else if (mode === 'developer') {
-        ovalGuide.style.display = 'none';
-        researchGraph.style.display = 'none';
-        devCard.style.display = 'flex';
-      }
-    }
-
-    // Tab Switcher
-    function switchTab(tabId) {
-      document.getElementById('tabVitals').classList.toggle('active', tabId === 'vitals');
-      document.getElementById('tabCardio').classList.toggle('active', tabId === 'cardio');
-      document.getElementById('tabMetabolic').classList.toggle('active', tabId === 'metabolic');
-
-      document.getElementById('panelVitals').style.display = (tabId === 'vitals') ? 'grid' : 'none';
-      document.getElementById('panelCardio').style.display = (tabId === 'cardio') ? 'grid' : 'none';
-      document.getElementById('panelMetabolic').style.display = (tabId === 'metabolic') ? 'grid' : 'none';
-    }
-
-    // Scan Controller
-    function toggleScan() {
-      if (isScanning) {
-        stopScan();
-      } else {
-        startScan();
-      }
-    }
-
-    function startScan() {
-      isScanning = true;
-      scanSecondsRemaining = 60;
-      document.getElementById('btnStartScan').innerHTML = '<span>⏹</span> Stop Scan';
-      document.getElementById('scanTimerBox').style.display = 'flex';
-      document.getElementById('cameraStatusText').textContent = "🟢 Live Scanning Active • Keep Still";
-
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'reset' }));
-      }
-
-      scanInterval = setInterval(() => {
-        scanSecondsRemaining--;
-        const mins = String(Math.floor(scanSecondsRemaining / 60)).padStart(2, '0');
-        const secs = String(scanSecondsRemaining % 60).padStart(2, '0');
-        document.getElementById('scanTimerText').textContent = `${mins}:${secs}`;
-
-        if (scanSecondsRemaining <= 0) {
-          stopScan();
-          openReportModal();
-        }
-      }, 1000);
-    }
-
-    function stopScan() {
-      isScanning = false;
-      clearInterval(scanInterval);
-      document.getElementById('btnStartScan').innerHTML = '<span>▶</span> Start 60-Second Scan';
-      document.getElementById('scanTimerBox').style.display = 'none';
-      document.getElementById('cameraStatusText').textContent = "✅ Scan Completed • View Health Report";
-    }
-
-    function resetSession() {
-      stopScan();
-      waveformHistory = [];
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'reset' }));
-      }
-      document.getElementById('cameraStatusText').textContent = "📷 Camera Ready • Click Start Scan";
-    }
-
-    // Frame Extraction Loop
-    let sampleCanvas = document.createElement('canvas');
-    let sampleCtx = sampleCanvas.getContext('2d');
-
-    function frameLoop(now) {
-      const delta = (now - lastFrameTime) / 1000;
-      lastFrameTime = now;
-      const currentFps = delta > 0 ? (1 / delta) : 30;
-      fpsHistory.push(currentFps);
-      if (fpsHistory.length > 20) fpsHistory.shift();
-      const avgFps = (fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length).toFixed(1);
-      document.getElementById('valFps').textContent = avgFps;
-
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        const w = video.videoWidth;
-        const h = video.videoHeight;
-        
-        ctxOverlay.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-        // Fast spatial color extraction from forehead and cheeks
-        if (sampleCanvas.width !== w || sampleCanvas.height !== h) {
-          sampleCanvas.width = w;
-          sampleCanvas.height = h;
-        }
-        sampleCtx.drawImage(video, 0, 0, w, h);
-
-        // Extract sample patches
-        const fhX = Math.floor(w * 0.45), fhY = Math.floor(h * 0.20), patchW = Math.floor(w * 0.1), patchH = Math.floor(h * 0.08);
-        const lchX = Math.floor(w * 0.30), lchY = Math.floor(h * 0.50);
-        const rchX = Math.floor(w * 0.60), rchY = Math.floor(h * 0.50);
-
-        const fhImg = sampleCtx.getImageData(fhX, fhY, patchW, patchH);
-        const rgbFh = computeMeanRGB(fhImg.data);
-
-        const lchImg = sampleCtx.getImageData(lchX, lchY, patchW, patchH);
-        const rgbLch = computeMeanRGB(lchImg.data);
-
-        const rchImg = sampleCtx.getImageData(rchX, rchY, patchW, patchH);
-        const rgbRch = computeMeanRGB(rchImg.data);
-
-        // Draw research wireframes if in Research Mode
-        if (currentMode === 'research') {
-          ctxOverlay.strokeStyle = '#00C2D7';
-          ctxOverlay.lineWidth = 2;
-          ctxOverlay.strokeRect(fhX, fhY, patchW, patchH);
-          ctxOverlay.strokeRect(lchX, lchY, patchW, patchH);
-          ctxOverlay.strokeRect(rchX, rchY, patchW, patchH);
-          ctxOverlay.fillStyle = '#00C2D7';
-          ctxOverlay.font = '10px sans-serif';
-          ctxOverlay.fillText('Forehead ROI', fhX, fhY - 4);
-          ctxOverlay.fillText('Left Cheek', lchX, lchY - 4);
-          ctxOverlay.fillText('Right Cheek', rchX, rchY - 4);
-        }
-
-        // Send telemetry to engine
-        if (ws && ws.readyState === WebSocket.OPEN && isScanning) {
-          ws.send(JSON.stringify({
-            timestamp_s: now / 1000,
-            signals: {
-              forehead: rgbFh,
-              left_cheek: rgbLch,
-              right_cheek: rgbRch
-            }
-          }));
-        }
-      }
-
-      drawWaveforms();
-      requestAnimationFrame(frameLoop);
-    }
-
-    function computeMeanRGB(data) {
-      let r = 0, g = 0, b = 0, count = 0;
-      for (let i = 0; i < data.length; i += 4) {
-        r += data[i];
-        g += data[i + 1];
-        b += data[i + 2];
-        count++;
-      }
-      return count > 0 ? [r / count, g / count, b / count] : [0, 0, 0];
-    }
-
-    // Update UI from Vitals Object
-    function updateVitalsUI(v) {
-      if (!v) return;
-
-      const sqi = Math.round(v.signal_quality || 0);
-      document.getElementById('valSqi').textContent = `${sqi} / 100`;
-      document.getElementById('sqiBadgeTop').textContent = `SQI: ${sqi}%`;
-
-      if (v.status === 'VALID') {
-        if (v.heart_rate && v.heart_rate.value) {
-          const hr = Math.round(v.heart_rate.value);
-          document.getElementById('valHr').textContent = hr;
-          setVitalBadge('badgeHr', hr >= 60 && hr <= 100 ? 'Normal' : (hr > 115 ? 'Critical' : 'Elevated'), hr >= 60 && hr <= 100 ? 'good' : (hr > 115 ? 'critical' : 'moderate'));
-        }
-
-        if (v.respiration_rate && v.respiration_rate.value) {
-          const rr = Math.round(v.respiration_rate.value);
-          document.getElementById('valRr').textContent = rr;
-          setVitalBadge('badgeRr', rr >= 12 && rr <= 20 ? 'Optimal' : 'Borderline', rr >= 12 && rr <= 20 ? 'good' : 'moderate');
-        }
-
-        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
-          const rmssd = Math.round(v.pulse_rate_variability.rmssd);
-          document.getElementById('valRmssd').textContent = rmssd;
-          setVitalBadge('badgeRmssd', rmssd > 50 ? 'High Recovery' : (rmssd >= 25 ? 'Moderate' : 'Low'), rmssd > 50 ? 'good' : (rmssd >= 25 ? 'moderate' : 'critical'));
-        }
-
-        if (v.stress_index && v.stress_index.score) {
-          const si = Math.round(v.stress_index.score);
-          document.getElementById('valStress').textContent = si;
-          setVitalBadge('badgeStress', si < 50 ? 'Low Stress' : (si < 150 ? 'Moderate' : 'High'), si < 50 ? 'good' : (si < 150 ? 'moderate' : 'critical'));
-        }
-
-        if (v.cardiac_workload && v.cardiac_workload.rpp) {
-          document.getElementById('valRpp').textContent = Math.round(v.cardiac_workload.rpp);
-        }
-
-        if (v.wellness_indices && v.wellness_indices.pnsRecovery) {
-          document.getElementById('valPns').textContent = Math.round(v.wellness_indices.pnsRecovery);
-        }
-
-        if (v.wellness_indices && v.wellness_indices.prq) {
-          document.getElementById('valPrq').textContent = v.wellness_indices.prq.toFixed(1);
-        }
-
-        if (v.blood_pressure && v.blood_pressure.systolic) {
-          document.getElementById('valBp').textContent = `${Math.round(v.blood_pressure.systolic)} / ${Math.round(v.blood_pressure.diastolic)}`;
-        }
-
-        if (v.spo2 && v.spo2.value) {
-          document.getElementById('valSpo2').textContent = Math.round(v.spo2.value);
-        }
-
-        if (v.vascular_age && v.vascular_age.estimatedAge) {
-          document.getElementById('valVascAge').textContent = Math.round(v.vascular_age.estimatedAge);
-        }
-
-        if (v.cvd_risk && v.cvd_risk.tenYearRiskPct) {
-          document.getElementById('valCvd').textContent = v.cvd_risk.tenYearRiskPct.toFixed(1);
-        }
-
-        if (v.pulse_waveform && v.pulse_waveform.length > 0) {
-          waveformHistory = v.pulse_waveform;
-        }
-      }
-    }
-
-    function setVitalBadge(elementId, text, type) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.textContent = text;
-      el.className = `vital-badge badge-${type}`;
-    }
-
-    // Draw Live Waveform
-    function drawWaveforms() {
-      if (!ctxWaveform) return;
-      const w = waveformCanvas.width = waveformCanvas.clientWidth;
-      const h = waveformCanvas.height = waveformCanvas.clientHeight;
-
-      ctxWaveform.clearRect(0, 0, w, h);
-      ctxWaveform.lineWidth = 2.5;
-      ctxWaveform.strokeStyle = '#00C2D7';
-
-      if (waveformHistory.length < 2) return;
-
-      ctxWaveform.beginPath();
-      const step = w / (waveformHistory.length - 1);
-      const minVal = Math.min(...waveformHistory);
-      const maxVal = Math.max(...waveformHistory);
-      const range = (maxVal - minVal) || 1;
-
-      for (let i = 0; i < waveformHistory.length; i++) {
-        const x = i * step;
-        const norm = (waveformHistory[i] - minVal) / range;
-        const y = h - (norm * (h - 20) + 10);
-        if (i === 0) ctxWaveform.moveTo(x, y);
-        else ctxWaveform.lineTo(x, y);
-      }
-      ctxWaveform.stroke();
-    }
-
-    // Modal Helpers
-    function openReportModal() {
-      if (currentVitals) {
-        document.getElementById('repSessionId').textContent = 'SESS-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-        document.getElementById('repTimestamp').textContent = new Date().toUTCString();
-        document.getElementById('repSqi').textContent = `${Math.round(currentVitals.signal_quality || 85)}% (Optimal)`;
-
-        if (currentVitals.heart_rate) document.getElementById('repValHr').textContent = `${Math.round(currentVitals.heart_rate.value)} BPM`;
-        if (currentVitals.respiration_rate) document.getElementById('repValRr').textContent = `${Math.round(currentVitals.respiration_rate.value)} RPM`;
-        if (currentVitals.pulse_rate_variability) document.getElementById('repValRmssd').textContent = `${Math.round(currentVitals.pulse_rate_variability.rmssd)} ms`;
-        if (currentVitals.stress_index) document.getElementById('repValStress').textContent = `${Math.round(currentVitals.stress_index.score)} SI`;
-        if (currentVitals.cardiac_workload) document.getElementById('repValRpp').textContent = `${Math.round(currentVitals.cardiac_workload.rpp)}`;
-        if (currentVitals.vascular_age) document.getElementById('repValVascAge').textContent = `${Math.round(currentVitals.vascular_age.estimatedAge)} Years`;
-        if (currentVitals.cvd_risk) document.getElementById('repValCvd').textContent = `${currentVitals.cvd_risk.tenYearRiskPct.toFixed(1)} %`;
-      }
-      document.getElementById('reportModal').style.display = 'flex';
-    }
-
-    function closeReportModal() {
-      document.getElementById('reportModal').style.display = 'none';
-    }
-
-    function openProfileModal() {
-      document.getElementById('profileModal').style.display = 'flex';
-    }
-
-    function closeProfileModal() {
-      document.getElementById('profileModal').style.display = 'none';
-    }
-
-    function saveProfile() {
-      const age = parseFloat(document.getElementById('profAge').value);
-      const height = parseFloat(document.getElementById('profHeight').value);
-      const weight = parseFloat(document.getElementById('profWeight').value);
-      const waist = parseFloat(document.getElementById('profWaist').value);
-
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({
-          type: 'update_profile',
-          profile: { age, height_cm: height, weight_kg: weight, waist_cm: waist }
-        }));
-      }
-      closeProfileModal();
-    }
-
-    // Start on load
-    window.addEventListener('load', initCamera);
-  </script>
 </body>
 </html>
