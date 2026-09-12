@@ -120,7 +120,39 @@
       flex: 1;
     }
 
+    
+    /* Mobile & Tablet Responsive Viewport */
+    @media (max-width: 768px) {
+      .video-viewport {
+        max-height: 220px !important;
+        aspect-ratio: 16 / 9 !important;
+      }
+      .container {
+        padding: 8px 10px !important;
+        gap: 10px !important;
+      }
+      .video-panel {
+        border-radius: 12px !important;
+      }
+      .header-actions {
+        gap: 6px !important;
+        flex-wrap: wrap !important;
+      }
+      .brand h1 {
+        font-size: 15px !important;
+      }
+      .btn-action-header {
+        padding: 5px 10px !important;
+        font-size: 11px !important;
+      }
+      .status-banner {
+        font-size: 11px !important;
+        padding: 6px 10px !important;
+      }
+    }
+
     @media (max-width: 1150px) {
+
       .container {
         grid-template-columns: 1fr;
       }
@@ -1621,40 +1653,69 @@
 
     initCamera();
 
-    startBtn.addEventListener("click", async () => {
-      if (wsReady && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "reset" }));
-      } else {
-        await fetch("/api/reset", { method: "POST" });
+        startBtn.addEventListener("click", async () => {
+      if (isScanning) {
+        // Stop / Cancel Current Scan
+        isScanning = false;
+        startBtn.innerText = "Start 60s Scan";
+        startBtn.style.background = "";
+        statusBanner.innerHTML = "<span>● Scan paused. Ready to resume or start new scan.</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>" + scanTimer.innerText + "</span>";
+        return;
       }
+
+      // Start / Restart Fresh Scan
+      try {
+        await fetch("/api/reset", { method: "POST" });
+        if (wsReady && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "reset" }));
+        }
+      } catch (e) {}
+
       isScanning = true;
       scanCompleted = false;
       scanFramesCount = 0;
       scanStartTime = performance.now();
       waveformBuffer = [];
-      startBtn.disabled = true;
-      startBtn.innerText = "Scanning in Progress (60s)...";
-      statusBanner.innerHTML = "<span>ΓùÅ Analyzing multi-spectral facial stream...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
+      startBtn.disabled = false;
+      startBtn.innerText = "Stop / Cancel Scan";
+      startBtn.style.background = "linear-gradient(135deg, #ef4444, #b91c1c)";
+      statusBanner.innerHTML = "<span>● Analyzing multi-spectral facial stream...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>0s / 60s</span>";
 
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      triggerKeyframeDetection();
     });
 
     resetBtn.addEventListener("click", async () => {
-      if (wsReady && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: "reset" }));
-      } else {
+      try {
         await fetch("/api/reset", { method: "POST" });
-      }
+        if (wsReady && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "reset" }));
+        }
+      } catch (e) {}
+
       isScanning = false;
       scanCompleted = false;
       scanFramesCount = 0;
+      waveformBuffer = [];
       startBtn.disabled = false;
       startBtn.innerText = "Start 60s Scan";
+      startBtn.style.background = "";
       scanTimer.innerText = "Ready";
       telFps.innerText = "--";
-      statusBanner.innerHTML = "<span>ΓùÅ Session reset. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
+      statusBanner.innerHTML = "<span>● Session reset. Ready for scan.</span><span style='color:var(--text-muted); font-size:11px;'>60s Target</span>";
       overlayCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
       waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+      
+      // Reset displayed values to initial placeholder
+      if (hrValue) hrValue.innerText = "--";
+      if (rrValue) rrValue.innerText = "--";
+      if (bpValue) bpValue.innerText = "-- / --";
+      if (spo2Value) spo2Value.innerText = "--";
+      if (prvValue) prvValue.innerText = "--";
+      if (prqValue) prqValue.innerText = "--";
+      if (sqiValue) sqiValue.innerText = "-- / 100";
+      
+      triggerKeyframeDetection();
     });
 
     downloadBtn.addEventListener("click", () => {
@@ -1766,6 +1827,7 @@
             scanTimer.innerText = "60s / 60s (Completed)";
             startBtn.disabled = false;
             startBtn.innerText = "Start New 60s Scan";
+            startBtn.style.background = "";
             statusBanner.innerHTML = "<span style='color:#10b981;'>Γ£à 60s Health Screening Completed ΓÇö Report Locked</span>";
           } else {
             scanTimer.innerText = `${Math.floor(elapsed)}s / 60s`;
@@ -1777,7 +1839,8 @@
         sampleCtx.drawImage(video, 0, 0, sampleCanvas.width, sampleCanvas.height);
         renderOverlays();
 
-        if (nowMs - lastKeyframeTime > 1500) {
+        const detectInterval = (activeFaceBBox && activeROIs) ? 1500 : 500;
+        if (nowMs - lastKeyframeTime > detectInterval) {
           triggerKeyframeDetection();
         }
 
