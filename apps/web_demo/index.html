@@ -562,7 +562,7 @@
         ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data);
-            if (data.vitals) {
+            if (data.vitals && isScanning) {
               latestResultPayload = data;
               updateDashboard(data);
             }
@@ -607,6 +607,8 @@
 
     initCamera();
 
+    let scanCompleted = false;
+
     startBtn.addEventListener("click", async () => {
       if (wsReady && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "reset" }));
@@ -614,10 +616,26 @@
         await fetch("/api/reset", { method: "POST" });
       }
       isScanning = true;
+      scanCompleted = false;
       scanStartTime = performance.now();
       waveformBuffer = [];
       startBtn.disabled = true;
-      startBtn.innerText = "Scanning in Progress...";
+      startBtn.innerText = "Scanning in Progress (30s)...";
+      statusBanner.innerText = "Starting new measurement scan...";
+      statusBanner.style.borderLeftColor = "#06b6d4";
+
+      // Reset displayed values for fresh scan
+      hrValue.innerText = "--";
+      hrConf.innerText = "--%";
+      rrValue.innerText = "--";
+      rrConf.innerText = "--%";
+      prvValue.innerText = "--";
+      sdnnValue.innerText = "--";
+      stressValue.innerText = "--";
+      stressLevel.innerText = "Analyzing...";
+      sqiValue.innerText = "0 / 100 (Acquiring)";
+      sqiProgress.style.width = "0%";
+      waveCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
     });
 
     resetBtn.addEventListener("click", async () => {
@@ -627,12 +645,16 @@
         await fetch("/api/reset", { method: "POST" });
       }
       isScanning = false;
+      scanCompleted = false;
       startBtn.disabled = false;
       startBtn.innerText = "Start 30s Scan";
       scanTimer.innerText = "Ready";
       statusBanner.innerText = "Session reset. Ready for scan.";
+      statusBanner.style.borderLeftColor = "#06b6d4";
       hrValue.innerText = "--";
+      hrConf.innerText = "--%";
       rrValue.innerText = "--";
+      rrConf.innerText = "--%";
       prvValue.innerText = "--";
       sdnnValue.innerText = "--";
       stressValue.innerText = "--";
@@ -751,10 +773,16 @@
 
         if (isScanning) {
           const elapsed = (nowMs - scanStartTime) / 1000;
-          scanTimer.innerText = `${Math.min(30, Math.floor(elapsed))}s / 30s`;
-          if (elapsed >= 30) {
+          if (elapsed >= 30.0) {
+            isScanning = false;
+            scanCompleted = true;
+            scanTimer.innerText = "30s / 30s (Completed)";
             startBtn.disabled = false;
-            startBtn.innerText = "Restart Scan";
+            startBtn.innerText = "Start New 30s Scan";
+            statusBanner.innerText = "✅ 30s Scan Completed — Final Report Locked";
+            statusBanner.style.borderLeftColor = "#10b981";
+          } else {
+            scanTimer.innerText = `${Math.floor(elapsed)}s / 30s`;
           }
         }
 
@@ -769,7 +797,7 @@
           triggerKeyframeDetection();
         }
 
-        // Extract ROI Signals & Stream via non-blocking WebSocket
+        // Extract ROI Signals & Stream via non-blocking WebSocket ONLY while actively scanning
         if (activeROIs && isScanning) {
           const roiSignals = {};
           for (const [rName, rData] of Object.entries(activeROIs)) {
@@ -791,7 +819,7 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload)
             }).then(r => r.json()).then(data => {
-              if (data && data.vitals) {
+              if (data && data.vitals && isScanning) {
                 latestResultPayload = data;
                 updateDashboard(data);
               }
