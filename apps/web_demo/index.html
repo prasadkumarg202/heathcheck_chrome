@@ -1592,14 +1592,12 @@
 
     // UI Field References
     const hrValue = document.getElementById("hrValue");
-    const hrConf = document.getElementById("hrConf");
     const hrBadge = document.getElementById("hrBadge");
     const hrSubtext = document.getElementById("hrSubtext");
     const maxHrValue = document.getElementById("maxHrValue");
     const hrZoneValue = document.getElementById("hrZoneValue");
 
     const rrValue = document.getElementById("rrValue");
-    const rrConf = document.getElementById("rrConf");
     const rrBadge = document.getElementById("rrBadge");
     const rrSubtext = document.getElementById("rrSubtext");
     const respPatternValue = document.getElementById("respPatternValue");
@@ -1611,6 +1609,8 @@
     const mapValue = document.getElementById("mapValue");
     const baRatioValue = document.getElementById("baRatioValue");
 
+    const flowBadge = document.getElementById("flowBadge");
+    const flowSubtext = document.getElementById("flowSubtext");
     const coValue = document.getElementById("coValue");
     const svrValue = document.getElementById("svrValue");
 
@@ -1632,6 +1632,7 @@
 
     const readinessValue = document.getElementById("readinessValue");
     const readinessBadge = document.getElementById("readinessBadge");
+    const readinessSubtext = document.getElementById("readinessSubtext");
     const allostaticValue = document.getElementById("allostaticValue");
 
     const vo2MaxValue = document.getElementById("vo2MaxValue");
@@ -1641,13 +1642,17 @@
 
     const coherenceValue = document.getElementById("coherenceValue");
     const coherenceBadge = document.getElementById("coherenceBadge");
+    const coherenceSubtext = document.getElementById("coherenceSubtext");
     const phaseShiftValue = document.getElementById("phaseShiftValue");
 
     const arrhythmiaStatusValue = document.getElementById("arrhythmiaStatusValue");
     const arrhythmiaBadge = document.getElementById("arrhythmiaBadge");
+    const arrhythmiaSubtext = document.getElementById("arrhythmiaSubtext");
     const pvcBurdenValue = document.getElementById("pvcBurdenValue");
     const cvPctValue = document.getElementById("cvPctValue");
 
+    const ansBadge = document.getElementById("ansBadge");
+    const ansSubtext = document.getElementById("ansSubtext");
     const lfHfValue = document.getElementById("lfHfValue");
     const cviValue = document.getElementById("cviValue");
     const csiValue = document.getElementById("csiValue");
@@ -1661,28 +1666,37 @@
     const vascAgeValue = document.getElementById("vascAgeValue");
     const vascDeltaValue = document.getElementById("vascDeltaValue");
     const vascStatusBadge = document.getElementById("vascStatusBadge");
+    const vascSubtext = document.getElementById("vascSubtext");
     const plaqueRiskValue = document.getElementById("plaqueRiskValue");
 
     const tygValue = document.getElementById("tygValue");
     const tygBadge = document.getElementById("tygBadge");
+    const tygSubtext = document.getElementById("tygSubtext");
     const tgHdlValue = document.getElementById("tgHdlValue");
 
     const fbgValue = document.getElementById("fbgValue");
     const fbgBadge = document.getElementById("fbgBadge");
+    const fbgSubtext = document.getElementById("fbgSubtext");
     const vaiValue = document.getElementById("vaiValue");
 
     const hba1cValue = document.getElementById("hba1cValue");
     const hba1cBadge = document.getElementById("hba1cBadge");
+    const hba1cSubtext = document.getElementById("hba1cSubtext");
     const metsScoreValue = document.getElementById("metsScoreValue");
 
     const hbValue = document.getElementById("hbValue");
     const hbBadge = document.getElementById("hbBadge");
+    const hbSubtext = document.getElementById("hbSubtext");
     const hbRefRange = document.getElementById("hbRefRange");
 
     const bmiValue = document.getElementById("bmiValue");
     const bmiBadge = document.getElementById("bmiBadge");
+    const bmiSubtext = document.getElementById("bmiSubtext");
     const briValue = document.getElementById("briValue");
     const whtrValue = document.getElementById("whtrValue");
+
+    const poincareStats = document.getElementById("poincareStats");
+    const respCadenceLabel = document.getElementById("respCadenceLabel");
 
     const sqiValue = document.getElementById("sqiValue");
     const telLighting = document.getElementById("telLighting");
@@ -1781,84 +1795,105 @@
     function resetAllDashboardMetrics() {
       if (hrValue) hrValue.innerText = "--";
       if (hrBadge) { hrBadge.innerText = "⚪ Waiting"; hrBadge.className = "badge-pill neutral"; }
-      if (hrConf) hrConf.innerText = "--%";
       if (maxHrValue) maxHrValue.innerText = "--";
       if (hrZoneValue) hrZoneValue.innerText = "--";
+      if (hrSubtext) hrSubtext.innerText = "Normal resting baseline (60-100 BPM)";
       
       if (rrValue) rrValue.innerText = "--";
       if (rrBadge) { rrBadge.innerText = "⚪ Waiting"; rrBadge.className = "badge-pill neutral"; }
       if (respPatternValue) respPatternValue.innerText = "Eupnea";
       if (ieRatioValue) ieRatioValue.innerText = "1:1.6";
+      if (rrSubtext) rrSubtext.innerText = "Healthy eupnea range (12-20 RPM)";
 
       if (bpValue) bpValue.innerText = "-- / --";
       if (bpBadge) { bpBadge.innerText = "⚪ Waiting"; bpBadge.className = "badge-pill neutral"; }
       if (mapValue) mapValue.innerText = "--";
       if (baRatioValue) baRatioValue.innerText = "--";
+      if (bpSubtext) bpSubtext.innerText = "AHA Clinical Guideline Stratification";
 
+      if (flowBadge) { flowBadge.innerText = "🔬 Flow Proxy"; flowBadge.className = "badge-pill neutral"; }
       if (coValue) coValue.innerText = "--";
       if (svrValue) svrValue.innerText = "--";
 
       if (spo2Value) spo2Value.innerText = "--";
       if (spo2Badge) { spo2Badge.innerText = "⚪ Waiting"; spo2Badge.className = "badge-pill neutral"; }
       if (spo2Ratio) spo2Ratio.innerText = "--";
+      if (spo2Subtext) spo2Subtext.innerText = "Dual-wavelength Ratio-of-Ratios";
 
       if (prvValue) prvValue.innerText = "--";
       if (prvBadge) { prvBadge.innerText = "⚪ Waiting"; prvBadge.className = "badge-pill neutral"; }
       if (triIndexValue) triIndexValue.innerText = "--";
       if (tinnValue) tinnValue.innerText = "--";
+      if (prvSubtext) prvSubtext.innerText = "Autonomic vagal recovery indicator";
 
       if (baevskyValue) baevskyValue.innerText = "--";
       if (baevskyBadge) { baevskyBadge.innerText = "⚪ Waiting"; baevskyBadge.className = "badge-pill neutral"; }
       if (stressResistValue) stressResistValue.innerText = "--";
+      if (baevskySubtext) baevskySubtext.innerText = "Sympathetic regulatory tension strain";
 
       if (readinessValue) readinessValue.innerText = "--";
       if (readinessBadge) { readinessBadge.innerText = "⚪ Waiting"; readinessBadge.className = "badge-pill neutral"; }
       if (allostaticValue) allostaticValue.innerText = "--";
+      if (readinessSubtext) readinessSubtext.innerText = "Composite autonomic recovery capacity";
 
       if (vo2MaxValue) vo2MaxValue.innerText = "--";
       if (vo2MaxBadge) { vo2MaxBadge.innerText = "⚪ Waiting"; vo2MaxBadge.className = "badge-pill neutral"; }
       if (fitnessAgeValue) fitnessAgeValue.innerText = "-- yrs";
+      if (vo2MaxSubtext) vo2MaxSubtext.innerText = "Jackson-Pollock Non-Exercise Model";
 
       if (coherenceValue) coherenceValue.innerText = "--";
       if (coherenceBadge) { coherenceBadge.innerText = "⚪ Waiting"; coherenceBadge.className = "badge-pill neutral"; }
       if (phaseShiftValue) phaseShiftValue.innerText = "--°";
+      if (coherenceSubtext) coherenceSubtext.innerText = "Cardiorespiratory spectral alignment";
 
       if (arrhythmiaStatusValue) arrhythmiaStatusValue.innerText = "--";
       if (arrhythmiaBadge) { arrhythmiaBadge.innerText = "⚪ Waiting"; arrhythmiaBadge.className = "badge-pill neutral"; }
       if (pvcBurdenValue) pvcBurdenValue.innerText = "0.0%";
       if (cvPctValue) cvPctValue.innerText = "--%";
+      if (arrhythmiaSubtext) arrhythmiaSubtext.innerText = "Poincaré SD1/SD2 geometry & Entropy";
 
+      if (ansBadge) { ansBadge.innerText = "⚪ Waiting"; ansBadge.className = "badge-pill neutral"; }
       if (lfHfValue) lfHfValue.innerText = "--";
       if (cviValue) cviValue.innerText = "--";
       if (csiValue) csiValue.innerText = "--";
+      if (ansSubtext) ansSubtext.innerText = "Sympathovagal spectral distribution";
 
       if (cvdRiskScore) { cvdRiskScore.innerText = "--%"; cvdRiskScore.className = "risk-score-badge"; }
       if (score2Value) score2Value.innerText = "--%";
       if (lifetimeRiskValue) lifetimeRiskValue.innerText = "--%";
+      if (cvdCatLabel) cvdCatLabel.innerText = "Cardiovascular Risk Projections";
+      if (cvdSubtext) cvdSubtext.innerText = "Framingham ASCVD & ESC SCORE2 European Consensus";
 
       if (vascAgeValue) vascAgeValue.innerText = "--";
       if (vascDeltaValue) vascDeltaValue.innerText = "Delta: -- yrs";
       if (vascStatusBadge) { vascStatusBadge.innerText = "⚪ Waiting"; vascStatusBadge.className = "badge-pill neutral"; }
       if (plaqueRiskValue) plaqueRiskValue.innerText = "Low";
+      if (vascSubtext) vascSubtext.innerText = "Arterial compliance & Aging Index (AGI)";
 
       if (tygValue) tygValue.innerText = "--";
+      if (tygBadge) { tygBadge.innerText = "🔬 TyG Index"; tygBadge.className = "badge-pill neutral"; }
       if (tgHdlValue) tgHdlValue.innerText = "--";
+      if (tygSubtext) tygSubtext.innerText = "Triglyceride-Glucose metabolic product";
 
       if (fbgValue) fbgValue.innerText = "--";
       if (fbgBadge) { fbgBadge.innerText = "⚪ Waiting"; fbgBadge.className = "badge-pill neutral"; }
       if (vaiValue) vaiValue.innerText = "--";
+      if (fbgSubtext) fbgSubtext.innerText = "Multi-variate glycemic risk indicator";
 
       if (hba1cValue) hba1cValue.innerText = "--";
       if (hba1cBadge) { hba1cBadge.innerText = "⚪ Waiting"; hba1cBadge.className = "badge-pill neutral"; }
       if (metsScoreValue) metsScoreValue.innerText = "--";
+      if (hba1cSubtext) hba1cSubtext.innerText = "Estimated 3-month glycemic exposure tier";
 
       if (hbValue) hbValue.innerText = "--";
       if (hbBadge) { hbBadge.innerText = "⚪ Waiting"; hbBadge.className = "badge-pill neutral"; }
+      if (hbSubtext) hbSubtext.innerText = "Differential optical extinction model";
 
       if (bmiValue) bmiValue.innerText = "--";
       if (bmiBadge) { bmiBadge.innerText = "⚪ Waiting"; bmiBadge.className = "badge-pill neutral"; }
       if (briValue) briValue.innerText = "--";
       if (whtrValue) whtrValue.innerText = "--";
+      if (bmiSubtext) bmiSubtext.innerText = "Anthropometric body roundness analysis";
 
       if (sqiValue) sqiValue.innerText = "-- / 100";
     }
@@ -2146,408 +2181,433 @@
     }
 
     function updateDashboard(data) {
-      const v = data.vitals;
-      const CT = window.CLINICAL_THRESHOLDS || {};
+      if (!data || !data.vitals) return;
+      try {
+        const v = data.vitals;
+        const CT = window.CLINICAL_THRESHOLDS || {};
 
-      if (v.status === "VALID" || v.status === "valid" || (v.heart_rate && v.heart_rate.value !== null)) {
-        statusBanner.innerHTML = `<span>● Signal Quality: ${v.quality_category} (${Math.round(v.signal_quality)}%)</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
-
-        // 1. Heart Rate & Zones
-        if (v.heart_rate && v.heart_rate.value) {
-          const hrVal = v.heart_rate.value;
-          hrValue.innerText = hrVal.toFixed(1);
-          hrConf.innerText = `${Math.round(v.heart_rate.confidence * 100)}%`;
-          if (v.heart_rate.maxHrBpm && maxHrValue) maxHrValue.innerText = Math.round(v.heart_rate.maxHrBpm);
-          if (v.heart_rate.hrZone && hrZoneValue) hrZoneValue.innerText = v.heart_rate.hrZone;
-
-          if (CT.heartRate) {
-            const e = CT.heartRate.evaluate(hrVal);
-            hrBadge.innerText = e.badge;
-            hrBadge.className = `badge-pill ${e.state}`;
-            hrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-            hrSubtext.innerText = e.subtext;
-          }
-          const repHr = document.getElementById("repValHr");
-          const repHrB = document.getElementById("repBadgeHr");
-          if (repHr) repHr.innerText = `${hrVal.toFixed(1)} BPM (${v.heart_rate.hrZone || "Resting"})`;
-          if (repHrB && CT.heartRate) {
-            const e = CT.heartRate.evaluate(hrVal);
-            repHrB.innerText = e.badge;
-            repHrB.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 2. Respiration Rate & Pattern
-        if (v.respiration_rate && v.respiration_rate.value) {
-          const rrVal = v.respiration_rate.value;
-          rrValue.innerText = rrVal.toFixed(1);
-          rrConf.innerText = `${Math.round(v.respiration_rate.confidence * 100)}%`;
-          if (v.respiration_rate.pattern && respPatternValue) respPatternValue.innerText = v.respiration_rate.pattern;
-          if (v.respiration_rate.ieRatio && ieRatioValue) ieRatioValue.innerText = `1:${v.respiration_rate.ieRatio.toFixed(1)}`;
-
-          if (CT.respirationRate) {
-            const e = CT.respirationRate.evaluate(rrVal);
-            rrBadge.innerText = e.badge;
-            rrBadge.className = `badge-pill ${e.state}`;
-            rrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-            rrSubtext.innerText = e.subtext;
-          }
-          const repRr = document.getElementById("repValRr");
-          const repRrB = document.getElementById("repBadgeRr");
-          if (repRr) repRr.innerText = `${rrVal.toFixed(1)} RPM (${v.respiration_rate.pattern || "Eupnea"})`;
-          if (repRrB && CT.respirationRate) {
-            const e = CT.respirationRate.evaluate(rrVal);
-            repRrB.innerText = e.badge;
-            repRrB.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 3. Blood Pressure & Hemodynamics
-        if (v.blood_pressure && v.blood_pressure.systolic) {
-          const sbp = v.blood_pressure.systolic;
-          const dbp = v.blood_pressure.diastolic;
-          bpValue.innerText = `${Math.round(sbp)} / ${Math.round(dbp)}`;
-          mapValue.innerText = Math.round(v.blood_pressure.map || (dbp + (sbp - dbp) / 3));
-          if (v.blood_pressure.baRatio && baRatioValue) baRatioValue.innerText = v.blood_pressure.baRatio.toFixed(2);
-          if (v.blood_pressure.cardiacOutput && coValue) coValue.innerText = v.blood_pressure.cardiacOutput.toFixed(1);
-          if (v.blood_pressure.svr && svrValue) svrValue.innerText = Math.round(v.blood_pressure.svr);
-
-          if (CT.bloodPressure) {
-            const e = CT.bloodPressure.evaluate(sbp, dbp);
-            bpBadge.innerText = e.badge;
-            bpBadge.className = `badge-pill ${e.state}`;
-            bpValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-            bpSubtext.innerText = e.subtext;
-          }
-          const repBp = document.getElementById("repValBp");
-          const repBpB = document.getElementById("repBadgeBp");
-          if (repBp) repBp.innerText = `${Math.round(sbp)} / ${Math.round(dbp)} mmHg`;
-          if (repBpB && CT.bloodPressure) {
-            const e = CT.bloodPressure.evaluate(sbp, dbp);
-            repBpB.innerText = e.badge;
-            repBpB.className = `badge-pill ${e.state}`;
-          }
-          const repCo = document.getElementById("repValCo");
-          const repCoB = document.getElementById("repBadgeCo");
-          if (repCo) repCo.innerText = `${(v.blood_pressure.cardiacOutput || 5.2).toFixed(1)} L/min (SVR: ${Math.round(v.blood_pressure.svr || 1150)})`;
-          if (repCoB) { repCoB.innerText = "🔬 Flow Proxy"; repCoB.className = "badge-pill neutral"; }
-        }
-
-        // 4. Oxygen Saturation (SpO2)
-        if (v.spo2 && v.spo2.value) {
-          const spo2Val = v.spo2.value;
-          spo2Value.innerText = spo2Val.toFixed(1);
-          spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
-          if (CT.spo2) {
-            const e = CT.spo2.evaluate(spo2Val);
-            spo2Badge.innerText = e.badge;
-            spo2Badge.className = `badge-pill ${e.state}`;
-            spo2Value.style.color = e.state === "optimal" ? "#fff" : e.color;
-            spo2Subtext.innerText = e.subtext;
-          }
-          const repSpo2 = document.getElementById("repValSpo2");
-          const repSpo2B = document.getElementById("repBadgeSpo2");
-          if (repSpo2) repSpo2.innerText = `${spo2Val.toFixed(1)} %`;
-          if (repSpo2B && CT.spo2) {
-            const e = CT.spo2.evaluate(spo2Val);
-            repSpo2B.innerText = e.badge;
-            repSpo2B.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 5. HRV (RMSSD, SDNN, Triangular Index, TINN)
-        if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
-          const rmssdVal = v.pulse_rate_variability.rmssd;
-          prvValue.innerText = rmssdVal.toFixed(1);
-          if (v.pulse_rate_variability.triangularIndex && triIndexValue) triIndexValue.innerText = v.pulse_rate_variability.triangularIndex.toFixed(1);
-          if (v.pulse_rate_variability.tinnMs && tinnValue) tinnValue.innerText = Math.round(v.pulse_rate_variability.tinnMs);
-
-          if (CT.rmssd) {
-            const e = CT.rmssd.evaluate(rmssdVal);
-            prvBadge.innerText = e.badge;
-            prvBadge.className = `badge-pill ${e.state}`;
-            prvValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-            prvSubtext.innerText = e.subtext;
-          }
-          const repRmssd = document.getElementById("repValRmssd");
-          const repRmssdB = document.getElementById("repBadgeRmssd");
-          if (repRmssd) repRmssd.innerText = `${rmssdVal.toFixed(1)} ms (TI: ${(v.pulse_rate_variability.triangularIndex || 12).toFixed(1)})`;
-          if (repRmssdB && CT.rmssd) {
-            const e = CT.rmssd.evaluate(rmssdVal);
-            repRmssdB.innerText = e.badge;
-            repRmssdB.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 6. Baevsky Stress Index & Resistance Score
-        if (v.stress_index && v.stress_index.baevskyIndex) {
-          const bVal = v.stress_index.baevskyIndex;
-          baevskyValue.innerText = bVal.toFixed(0);
-          if (v.pulse_rate_variability && v.pulse_rate_variability.stressResistanceScore && stressResistValue) {
-            stressResistValue.innerText = Math.round(v.pulse_rate_variability.stressResistanceScore);
+        if (v.status === "VALID" || v.status === "valid" || (v.heart_rate && v.heart_rate.value !== null)) {
+          if (statusBanner && isScanning) {
+            statusBanner.innerHTML = `<span>● Signal Quality: ${v.quality_category || "Good"} (${Math.round(v.signal_quality || 0)}%)</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer ? scanTimer.innerText : ""}</span>`;
           }
 
-          if (CT.baevskyStress) {
-            const e = CT.baevskyStress.evaluate(bVal);
-            baevskyBadge.innerText = e.badge;
-            baevskyBadge.className = `badge-pill ${e.state}`;
-            baevskyValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-            baevskySubtext.innerText = e.subtext;
-          }
-          const repRes = document.getElementById("repValResist");
-          const repResB = document.getElementById("repBadgeResist");
-          const resScore = v.pulse_rate_variability ? (v.pulse_rate_variability.stressResistanceScore || 75) : 75;
-          if (repRes) repRes.innerText = `${Math.round(resScore)} / 100`;
-          if (repResB && CT.stressResistance) {
-            const e = CT.stressResistance.evaluate(resScore);
-            repResB.innerText = e.badge;
-            repResB.className = `badge-pill ${e.state}`;
-          }
-        }
+          // 1. Heart Rate & Zones
+          if (v.heart_rate && v.heart_rate.value) {
+            const hrVal = v.heart_rate.value;
+            if (hrValue) hrValue.innerText = hrVal.toFixed(1);
+            if (maxHrValue && v.heart_rate.maxHrBpm) maxHrValue.innerText = Math.round(v.heart_rate.maxHrBpm);
+            if (hrZoneValue && v.heart_rate.hrZone) hrZoneValue.innerText = v.heart_rate.hrZone;
 
-        // 7. Training Readiness & Recovery
-        if (v.fitness_vo2max && v.fitness_vo2max.readinessScore !== undefined) {
-          const readVal = v.fitness_vo2max.readinessScore;
-          if (readinessValue) readinessValue.innerText = Math.round(readVal);
-          if (allostaticValue && v.fitness_vo2max.allostaticLoad !== undefined) {
-            allostaticValue.innerText = v.fitness_vo2max.allostaticLoad.toFixed(1);
-          }
-          if (CT.trainingReadiness && readinessBadge) {
-            const e = CT.trainingReadiness.evaluate(readVal);
-            readinessBadge.innerText = e.badge;
-            readinessBadge.className = `badge-pill ${e.state}`;
-          }
-          const repRead = document.getElementById("repValReadiness");
-          const repReadB = document.getElementById("repBadgeReadiness");
-          if (repRead) repRead.innerText = `${Math.round(readVal)} / 100`;
-          if (repReadB && CT.trainingReadiness) {
-            const e = CT.trainingReadiness.evaluate(readVal);
-            repReadB.innerText = e.badge;
-            repReadB.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 8. Cardiorespiratory VO2 Max & Fitness Age
-        if (v.fitness_vo2max && v.fitness_vo2max.vo2Max !== null) {
-          const vo2Val = v.fitness_vo2max.vo2Max;
-          if (vo2MaxValue) vo2MaxValue.innerText = vo2Val.toFixed(1);
-          if (fitnessAgeValue && v.fitness_vo2max.fitnessAge) fitnessAgeValue.innerText = `${v.fitness_vo2max.fitnessAge.toFixed(0)} yrs`;
-          if (CT.vo2Max && vo2MaxBadge) {
-            const e = CT.vo2Max.evaluate(vo2Val, v.fitness_vo2max.tier);
-            vo2MaxBadge.innerText = e.badge;
-            vo2MaxBadge.className = `badge-pill ${e.state}`;
-          }
-          const repVo2 = document.getElementById("repValVo2");
-          const repVo2B = document.getElementById("repBadgeVo2");
-          if (repVo2) repVo2.innerText = `${vo2Val.toFixed(1)} mL/kg/min (Fitness Age: ${(v.fitness_vo2max.fitnessAge || userProfile.age).toFixed(0)} yrs)`;
-          if (repVo2B && CT.vo2Max) {
-            const e = CT.vo2Max.evaluate(vo2Val, v.fitness_vo2max.tier);
-            repVo2B.innerText = e.badge;
-            repVo2B.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 9. Cardiorespiratory Coherence
-        if (v.cardiorespiratory_coherence && v.cardiorespiratory_coherence.score !== null) {
-          const cohVal = v.cardiorespiratory_coherence.score;
-          if (coherenceValue) coherenceValue.innerText = Math.round(cohVal);
-          if (phaseShiftValue && v.cardiorespiratory_coherence.phaseShiftDeg !== undefined) {
-            phaseShiftValue.innerText = `${Math.round(v.cardiorespiratory_coherence.phaseShiftDeg)}°`;
-          }
-          if (CT.coherence && coherenceBadge) {
-            const e = CT.coherence.evaluate(cohVal);
-            coherenceBadge.innerText = e.badge;
-            coherenceBadge.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 10. Arrhythmia & Ectopic Screening
-        if (v.arrhythmia_screening) {
-          const arr = v.arrhythmia_screening;
-          if (arrhythmiaStatusValue) arrhythmiaStatusValue.innerText = arr.rhythmStatus || "Regular Sinus";
-          if (pvcBurdenValue) pvcBurdenValue.innerText = `${(arr.pvcPacBurdenPct || 0).toFixed(1)}%`;
-          if (cvPctValue && arr.cvPct !== undefined) cvPctValue.innerText = `${arr.cvPct.toFixed(1)}%`;
-          if (CT.arrhythmia && arrhythmiaBadge) {
-            const e = CT.arrhythmia.evaluate(arr.isIrregular, arr.cvPct, arr.rhythmStatus);
-            arrhythmiaBadge.innerText = e.badge;
-            arrhythmiaBadge.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 11. Autonomic Indices (CVI / CSI / LF-HF)
-        if (v.stress_index && v.stress_index.lfHfRatio !== undefined) {
-          if (lfHfValue) lfHfValue.innerText = v.stress_index.lfHfRatio.toFixed(2);
-        }
-        if (v.pulse_rate_variability) {
-          if (cviValue && v.pulse_rate_variability.cardiacVagalIndex !== undefined) cviValue.innerText = v.pulse_rate_variability.cardiacVagalIndex.toFixed(2);
-          if (csiValue && v.pulse_rate_variability.cardiacSympatheticIndex !== undefined) csiValue.innerText = v.pulse_rate_variability.cardiacSympatheticIndex.toFixed(2);
-        }
-
-        // 12. Cardiovascular Risk (Framingham ASCVD, ESC SCORE2, Lifetime Risk)
-        if (v.cvd_risk) {
-          const cvdVal = v.cvd_risk.tenYearRiskPct;
-          if (cvdRiskScore) cvdRiskScore.innerText = `${cvdVal.toFixed(1)}%`;
-          if (score2Value && v.cvd_risk.score2RiskPct) score2Value.innerText = `${v.cvd_risk.score2RiskPct.toFixed(1)}%`;
-          if (lifetimeRiskValue && v.cvd_risk.lifetimeRiskPct) lifetimeRiskValue.innerText = `${v.cvd_risk.lifetimeRiskPct.toFixed(1)}%`;
-          if (plaqueRiskValue && v.cvd_risk.plaqueRiskCategory) plaqueRiskValue.innerText = v.cvd_risk.plaqueRiskCategory;
-
-          if (CT.cvdRisk) {
-            const e = CT.cvdRisk.evaluate(cvdVal);
-            cvdRiskScore.className = "risk-score-badge " + (e.state === "critical" ? "high" : (e.state === "warning" ? "moderate" : ""));
-            cvdSubtext.innerText = e.subtext;
-          }
-          const repCvd = document.getElementById("repValCvd");
-          const repCvdB = document.getElementById("repBadgeCvd");
-          if (repCvd) repCvd.innerText = `${cvdVal.toFixed(1)} % (${v.cvd_risk.category})`;
-          if (repCvdB && CT.cvdRisk) {
-            const e = CT.cvdRisk.evaluate(cvdVal);
-            repCvdB.innerText = e.badge;
-            repCvdB.className = `badge-pill ${e.state}`;
-          }
-          const repScore2 = document.getElementById("repValScore2");
-          const repScore2B = document.getElementById("repBadgeScore2");
-          if (repScore2) repScore2.innerText = `${(v.cvd_risk.score2RiskPct || 3.5).toFixed(1)} %`;
-          if (repScore2B && CT.score2Risk) {
-            const e = CT.score2Risk.evaluate(v.cvd_risk.score2RiskPct || 3.5);
-            repScore2B.innerText = e.badge;
-            repScore2B.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 13. Vascular Age
-        if (v.vascular_age) {
-          if (vascAgeValue) vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
-          const delta = v.vascular_age.ageDelta;
-          if (vascDeltaValue) vascDeltaValue.innerText = `${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs`;
-          if (CT.vascularAge && vascStatusBadge) {
-            const e = CT.vascularAge.evaluate(delta);
-            vascStatusBadge.innerText = e.badge;
-            vascStatusBadge.className = `badge-pill ${e.state}`;
-            vascAgeValue.style.color = e.state === "optimal" ? "#fff" : e.color;
-          }
-          const repVasc = document.getElementById("repValVascAge");
-          const repVascB = document.getElementById("repBadgeVascAge");
-          if (repVasc) repVasc.innerText = `${v.vascular_age.estimatedAge.toFixed(0)} Yrs (Δ ${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs)`;
-          if (repVascB && CT.vascularAge) {
-            const e = CT.vascularAge.evaluate(delta);
-            repVascB.innerText = e.badge;
-            repVascB.className = `badge-pill ${e.state}`;
-          }
-        }
-
-        // 14. Metabolic Models (TyG, TG/HDL, VAI, MetS Score)
-        if (v.metabolic_risks) {
-          const m = v.metabolic_risks;
-          if (tygValue && m.tygIndex !== undefined) tygValue.innerText = m.tygIndex.toFixed(2);
-          if (tgHdlValue && m.tgHdlRatio !== undefined) tgHdlValue.innerText = m.tgHdlRatio.toFixed(1);
-          if (vaiValue && m.vai !== undefined) vaiValue.innerText = m.vai.toFixed(1);
-          if (metsScoreValue && m.metsScore !== undefined) metsScoreValue.innerText = m.metsScore.toFixed(2);
-          if (fbgValue && m.fbgMgDl !== undefined) fbgValue.innerText = m.fbgMgDl.toFixed(0);
-          if (hba1cValue && m.hba1cPct !== undefined) hba1cValue.innerText = m.hba1cPct.toFixed(1);
-
-          if (CT.tygIndex && tygBadge && m.tygIndex) {
-            const e = CT.tygIndex.evaluate(m.tygIndex);
-            tygBadge.innerText = e.badge;
-            tygBadge.className = `badge-pill ${e.state}`;
-          }
-          const repTyg = document.getElementById("repValTyg");
-          const repTygB = document.getElementById("repBadgeTyg");
-          if (repTyg) repTyg.innerText = `${(m.tygIndex || 4.45).toFixed(2)} (TG/HDL: ${(m.tgHdlRatio || 1.8).toFixed(1)})`;
-          if (repTygB && CT.tygIndex) {
-            const e = CT.tygIndex.evaluate(m.tygIndex || 4.45);
-            repTygB.innerText = e.badge;
-            repTygB.className = `badge-pill ${e.state}`;
+            if (CT.heartRate && hrBadge) {
+              const e = CT.heartRate.evaluate(hrVal);
+              hrBadge.innerText = e.badge;
+              hrBadge.className = `badge-pill ${e.state}`;
+              if (hrValue) hrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (hrSubtext) hrSubtext.innerText = e.subtext;
+            }
+            const repHr = document.getElementById("repValHr");
+            const repHrB = document.getElementById("repBadgeHr");
+            if (repHr) repHr.innerText = `${hrVal.toFixed(1)} BPM (${v.heart_rate.hrZone || "Resting"})`;
+            if (repHrB && CT.heartRate) {
+              const e = CT.heartRate.evaluate(hrVal);
+              repHrB.innerText = e.badge;
+              repHrB.className = `badge-pill ${e.state}`;
+            }
           }
 
-          const repFbg = document.getElementById("repValFbg");
-          const repFbgB = document.getElementById("repBadgeFbg");
-          if (repFbg) repFbg.innerText = `${(m.fbgMgDl || 90).toFixed(0)} mg/dL`;
-          if (repFbgB && CT.fbg) {
-            const e = CT.fbg.evaluate(m.fbgMgDl || 90);
-            repFbgB.innerText = e.badge;
-            repFbgB.className = `badge-pill ${e.state}`;
+          // 2. Respiration Rate & Pattern
+          if (v.respiration_rate && v.respiration_rate.value) {
+            const rrVal = v.respiration_rate.value;
+            if (rrValue) rrValue.innerText = rrVal.toFixed(1);
+            if (respPatternValue && v.respiration_rate.pattern) respPatternValue.innerText = v.respiration_rate.pattern;
+            if (ieRatioValue && v.respiration_rate.ieRatio) ieRatioValue.innerText = `1:${v.respiration_rate.ieRatio.toFixed(1)}`;
+
+            if (CT.respirationRate && rrBadge) {
+              const e = CT.respirationRate.evaluate(rrVal);
+              rrBadge.innerText = e.badge;
+              rrBadge.className = `badge-pill ${e.state}`;
+              if (rrValue) rrValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (rrSubtext) rrSubtext.innerText = e.subtext;
+            }
+            const repRr = document.getElementById("repValRr");
+            const repRrB = document.getElementById("repBadgeRr");
+            if (repRr) repRr.innerText = `${rrVal.toFixed(1)} RPM (${v.respiration_rate.pattern || "Eupnea"})`;
+            if (repRrB && CT.respirationRate) {
+              const e = CT.respirationRate.evaluate(rrVal);
+              repRrB.innerText = e.badge;
+              repRrB.className = `badge-pill ${e.state}`;
+            }
           }
 
-          const repA1c = document.getElementById("repValHba1c");
-          const repA1cB = document.getElementById("repBadgeHba1c");
-          if (repA1c) repA1c.innerText = `${(m.hba1cPct || 5.1).toFixed(1)} % (${m.hba1cStatus || "Normal"})`;
-          if (repA1cB && CT.hba1c) {
-            const e = CT.hba1c.evaluate(m.hba1cPct || 5.1);
-            repA1cB.innerText = e.badge;
-            repA1cB.className = `badge-pill ${e.state}`;
+          // 3. Blood Pressure & Hemodynamics
+          if (v.blood_pressure && v.blood_pressure.systolic) {
+            const sbp = v.blood_pressure.systolic;
+            const dbp = v.blood_pressure.diastolic;
+            if (bpValue) bpValue.innerText = `${Math.round(sbp)} / ${Math.round(dbp)}`;
+            if (mapValue) mapValue.innerText = Math.round(v.blood_pressure.map || (dbp + (sbp - dbp) / 3));
+            if (baRatioValue && v.blood_pressure.baRatio !== undefined && v.blood_pressure.baRatio !== null) baRatioValue.innerText = v.blood_pressure.baRatio.toFixed(2);
+            if (coValue && v.blood_pressure.cardiacOutput !== undefined && v.blood_pressure.cardiacOutput !== null) coValue.innerText = v.blood_pressure.cardiacOutput.toFixed(1);
+            if (svrValue && v.blood_pressure.svr !== undefined && v.blood_pressure.svr !== null) svrValue.innerText = Math.round(v.blood_pressure.svr);
+
+            if (CT.bloodPressure && bpBadge) {
+              const e = CT.bloodPressure.evaluate(sbp, dbp);
+              bpBadge.innerText = e.badge;
+              bpBadge.className = `badge-pill ${e.state}`;
+              if (bpValue) bpValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (bpSubtext) bpSubtext.innerText = e.subtext;
+            }
+            if (CT.cardiacOutput && flowBadge && v.blood_pressure.cardiacOutput) {
+              const e = CT.cardiacOutput.evaluate(v.blood_pressure.cardiacOutput);
+              flowBadge.innerText = e.badge;
+              flowBadge.className = `badge-pill ${e.state}`;
+            }
+            const repBp = document.getElementById("repValBp");
+            const repBpB = document.getElementById("repBadgeBp");
+            if (repBp) repBp.innerText = `${Math.round(sbp)} / ${Math.round(dbp)} mmHg`;
+            if (repBpB && CT.bloodPressure) {
+              const e = CT.bloodPressure.evaluate(sbp, dbp);
+              repBpB.innerText = e.badge;
+              repBpB.className = `badge-pill ${e.state}`;
+            }
+            const repCo = document.getElementById("repValCo");
+            const repCoB = document.getElementById("repBadgeCo");
+            if (repCo) repCo.innerText = `${(v.blood_pressure.cardiacOutput || 5.2).toFixed(1)} L/min (SVR: ${Math.round(v.blood_pressure.svr || 1150)})`;
+            if (repCoB) { repCoB.innerText = "🔬 Flow Proxy"; repCoB.className = "badge-pill neutral"; }
           }
-        }
 
-        // 15. Hemoglobin
-        if (v.hemoglobin && v.hemoglobin.value) {
-          const hbVal = v.hemoglobin.value;
-          if (hbValue) hbValue.innerText = hbVal.toFixed(1);
-          if (v.hemoglobin.referenceRange && hbRefRange) hbRefRange.innerText = v.hemoglobin.referenceRange;
-          if (CT.hemoglobin && hbBadge) {
-            const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
-            hbBadge.innerText = e.badge;
-            hbBadge.className = `badge-pill ${e.state}`;
+          // 4. Oxygen Saturation (SpO2)
+          if (v.spo2 && v.spo2.value) {
+            const spo2Val = v.spo2.value;
+            if (spo2Value) spo2Value.innerText = spo2Val.toFixed(1);
+            if (spo2Ratio) spo2Ratio.innerText = v.spo2.ratioOfRatios ? v.spo2.ratioOfRatios.toFixed(2) : "--";
+            if (CT.spo2 && spo2Badge) {
+              const e = CT.spo2.evaluate(spo2Val);
+              spo2Badge.innerText = e.badge;
+              spo2Badge.className = `badge-pill ${e.state}`;
+              if (spo2Value) spo2Value.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (spo2Subtext) spo2Subtext.innerText = e.subtext;
+            }
+            const repSpo2 = document.getElementById("repValSpo2");
+            const repSpo2B = document.getElementById("repBadgeSpo2");
+            if (repSpo2) repSpo2.innerText = `${spo2Val.toFixed(1)} %`;
+            if (repSpo2B && CT.spo2) {
+              const e = CT.spo2.evaluate(spo2Val);
+              repSpo2B.innerText = e.badge;
+              repSpo2B.className = `badge-pill ${e.state}`;
+            }
           }
-          const repHb = document.getElementById("repValHb");
-          const repHbB = document.getElementById("repBadgeHb");
-          if (repHb) repHb.innerText = `${hbVal.toFixed(1)} g/dL`;
-          if (repHbB && CT.hemoglobin) {
-            const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
-            repHbB.innerText = e.badge;
-            repHbB.className = `badge-pill ${e.state}`;
+
+          // 5. HRV (RMSSD, SDNN, Triangular Index, TINN)
+          if (v.pulse_rate_variability && v.pulse_rate_variability.rmssd) {
+            const rmssdVal = v.pulse_rate_variability.rmssd;
+            if (prvValue) prvValue.innerText = rmssdVal.toFixed(1);
+            if (triIndexValue && v.pulse_rate_variability.triangularIndex !== undefined && v.pulse_rate_variability.triangularIndex !== null) {
+              triIndexValue.innerText = v.pulse_rate_variability.triangularIndex.toFixed(1);
+            }
+            if (tinnValue && v.pulse_rate_variability.tinnMs !== undefined && v.pulse_rate_variability.tinnMs !== null) {
+              tinnValue.innerText = Math.round(v.pulse_rate_variability.tinnMs);
+            }
+
+            if (CT.rmssd && prvBadge) {
+              const e = CT.rmssd.evaluate(rmssdVal);
+              prvBadge.innerText = e.badge;
+              prvBadge.className = `badge-pill ${e.state}`;
+              if (prvValue) prvValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (prvSubtext) prvSubtext.innerText = e.subtext;
+            }
+            const repRmssd = document.getElementById("repValRmssd");
+            const repRmssdB = document.getElementById("repBadgeRmssd");
+            if (repRmssd) repRmssd.innerText = `${rmssdVal.toFixed(1)} ms (TI: ${(v.pulse_rate_variability.triangularIndex || 12).toFixed(1)})`;
+            if (repRmssdB && CT.rmssd) {
+              const e = CT.rmssd.evaluate(rmssdVal);
+              repRmssdB.innerText = e.badge;
+              repRmssdB.className = `badge-pill ${e.state}`;
+            }
           }
-        }
 
-        // 16. Body Composition
-        if (v.body_composition) {
-          const bmi = v.body_composition.bmi;
-          if (bmiValue) bmiValue.innerText = bmi.toFixed(1);
-          if (briValue) briValue.innerText = v.body_composition.bri.toFixed(1);
-          if (whtrValue) whtrValue.innerText = v.body_composition.whtr.toFixed(2);
-          if (CT.bmi && bmiBadge) {
-            const e = CT.bmi.evaluate(bmi);
-            bmiBadge.innerText = e.badge;
-            bmiBadge.className = `badge-pill ${e.state}`;
+          // 6. Baevsky Stress Index & Resistance Score
+          if (v.stress_index && v.stress_index.baevskyIndex) {
+            const bVal = v.stress_index.baevskyIndex;
+            if (baevskyValue) baevskyValue.innerText = bVal.toFixed(0);
+            if (stressResistValue && v.pulse_rate_variability && v.pulse_rate_variability.stressResistanceScore !== undefined && v.pulse_rate_variability.stressResistanceScore !== null) {
+              stressResistValue.innerText = Math.round(v.pulse_rate_variability.stressResistanceScore);
+            }
+
+            if (CT.baevskyStress && baevskyBadge) {
+              const e = CT.baevskyStress.evaluate(bVal);
+              baevskyBadge.innerText = e.badge;
+              baevskyBadge.className = `badge-pill ${e.state}`;
+              if (baevskyValue) baevskyValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+              if (baevskySubtext) baevskySubtext.innerText = e.subtext;
+            }
+            const repRes = document.getElementById("repValResist");
+            const repResB = document.getElementById("repBadgeResist");
+            const resScore = v.pulse_rate_variability ? (v.pulse_rate_variability.stressResistanceScore || 75) : 75;
+            if (repRes) repRes.innerText = `${Math.round(resScore)} / 100`;
+            if (repResB && CT.stressResistance) {
+              const e = CT.stressResistance.evaluate(resScore);
+              repResB.innerText = e.badge;
+              repResB.className = `badge-pill ${e.state}`;
+            }
           }
-          const repBmi = document.getElementById("repValBmi");
-          const repBmiB = document.getElementById("repBadgeBmi");
-          if (repBmi) repBmi.innerText = `${bmi.toFixed(1)} kg/m² (${v.body_composition.bmiCategory || "Normal"})`;
-          if (repBmiB && CT.bmi) {
-            const e = CT.bmi.evaluate(bmi);
-            repBmiB.innerText = e.badge;
-            repBmiB.className = `badge-pill ${e.state}`;
+
+          // 7. Training Readiness & Recovery
+          if (v.fitness_vo2max && v.fitness_vo2max.readinessScore !== undefined && v.fitness_vo2max.readinessScore !== null) {
+            const readVal = v.fitness_vo2max.readinessScore;
+            if (readinessValue) readinessValue.innerText = Math.round(readVal);
+            if (allostaticValue && v.fitness_vo2max.allostaticLoad !== undefined && v.fitness_vo2max.allostaticLoad !== null) {
+              allostaticValue.innerText = v.fitness_vo2max.allostaticLoad.toFixed(1);
+            }
+            if (CT.trainingReadiness && readinessBadge) {
+              const e = CT.trainingReadiness.evaluate(readVal);
+              readinessBadge.innerText = e.badge;
+              readinessBadge.className = `badge-pill ${e.state}`;
+            }
+            const repRead = document.getElementById("repValReadiness");
+            const repReadB = document.getElementById("repBadgeReadiness");
+            if (repRead) repRead.innerText = `${Math.round(readVal)} / 100`;
+            if (repReadB && CT.trainingReadiness) {
+              const e = CT.trainingReadiness.evaluate(readVal);
+              repReadB.innerText = e.badge;
+              repReadB.className = `badge-pill ${e.state}`;
+            }
           }
-        }
 
-        sqiValue.innerText = `${Math.round(v.signal_quality)} / 100`;
-        const repSqiEl = document.getElementById("repSqi");
-        if (repSqiEl) repSqiEl.innerText = `${Math.round(v.signal_quality)}% (${v.quality_category})`;
+          // 8. Cardiorespiratory VO2 Max & Fitness Age
+          if (v.fitness_vo2max && v.fitness_vo2max.vo2Max !== null && v.fitness_vo2max.vo2Max !== undefined) {
+            const vo2Val = v.fitness_vo2max.vo2Max;
+            if (vo2MaxValue) vo2MaxValue.innerText = vo2Val.toFixed(1);
+            if (fitnessAgeValue && v.fitness_vo2max.fitnessAge) fitnessAgeValue.innerText = `${v.fitness_vo2max.fitnessAge.toFixed(0)} yrs`;
+            if (CT.vo2Max && vo2MaxBadge) {
+              const e = CT.vo2Max.evaluate(vo2Val, v.fitness_vo2max.tier);
+              vo2MaxBadge.innerText = e.badge;
+              vo2MaxBadge.className = `badge-pill ${e.state}`;
+            }
+            const repVo2 = document.getElementById("repValVo2");
+            const repVo2B = document.getElementById("repBadgeVo2");
+            if (repVo2) repVo2.innerText = `${vo2Val.toFixed(1)} mL/kg/min (Fitness Age: ${(v.fitness_vo2max.fitnessAge || userProfile.age).toFixed(0)} yrs)`;
+            if (repVo2B && CT.vo2Max) {
+              const e = CT.vo2Max.evaluate(vo2Val, v.fitness_vo2max.tier);
+              repVo2B.innerText = e.badge;
+              repVo2B.className = `badge-pill ${e.state}`;
+            }
+          }
 
-        // Waveforms & Diagnostic Canvases
-        if (v.pulse_waveform && v.pulse_waveform.length > 0) {
-          waveformBuffer = v.pulse_waveform;
-          drawWaveform(waveformBuffer);
-        }
+          // 9. Cardiorespiratory Coherence
+          if (v.cardiorespiratory_coherence && v.cardiorespiratory_coherence.score !== null && v.cardiorespiratory_coherence.score !== undefined) {
+            const cohVal = v.cardiorespiratory_coherence.score;
+            if (coherenceValue) coherenceValue.innerText = Math.round(cohVal);
+            if (phaseShiftValue && v.cardiorespiratory_coherence.phaseShiftDeg !== undefined && v.cardiorespiratory_coherence.phaseShiftDeg !== null) {
+              phaseShiftValue.innerText = `${Math.round(v.cardiorespiratory_coherence.phaseShiftDeg)}°`;
+            }
+            if (CT.coherence && coherenceBadge) {
+              const e = CT.coherence.evaluate(cohVal);
+              coherenceBadge.innerText = e.badge;
+              coherenceBadge.className = `badge-pill ${e.state}`;
+            }
+          }
 
-        if (v.arrhythmia_screening && v.arrhythmia_screening.poincarePoints) {
-          drawPoincarePlot(v.arrhythmia_screening.poincarePoints, v.arrhythmia_screening.sd1, v.arrhythmia_screening.sd2);
-        }
+          // 10. Arrhythmia & Ectopic Screening
+          if (v.arrhythmia_screening) {
+            const arr = v.arrhythmia_screening;
+            if (arrhythmiaStatusValue) arrhythmiaStatusValue.innerText = arr.rhythmStatus || "Regular Sinus";
+            if (pvcBurdenValue) pvcBurdenValue.innerText = `${(arr.pvcPacBurdenPct || 0).toFixed(1)}%`;
+            if (cvPctValue && arr.cvPct !== undefined && arr.cvPct !== null) cvPctValue.innerText = `${arr.cvPct.toFixed(1)}%`;
+            if (CT.arrhythmia && arrhythmiaBadge) {
+              const e = CT.arrhythmia.evaluate(arr.isIrregular, arr.cvPct, arr.rhythmStatus);
+              arrhythmiaBadge.innerText = e.badge;
+              arrhythmiaBadge.className = `badge-pill ${e.state}`;
+            }
+          }
 
-        if (v.respiration_rate && v.respiration_rate.respirationWaveform) {
-          drawRespiratoryWaveform(v.respiration_rate.respirationWaveform, v.respiration_rate.pattern, v.respiration_rate.ieRatio);
-        }
+          // 11. Autonomic Indices (CVI / CSI / LF-HF)
+          if (v.stress_index && v.stress_index.lfHfRatio !== undefined && v.stress_index.lfHfRatio !== null) {
+            if (lfHfValue) lfHfValue.innerText = v.stress_index.lfHfRatio.toFixed(2);
+            if (ansBadge && CT.lfHfRatio) {
+              const e = CT.lfHfRatio.evaluate(v.stress_index.lfHfRatio);
+              ansBadge.innerText = e.badge;
+              ansBadge.className = `badge-pill ${e.state}`;
+            }
+          }
+          if (v.pulse_rate_variability) {
+            if (cviValue && v.pulse_rate_variability.cardiacVagalIndex !== undefined && v.pulse_rate_variability.cardiacVagalIndex !== null) {
+              cviValue.innerText = v.pulse_rate_variability.cardiacVagalIndex.toFixed(2);
+            }
+            if (csiValue && v.pulse_rate_variability.cardiacSympatheticIndex !== undefined && v.pulse_rate_variability.cardiacSympatheticIndex !== null) {
+              csiValue.innerText = v.pulse_rate_variability.cardiacSympatheticIndex.toFixed(2);
+            }
+          }
 
-        if (v.blood_pressure && v.blood_pressure.sdppgWaveform) {
-          drawSdppgWaveform(v.blood_pressure.sdppgWaveform, v.blood_pressure.baRatio);
-        }
-      } else {
-        const elapsed = (performance.now() - scanStartTime) / 1000;
-        if (elapsed < 3.0) {
-          statusBanner.innerHTML = `<span>● Initializing optical buffer (${Math.floor(elapsed)}s / 3s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
+          // 12. Cardiovascular Risk (Framingham ASCVD, ESC SCORE2, Lifetime Risk)
+          if (v.cvd_risk) {
+            const cvdVal = v.cvd_risk.tenYearRiskPct;
+            if (cvdRiskScore) cvdRiskScore.innerText = `${cvdVal.toFixed(1)}%`;
+            if (score2Value && v.cvd_risk.score2RiskPct) score2Value.innerText = `${v.cvd_risk.score2RiskPct.toFixed(1)}%`;
+            if (lifetimeRiskValue && v.cvd_risk.lifetimeRiskPct) lifetimeRiskValue.innerText = `${v.cvd_risk.lifetimeRiskPct.toFixed(1)}%`;
+            if (plaqueRiskValue && v.cvd_risk.plaqueRiskCategory) plaqueRiskValue.innerText = v.cvd_risk.plaqueRiskCategory;
+
+            if (CT.cvdRisk && cvdRiskScore) {
+              const e = CT.cvdRisk.evaluate(cvdVal);
+              cvdRiskScore.className = "risk-score-badge " + (e.state === "critical" ? "high" : (e.state === "warning" ? "moderate" : ""));
+              if (cvdSubtext) cvdSubtext.innerText = e.subtext;
+            }
+            const repCvd = document.getElementById("repValCvd");
+            const repCvdB = document.getElementById("repBadgeCvd");
+            if (repCvd) repCvd.innerText = `${cvdVal.toFixed(1)} % (${v.cvd_risk.category})`;
+            if (repCvdB && CT.cvdRisk) {
+              const e = CT.cvdRisk.evaluate(cvdVal);
+              repCvdB.innerText = e.badge;
+              repCvdB.className = `badge-pill ${e.state}`;
+            }
+            const repScore2 = document.getElementById("repValScore2");
+            const repScore2B = document.getElementById("repBadgeScore2");
+            if (repScore2) repScore2.innerText = `${(v.cvd_risk.score2RiskPct || 3.5).toFixed(1)} %`;
+            if (repScore2B && CT.score2Risk) {
+              const e = CT.score2Risk.evaluate(v.cvd_risk.score2RiskPct || 3.5);
+              repScore2B.innerText = e.badge;
+              repScore2B.className = `badge-pill ${e.state}`;
+            }
+          }
+
+          // 13. Vascular Age
+          if (v.vascular_age) {
+            if (vascAgeValue) vascAgeValue.innerText = v.vascular_age.estimatedAge.toFixed(0);
+            const delta = v.vascular_age.ageDelta;
+            if (vascDeltaValue) vascDeltaValue.innerText = `${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs`;
+            if (CT.vascularAge && vascStatusBadge) {
+              const e = CT.vascularAge.evaluate(delta);
+              vascStatusBadge.innerText = e.badge;
+              vascStatusBadge.className = `badge-pill ${e.state}`;
+              if (vascAgeValue) vascAgeValue.style.color = e.state === "optimal" ? "#fff" : e.color;
+            }
+            const repVasc = document.getElementById("repValVascAge");
+            const repVascB = document.getElementById("repBadgeVascAge");
+            if (repVasc) repVasc.innerText = `${v.vascular_age.estimatedAge.toFixed(0)} Yrs (Δ ${delta > 0 ? "+" : ""}${delta.toFixed(1)} yrs)`;
+            if (repVascB && CT.vascularAge) {
+              const e = CT.vascularAge.evaluate(delta);
+              repVascB.innerText = e.badge;
+              repVascB.className = `badge-pill ${e.state}`;
+            }
+          }
+
+          // 14. Metabolic Models (TyG, TG/HDL, VAI, MetS Score)
+          if (v.metabolic_risks) {
+            const m = v.metabolic_risks;
+            if (tygValue && m.tygIndex !== undefined && m.tygIndex !== null) tygValue.innerText = m.tygIndex.toFixed(2);
+            if (tgHdlValue && m.tgHdlRatio !== undefined && m.tgHdlRatio !== null) tgHdlValue.innerText = m.tgHdlRatio.toFixed(1);
+            if (vaiValue && m.vai !== undefined && m.vai !== null) vaiValue.innerText = m.vai.toFixed(1);
+            if (metsScoreValue && m.metsScore !== undefined && m.metsScore !== null) metsScoreValue.innerText = m.metsScore.toFixed(2);
+            if (fbgValue && m.fbgMgDl !== undefined && m.fbgMgDl !== null) fbgValue.innerText = m.fbgMgDl.toFixed(0);
+            if (hba1cValue && m.hba1cPct !== undefined && m.hba1cPct !== null) hba1cValue.innerText = m.hba1cPct.toFixed(1);
+
+            if (CT.tygIndex && tygBadge && m.tygIndex) {
+              const e = CT.tygIndex.evaluate(m.tygIndex);
+              tygBadge.innerText = e.badge;
+              tygBadge.className = `badge-pill ${e.state}`;
+            }
+            const repTyg = document.getElementById("repValTyg");
+            const repTygB = document.getElementById("repBadgeTyg");
+            if (repTyg) repTyg.innerText = `${(m.tygIndex || 4.45).toFixed(2)} (TG/HDL: ${(m.tgHdlRatio || 1.8).toFixed(1)})`;
+            if (repTygB && CT.tygIndex) {
+              const e = CT.tygIndex.evaluate(m.tygIndex || 4.45);
+              repTygB.innerText = e.badge;
+              repTygB.className = `badge-pill ${e.state}`;
+            }
+
+            const repFbg = document.getElementById("repValFbg");
+            const repFbgB = document.getElementById("repBadgeFbg");
+            if (repFbg) repFbg.innerText = `${(m.fbgMgDl || 90).toFixed(0)} mg/dL`;
+            if (repFbgB && CT.fbg) {
+              const e = CT.fbg.evaluate(m.fbgMgDl || 90);
+              repFbgB.innerText = e.badge;
+              repFbgB.className = `badge-pill ${e.state}`;
+            }
+
+            const repA1c = document.getElementById("repValHba1c");
+            const repA1cB = document.getElementById("repBadgeHba1c");
+            if (repA1c) repA1c.innerText = `${(m.hba1cPct || 5.1).toFixed(1)} % (${m.hba1cStatus || "Normal"})`;
+            if (repA1cB && CT.hba1c) {
+              const e = CT.hba1c.evaluate(m.hba1cPct || 5.1);
+              repA1cB.innerText = e.badge;
+              repA1cB.className = `badge-pill ${e.state}`;
+            }
+          }
+
+          // 15. Hemoglobin
+          if (v.hemoglobin && v.hemoglobin.value) {
+            const hbVal = v.hemoglobin.value;
+            if (hbValue) hbValue.innerText = hbVal.toFixed(1);
+            if (v.hemoglobin.referenceRange && hbRefRange) hbRefRange.innerText = v.hemoglobin.referenceRange;
+            if (CT.hemoglobin && hbBadge) {
+              const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
+              hbBadge.innerText = e.badge;
+              hbBadge.className = `badge-pill ${e.state}`;
+            }
+            const repHb = document.getElementById("repValHb");
+            const repHbB = document.getElementById("repBadgeHb");
+            if (repHb) repHb.innerText = `${hbVal.toFixed(1)} g/dL`;
+            if (repHbB && CT.hemoglobin) {
+              const e = CT.hemoglobin.evaluate(hbVal, userProfile.is_male);
+              repHbB.innerText = e.badge;
+              repHbB.className = `badge-pill ${e.state}`;
+            }
+          }
+
+          // 16. Body Composition
+          if (v.body_composition) {
+            const bmi = v.body_composition.bmi;
+            if (bmiValue) bmiValue.innerText = bmi.toFixed(1);
+            if (briValue) briValue.innerText = v.body_composition.bri.toFixed(1);
+            if (whtrValue) whtrValue.innerText = v.body_composition.whtr.toFixed(2);
+            if (CT.bmi && bmiBadge) {
+              const e = CT.bmi.evaluate(bmi);
+              bmiBadge.innerText = e.badge;
+              bmiBadge.className = `badge-pill ${e.state}`;
+            }
+            const repBmi = document.getElementById("repValBmi");
+            const repBmiB = document.getElementById("repBadgeBmi");
+            if (repBmi) repBmi.innerText = `${bmi.toFixed(1)} kg/m² (${v.body_composition.bmiCategory || "Normal"})`;
+            if (repBmiB && CT.bmi) {
+              const e = CT.bmi.evaluate(bmi);
+              repBmiB.innerText = e.badge;
+              repBmiB.className = `badge-pill ${e.state}`;
+            }
+          }
+
+          if (sqiValue) sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
+          const repSqiEl = document.getElementById("repSqi");
+          if (repSqiEl) repSqiEl.innerText = `${Math.round(v.signal_quality || 0)}% (${v.quality_category || "Good"})`;
+
+          // Waveforms & Diagnostic Canvases
+          if (v.pulse_waveform && v.pulse_waveform.length > 0) {
+            waveformBuffer = v.pulse_waveform;
+            drawWaveform(waveformBuffer);
+          }
+
+          if (v.arrhythmia_screening && v.arrhythmia_screening.poincarePoints) {
+            drawPoincarePlot(v.arrhythmia_screening.poincarePoints, v.arrhythmia_screening.sd1, v.arrhythmia_screening.sd2);
+          }
+
+          if (v.respiration_rate && v.respiration_rate.respirationWaveform) {
+            drawRespiratoryWaveform(v.respiration_rate.respirationWaveform, v.respiration_rate.pattern, v.respiration_rate.ieRatio);
+          }
+
+          if (v.blood_pressure && v.blood_pressure.sdppgWaveform) {
+            drawSdppgWaveform(v.blood_pressure.sdppgWaveform, v.blood_pressure.baRatio);
+          }
         } else {
-          statusBanner.innerHTML = `<span>● ${v.reason || "Analyzing multi-spectral facial stream..."}</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer.innerText}</span>`;
+          const elapsed = (performance.now() - scanStartTime) / 1000;
+          if (statusBanner && isScanning) {
+            if (elapsed < 3.0) {
+              statusBanner.innerHTML = `<span>● Initializing optical buffer (${Math.floor(elapsed)}s / 3s)...</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer ? scanTimer.innerText : ""}</span>`;
+            } else {
+              statusBanner.innerHTML = `<span>● ${v.reason || "Analyzing multi-spectral facial stream..."}</span><span id='bannerDuration' style='color:var(--accent-cyan); font-size:11px;'>${scanTimer ? scanTimer.innerText : ""}</span>`;
+            }
+          }
+          if (sqiValue) sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
         }
-        sqiValue.innerText = `${Math.round(v.signal_quality || 0)} / 100`;
+      } catch (err) {
+        console.error("[AuraPulse updateDashboard Error]", err);
       }
     }
 
