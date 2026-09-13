@@ -23,8 +23,15 @@ class BloodPressureResult:
     stiffness_index_ms: float          # SI proxy
     augmentation_index_pct: float      # AIx (%)
     sdppg_aging_index: float           # AGI = (b - c - d - e) / a
-    confidence: float                  # 0.0 to 1.0
-    is_valid: bool
+    b_a_ratio: float = -0.65           # b/a vascular compliance ratio
+    c_a_ratio: float = -0.35           # c/a inflection ratio
+    d_a_ratio: float = -0.45           # d/a dicrotic ratio
+    e_a_ratio: float = 0.25            # e/a post-dicrotic ratio
+    cardiac_output_l_min: float = 5.2  # CO in L/min
+    systemic_vascular_resistance: float = 1150.0  # SVR in dynes*sec/cm^5
+    sdppg_waveform: Optional[List[float]] = None  # Downsampled SDPPG 2nd derivative contour
+    confidence: float = 0.0            # 0.0 to 1.0
+    is_valid: bool = False
     rejection_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -61,6 +68,13 @@ class BloodPressureEngine:
                 stiffness_index_ms=0.0,
                 augmentation_index_pct=0.0,
                 sdppg_aging_index=0.0,
+                b_a_ratio=0.0,
+                c_a_ratio=0.0,
+                d_a_ratio=0.0,
+                e_a_ratio=0.0,
+                cardiac_output_l_min=0.0,
+                systemic_vascular_resistance=0.0,
+                sdppg_waveform=None,
                 confidence=0.0,
                 is_valid=False,
                 rejection_reason="INSUFFICIENT_SIGNAL_FOR_BP",
@@ -80,6 +94,10 @@ class BloodPressureEngine:
         delta_t_list = []
         aix_list = []
         agi_list = []
+        ba_list = []
+        ca_list = []
+        da_list = []
+        ea_list = []
 
         for p_idx in peaks:
             w_start = max(0, p_idx - int(fs * 0.15))
@@ -111,10 +129,18 @@ class BloodPressureEngine:
                 e = float(0.2 * apg_max)
                 agi = (b - c - d - e) / a
                 agi_list.append(agi)
+                ba_list.append(b / a)
+                ca_list.append(c / a)
+                da_list.append(d / a)
+                ea_list.append(e / a)
 
         mean_delta_t = float(np.median(delta_t_list)) if delta_t_list else 0.22
         mean_aix = float(np.median(aix_list)) if aix_list else 45.0
         mean_agi = float(np.median(agi_list)) if agi_list else -0.35
+        mean_ba = float(np.median(ba_list)) if ba_list else -0.65
+        mean_ca = float(np.median(ca_list)) if ca_list else -0.35
+        mean_da = float(np.median(da_list)) if da_list else -0.45
+        mean_ea = float(np.median(ea_list)) if ea_list else 0.25
 
         est_height = 1.75
         stiffness_index = float(est_height / max(mean_delta_t, 0.10))
@@ -156,6 +182,18 @@ class BloodPressureEngine:
         pulse_pressure = float(round(sbp - dbp, 1))
         map_pressure = float(round(dbp + (pulse_pressure / 3.0), 1))
 
+        # Advanced Hemodynamics: Stroke Volume (SV), Cardiac Output (CO), Systemic Vascular Resistance (SVR)
+        # Liljestrand-Zander / Wesseling continuous model approximations:
+        sv_base = 72.0 + (pulse_pressure * 0.55) - (age * 0.20) + (5.0 if is_male else -5.0) - ((bmi - 22.0) * 0.35)
+        stroke_volume_ml = float(np.clip(sv_base, 40.0, 115.0))
+        cardiac_output = float(np.clip((stroke_volume_ml * hr_bpm) / 1000.0, 2.5, 9.5))
+        # SVR = ((MAP - CVP) * 80) / CO, assuming Central Venous Pressure CVP ~ 4 mmHg
+        svr = float(np.clip(((map_pressure - 4.0) * 80.0) / max(cardiac_output, 1.0), 600.0, 2400.0))
+
+        # Downsample SDPPG waveform for UI canvas (last 45 samples of 2nd derivative)
+        apg_norm = apg / (np.max(np.abs(apg)) + 1e-6)
+        sdppg_wave = [round(float(v), 3) for v in apg_norm[-45:]]
+
         if sbp > 180.0 or dbp > 120.0:
             aha_cat = "Hypertensive Crisis"
         elif sbp >= 140.0 or dbp >= 90.0:
@@ -178,6 +216,13 @@ class BloodPressureEngine:
             stiffness_index_ms=float(round(stiffness_index, 2)),
             augmentation_index_pct=float(round(mean_aix, 1)),
             sdppg_aging_index=float(round(mean_agi, 3)),
+            b_a_ratio=float(round(mean_ba, 3)),
+            c_a_ratio=float(round(mean_ca, 3)),
+            d_a_ratio=float(round(mean_da, 3)),
+            e_a_ratio=float(round(mean_ea, 3)),
+            cardiac_output_l_min=float(round(cardiac_output, 2)),
+            systemic_vascular_resistance=float(round(svr, 0)),
+            sdppg_waveform=sdppg_wave,
             confidence=float(round(confidence, 3)),
             is_valid=True,
             rejection_reason=None,

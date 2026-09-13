@@ -296,6 +296,133 @@ const CLINICAL_THRESHOLDS = {
       }
       return { state: "optimal", label: "Aligned", color: "#22C55E", badge: "🟢 Aligned", subtext: `Arterial compliance aligned (${ageDelta >= 0 ? '+' : ''}${ageDelta.toFixed(1)} yrs)` };
     }
+  },
+
+  triangularIndex: {
+    name: "HRV Triangular Index (HRV-TI)",
+    unit: "TI",
+    normalRange: "> 12 (Healthy autonomic density)",
+    validationStatus: "PRIMARY_MVP",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Histogram density calculation" };
+      }
+      if (val < 8.0) {
+        return { state: "critical", label: "Low Density", color: "#EF4444", badge: "🔴 Low TI", subtext: "Compressed interval distribution (<8.0)" };
+      }
+      if (val < 12.0) {
+        return { state: "warning", label: "Moderate", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Moderate interval spread (8.0-12.0)" };
+      }
+      return { state: "optimal", label: "Optimal", color: "#22C55E", badge: "🟢 Optimal", subtext: "Broad rhythmic interval spread (>12.0)" };
+    }
+  },
+
+  stressResistance: {
+    name: "Stress Resistance Score",
+    unit: "pts",
+    normalRange: "60 - 100 pts (High Resilience)",
+    validationStatus: "PRIMARY_MVP",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Evaluating autonomic resilience" };
+      }
+      if (val < 40.0) {
+        return { state: "critical", label: "Depleted", color: "#EF4444", badge: "🔴 Low Resilience", subtext: "Vagal buffering is depleted (<40)" };
+      }
+      if (val < 65.0) {
+        return { state: "warning", label: "Moderate", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Adequate autonomic buffering (40-65)" };
+      }
+      return { state: "optimal", label: "High Resilience", color: "#22C55E", badge: "🟢 Robust", subtext: "Superior vagal parasympathetic reserve (>65)" };
+    }
+  },
+
+  pvcBurden: {
+    name: "Ectopic Burden (PVC/PAC)",
+    unit: "%",
+    normalRange: "< 1.0% Ectopic Beats",
+    validationStatus: "RESEARCH_ONLY",
+    evaluate: (val, count) => {
+      if (val === null || val === undefined || isNaN(val)) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Beat clustering analysis" };
+      }
+      if (val >= 5.0) {
+        return { state: "critical", label: "Elevated Burden", color: "#EF4444", badge: "🔴 Ectopic Alert", subtext: `${count || 0} premature beats (${val.toFixed(1)}% burden)` };
+      }
+      if (val >= 1.0) {
+        return { state: "warning", label: "Occasional", color: "#F59E0B", badge: "🟡 Occasional", subtext: `${count || 0} isolated premature beats (${val.toFixed(1)}%)` };
+      }
+      return { state: "optimal", label: "Zero / Minimal", color: "#22C55E", badge: "🟢 Normal", subtext: `No significant ectopic premature beats (${val.toFixed(1)}%)` };
+    }
+  },
+
+  cardiacOutput: {
+    name: "Cardiac Output (CO)",
+    unit: "L/min",
+    normalRange: "4.0 - 7.5 L/min (Resting Adult)",
+    validationStatus: "NOT_VALIDATED",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Stroke volume pulse proxy" };
+      }
+      return { state: "experimental", label: "Volumetric Flow", color: "#8B5CF6", badge: "🔬 Flow Proxy", subtext: `${val.toFixed(1)} L/min hemodynamic volumetric estimate` };
+    }
+  },
+
+  trainingReadiness: {
+    name: "Training Readiness",
+    unit: "/100",
+    normalRange: "70 - 100 (Peak Readiness)",
+    validationStatus: "MODEL_DEPENDENT",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "Multi-biomarker recovery composite" };
+      }
+      if (val >= 75.0) {
+        return { state: "optimal", label: "Peak Recovery", color: "#22C55E", badge: "🟢 Ready", subtext: "Optimal autonomic and cardiorespiratory recovery" };
+      }
+      if (val >= 50.0) {
+        return { state: "warning", label: "Moderate Recovery", color: "#F59E0B", badge: "🟡 Moderate", subtext: "Adequate recovery; light-to-moderate exertion" };
+      }
+      return { state: "critical", label: "Fatigued", color: "#EF4444", badge: "🔴 Recovery Needed", subtext: "Autonomic exhaustion detected; prioritize rest" };
+    }
+  },
+
+  score2Risk: {
+    name: "ESC SCORE2 (10-Yr CVD)",
+    unit: "%",
+    normalRange: "< 5.0% European 10-Yr Risk",
+    validationStatus: "CLINICAL_RISK_MODEL",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Unavailable", color: "#64748B", badge: "⚪ Unavailable", subtext: "ESC Guidelines algorithm" };
+      }
+      if (val >= 10.0) {
+        return { state: "critical", label: "High Risk", color: "#EF4444", badge: "🔴 High (≥10%)", subtext: "European Society of Cardiology SCORE2 ≥ 10%" };
+      }
+      if (val >= 5.0) {
+        return { state: "warning", label: "Moderate Risk", color: "#F59E0B", badge: "🟡 Moderate (5-9%)", subtext: "ESC SCORE2 intermediate cardiovascular risk" };
+      }
+      return { state: "optimal", label: "Low Risk", color: "#22C55E", badge: "🟢 Low (<5%)", subtext: "ESC SCORE2 low cardiovascular risk profile" };
+    }
+  },
+
+  tygIndex: {
+    name: "TyG Insulin Resistance Index",
+    unit: "index",
+    normalRange: "< 4.65 (Normal Insulin Sensitivity)",
+    validationStatus: "NOT_VALIDATED",
+    evaluate: (val) => {
+      if (!val || isNaN(val) || val <= 0) {
+        return { state: "unavailable", label: "Not Validated", color: "#64748B", badge: "⚪ Not Validated", subtext: "Triglyceride-Glucose metabolic product" };
+      }
+      if (val >= 4.80) {
+        return { state: "critical", label: "Insulin Resistant", color: "#EF4444", badge: "🔬 High TyG", subtext: `TyG = ${val.toFixed(2)} (High probability of insulin resistance)` };
+      }
+      if (val >= 4.65) {
+        return { state: "warning", label: "Borderline", color: "#F59E0B", badge: "🔬 Borderline", subtext: `TyG = ${val.toFixed(2)} (Early glycemic dysregulation)` };
+      }
+      return { state: "optimal", label: "Insulin Sensitive", color: "#22C55E", badge: "🔬 Sensitive", subtext: `TyG = ${val.toFixed(2)} (Healthy insulin sensitivity)` };
+    }
   }
 };
 

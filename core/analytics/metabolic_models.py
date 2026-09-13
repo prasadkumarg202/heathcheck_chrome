@@ -8,7 +8,7 @@ Features:
 
 from __future__ import annotations
 import math
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Dict, List, Optional, Any
 import numpy as np
 
@@ -21,11 +21,15 @@ class MetabolicRiskResult:
     estimated_hba1c_pct: float         # Estimated HbA1c in %
     hba1c_category: str                # "Normal (<5.7%)", "Prediabetes (5.7-6.4%)", "Diabetes (>6.4%)"
     hba1c_status: str                  # "Normal", "Prediabetes", "Diabetes"
-    metabolic_score: float             # 0 to 100 composite metabolic risk score
-    risk_level: str                    # "Low Risk", "Moderate Risk", "High Risk"
-    confidence: float                  # 0.0 to 1.0
-    key_factors: List[str]
-    is_valid: bool
+    tyg_index: float = 4.45            # Triglyceride-Glucose Index (ln[TG * FBG / 2])
+    tg_hdl_ratio: float = 1.85         # TG / HDL Ratio proxy
+    visceral_adiposity_index: float = 1.6 # VAI proxy
+    mets_score: float = -0.42          # Metabolic Syndrome Severity Z-Score
+    metabolic_score: float = 24.0      # 0 to 100 composite metabolic risk score
+    risk_level: str = "Low Risk"       # "Low Risk", "Moderate Risk", "High Risk"
+    confidence: float = 0.85           # 0.0 to 1.0
+    key_factors: List[str] = field(default_factory=list)
+    is_valid: bool = True
     disclaimer: str = "Wellness & physiological risk indicator — not a clinical lab diagnosis for diabetes."
     rejection_reason: Optional[str] = None
 
@@ -109,6 +113,25 @@ class MetabolicRiskEngine:
         # Composite metabolic score (0 - 100)
         met_score = float(np.clip(linear_risk * 100.0, 5.0, 95.0))
 
+        # Advanced Metabolic & Lipid Risk Markers:
+        # 1. Fasting Triglycerides estimation proxy (mg/dL) based on BMI and metabolic risk
+        tg_est = float(np.clip(85.0 + (bmi_z * 45.0) + (linear_risk * 60.0), 50.0, 320.0))
+        hdl_est = float(np.clip(58.0 - (bmi_z * 10.0) - (linear_risk * 12.0), 25.0, 85.0))
+
+        # 2. TyG Index = ln(TG [mg/dL] * FBG [mg/dL] / 2)
+        tyg = float(math.log(max(tg_est * fbg_est / 2.0, 1.0)))
+        tyg_index = float(np.clip(tyg, 3.8, 6.2))
+
+        # 3. TG / HDL Ratio proxy
+        tg_hdl = float(tg_est / max(hdl_est, 1.0))
+        tg_hdl_ratio = float(np.clip(tg_hdl, 0.8, 8.0))
+
+        # 4. Visceral Adiposity Index (VAI) proxy
+        vai_val = float(np.clip(1.0 + (bmi_z * 1.8) + (linear_risk * 1.5), 0.5, 6.5))
+
+        # 5. Continuous Metabolic Syndrome Severity Z-Score (MetS Score)
+        mets_z = float(np.clip((linear_risk - 0.35) * 4.0, -2.5, 3.5))
+
         if met_score < 30.0:
             risk_lvl = "Low Risk"
         elif met_score < 60.0:
@@ -121,6 +144,8 @@ class MetabolicRiskEngine:
             factors.append(f"Elevated BMI ({bmi:.1f})")
         if systolic_bp >= 130.0:
             factors.append(f"Elevated Systolic BP ({systolic_bp:.0f} mmHg)")
+        if tyg_index >= 4.65:
+            factors.append("Insulin Resistance Indicator (TyG >= 4.65)")
         if rmssd_ms < 25.0:
             factors.append("Low Autonomic Vagal Activity")
         if lf_hf_ratio > 2.0:
@@ -139,6 +164,10 @@ class MetabolicRiskEngine:
             estimated_hba1c_pct=float(round(hba1c_est, 1)),
             hba1c_category=hba1c_cat,
             hba1c_status=hba1c_stat,
+            tyg_index=float(round(tyg_index, 2)),
+            tg_hdl_ratio=float(round(tg_hdl_ratio, 2)),
+            visceral_adiposity_index=float(round(vai_val, 2)),
+            mets_score=float(round(mets_z, 2)),
             metabolic_score=float(round(met_score, 1)),
             risk_level=risk_lvl,
             confidence=float(round(confidence_inputs * 0.88, 3)),

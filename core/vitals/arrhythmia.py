@@ -30,10 +30,12 @@ class ArrhythmiaResult:
     shannon_entropy: float           # Shannon entropy of normalized IBI distribution
     rmssd_ms: float                  # Root Mean Square of Successive Differences
     ectopic_beat_count: int          # Count of premature/compensatory intervals
-    num_intervals: int               # Total beat intervals analyzed
-    confidence: float                # 0.0 to 1.0
-    is_valid: bool
-    recommendation: str              # Clinical safe-harbor guidance
+    pvc_pac_burden_pct: float = 0.0  # Percentage of premature/compensatory intervals
+    poincare_points: Optional[List[List[float]]] = None # [[RR_n, RR_n+1], ...]
+    num_intervals: int = 0           # Total beat intervals analyzed
+    confidence: float = 0.0          # 0.0 to 1.0
+    is_valid: bool = False
+    recommendation: str = ""         # Clinical safe-harbor guidance
     disclaimer: str = (
         "Investigational contactless rhythm screening. Not certified as a primary diagnostic "
         "instrument for Atrial Fibrillation under FDA 510(k) or EU MDR."
@@ -126,8 +128,9 @@ class ArrhythmiaEngine:
         # Ectopic beat detection (consecutive beat interval change > 20% from local median)
         median_ibi = float(np.median(clean_ibis))
         ectopic_count = int(np.count_nonzero(np.abs(clean_ibis - median_ibi) > (0.20 * median_ibi)))
+        pvc_pac_burden = float(round((ectopic_count / max(1, len(clean_ibis))) * 100.0, 1))
 
-        # 3. Poincaré Plot Analysis (SD1, SD2, SD1/SD2)
+        # 3. Poincaré Plot Analysis (SD1, SD2, SD1/SD2) & 2D Return Map Coordinates
         # SD1 = sqrt(0.5 * var(diffs))
         # SD2 = sqrt(2 * var(clean_ibis) - 0.5 * var(diffs))
         var_diff = float(np.var(diffs, ddof=1)) if len(diffs) > 1 else 0.0
@@ -138,6 +141,12 @@ class ArrhythmiaEngine:
         sd2 = math.sqrt(sd2_sq)
 
         sd1_sd2_ratio = float(sd1 / max(1e-4, sd2))
+
+        # Generate [RR_n, RR_n+1] scatter coordinates for real-time visualization
+        poincare_pairs = []
+        if len(clean_ibis) >= 2:
+            for i in range(len(clean_ibis) - 1):
+                poincare_pairs.append([float(round(clean_ibis[i], 1)), float(round(clean_ibis[i+1], 1))])
 
         # 4. Shannon Entropy on 16-bin normalized histogram
         hist_bins = np.linspace(
@@ -186,6 +195,8 @@ class ArrhythmiaEngine:
             shannon_entropy=float(round(shannon_ent, 3)),
             rmssd_ms=float(round(rmssd_ms, 2)),
             ectopic_beat_count=ectopic_count,
+            pvc_pac_burden_pct=pvc_pac_burden,
+            poincare_points=poincare_pairs,
             num_intervals=len(clean_ibis),
             confidence=confidence,
             is_valid=True,

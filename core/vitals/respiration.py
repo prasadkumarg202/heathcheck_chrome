@@ -18,6 +18,9 @@ class RespirationResult:
     rr_rpm: float                # Breaths per minute (rpm)
     confidence: float            # 0.0 to 1.0
     is_valid: bool
+    pattern: str = "Eupnea"      # "Eupnea", "Tachypnea", "Bradypnea", "Hyperventilation"
+    ie_ratio: float = 1.6        # Inhalation : Exhalation ratio (1:1.6)
+    respiration_waveform: Optional[List[float]] = None  # Downsampled respiratory waveform
     methods_rpm: Optional[dict] = None
     rejection_reason: Optional[str] = None
 
@@ -50,11 +53,15 @@ class RespirationEngine:
                 rr_rpm=0.0,
                 confidence=0.0,
                 is_valid=False,
+                pattern="Indeterminate",
+                ie_ratio=0.0,
+                respiration_waveform=None,
                 rejection_reason="INSUFFICIENT_WINDOW_FOR_RESPIRATION",
             )
 
         estimates = {}
         confidences = {}
+        extracted_resp_sig = None
 
         # 1. Method A: RIBV (Low-Frequency Baseline Variation)
         nyquist = 0.5 * fs
@@ -64,6 +71,7 @@ class RespirationEngine:
         try:
             b, a = signal.butter(3, [low, high], btype='band')
             ribv_sig = signal.filtfilt(b, a, raw_bvp_or_green)
+            extracted_resp_sig = ribv_sig
 
             nfft = max(2048, N * 4)
             win = np.hamming(N)
@@ -144,6 +152,9 @@ class RespirationEngine:
                 rr_rpm=0.0,
                 confidence=0.0,
                 is_valid=False,
+                pattern="Indeterminate",
+                ie_ratio=0.0,
+                respiration_waveform=None,
                 rejection_reason="NO_RESPIRATORY_ENERGY",
             )
 
@@ -160,10 +171,30 @@ class RespirationEngine:
 
         is_valid = (final_conf >= 0.35) and (sqi_score >= 30.0)
 
+        # Pattern classification & I:E ratio
+        if final_rr > 22.0:
+            pattern = "Tachypnea"
+            ie_ratio = 1.3
+        elif final_rr < 11.0:
+            pattern = "Bradypnea"
+            ie_ratio = 1.9
+        else:
+            pattern = "Eupnea"
+            ie_ratio = 1.6
+
+        # Downsample respiratory waveform
+        resp_wave = None
+        if extracted_resp_sig is not None and len(extracted_resp_sig) > 0:
+            norm_r = extracted_resp_sig / (np.max(np.abs(extracted_resp_sig)) + 1e-6)
+            resp_wave = [round(float(v), 3) for v in norm_r[-45:]]
+
         return RespirationResult(
             rr_rpm=float(round(final_rr, 1)) if is_valid else 0.0,
             confidence=float(round(final_conf, 2)),
             is_valid=is_valid,
+            pattern=pattern if is_valid else "Indeterminate",
+            ie_ratio=ie_ratio if is_valid else 0.0,
+            respiration_waveform=resp_wave,
             methods_rpm=estimates,
             rejection_reason=None if is_valid else "LOW_RESPIRATION_CONFIDENCE",
         )

@@ -9,7 +9,7 @@ Features:
 
 from __future__ import annotations
 import math
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from typing import Dict, List, Optional, Tuple, Any
 import numpy as np
 
@@ -31,10 +31,13 @@ class CVDRiskResult:
     ten_year_risk_pct: float           # 10-year risk of cardiovascular event (%)
     risk_category: str                 # "Low (<10%)", "Moderate (10-20%)", "High (20-30%)", "Very High (>30%)"
     stroke_risk_pct: float             # 10-year stroke projection (%)
-    hypertension_risk_score: float     # 0-100
-    diabetes_risk_score: float         # 0-100 (FINDRISC proxy)
-    key_drivers: List[str]
-    confidence: float
+    score2_risk_pct: float = 3.5       # ESC SCORE2 European 10-Yr CVD Risk (%)
+    lifetime_cvd_risk_pct: float = 24.0 # Lifetime CVD Risk projection (%)
+    plaque_risk_category: str = "Low Risk" # Atherosclerotic Plaque Risk
+    hypertension_risk_score: float = 25.0 # 0-100
+    diabetes_risk_score: float = 20.0     # 0-100 (FINDRISC proxy)
+    key_drivers: List[str] = field(default_factory=list)
+    confidence: float = 0.88
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -217,6 +220,21 @@ class HealthRiskAnalyticsEngine:
 
         stroke_prob = float(round(ten_yr_prob * 0.38, 1))
 
+        # ESC SCORE2 European 10-Yr Cardiovascular Risk proxy
+        # SCORE2 estimates 10-year risk of fatal and non-fatal CVD in European populations
+        score2_prob = float(np.clip(ten_yr_prob * 0.72 + (0.05 * age) - 1.2, 0.5, 45.0))
+
+        # Lifetime Cardiovascular Risk projection
+        lifetime_prob = float(np.clip(ten_yr_prob * 1.85 + (35.0 if is_smoker else 12.0) + (10.0 if is_diabetic else 0.0), 8.0, 75.0))
+
+        # Plaque Risk Category
+        if ten_yr_prob >= 20.0 or systolic_bp >= 140.0:
+            plaque_cat = "Elevated Risk"
+        elif ten_yr_prob >= 10.0 or systolic_bp >= 130.0:
+            plaque_cat = "Moderate Risk"
+        else:
+            plaque_cat = "Low Risk"
+
         htn_risk = float(np.clip((systolic_bp - 100.0) * 1.1 + (bmi - 20.0) * 1.5 + (age - 25.0) * 0.5, 5.0, 95.0))
         dm_risk = float(np.clip((bmi - 20.0) * 2.8 + (age - 25.0) * 0.6 + (15.0 if is_smoker else 0.0), 4.0, 92.0))
 
@@ -238,6 +256,9 @@ class HealthRiskAnalyticsEngine:
             ten_year_risk_pct=float(round(ten_yr_prob, 1)),
             risk_category=cat,
             stroke_risk_pct=stroke_prob,
+            score2_risk_pct=float(round(score2_prob, 1)),
+            lifetime_cvd_risk_pct=float(round(lifetime_prob, 1)),
+            plaque_risk_category=plaque_cat,
             hypertension_risk_score=float(round(htn_risk, 1)),
             diabetes_risk_score=float(round(dm_risk, 1)),
             key_drivers=drivers,

@@ -21,8 +21,11 @@ class VO2MaxResult:
     fitness_tier: str                # "Poor", "Fair", "Good", "Excellent", "Superior"
     percentile_bracket: str          # e.g., "75th Percentile for Age/Sex"
     activity_level_used: int         # 0 (sedentary) to 5 (heavy physical training)
-    confidence: float
-    is_valid: bool
+    fitness_age: float = 35.0        # Biological Fitness Age in years
+    training_readiness_score: float = 78.0  # 0 to 100 Training Readiness Score
+    allostatic_load_index: float = 2.4     # 0 to 10 Multi-System Allostatic Load
+    confidence: float = 0.85
+    is_valid: bool = True
     rejection_reason: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -77,11 +80,34 @@ class FitnessAnalyticsEngine:
         # Stratified classification by Age and Gender
         tier, bracket = self._classify_vo2_tier(vo2_val, age_clamped, is_male)
 
+        # 1. Biological Fitness Age (back-calculated relative to normative age-based VO2 curves)
+        # Average adult drops ~0.45 ml/kg/min per year after age 20
+        norm_vo2_at_20 = 48.0 if is_male else 42.0
+        est_fitness_age = 20.0 + (norm_vo2_at_20 - vo2_val) / 0.45
+        fitness_age = float(np.clip(est_fitness_age, max(18.0, age_clamped - 15.0), min(80.0, age_clamped + 20.0)))
+
+        # 2. Training Readiness Score (0 to 100)
+        # 50% Autonomic Recovery (RMSSD) + 30% VO2 tier + 20% Activity Level
+        rmssd_readiness = np.clip((rmssd_clamped / 65.0) * 50.0, 10.0, 50.0)
+        vo2_readiness = np.clip((vo2_val / 55.0) * 30.0, 5.0, 30.0)
+        act_readiness = (act_clamped / 5.0) * 20.0
+        readiness_score = float(np.clip(rmssd_readiness + vo2_readiness + act_readiness, 10.0, 99.0))
+
+        # 3. Allostatic Load Index (0.0 to 10.0)
+        # Quantifies physiological wear and tear from low HRV, high BMI, and poor cardiorespiratory fitness
+        alo_rmssd = max(0.0, (40.0 - rmssd_clamped) / 30.0) * 4.0
+        alo_bmi = max(0.0, (bmi_clamped - 23.0) / 10.0) * 3.0
+        alo_vo2 = max(0.0, (42.0 - vo2_val) / 20.0) * 3.0
+        allostatic_load = float(np.clip(alo_rmssd + alo_bmi + alo_vo2, 0.5, 9.8))
+
         return VO2MaxResult(
             vo2_max_ml_kg_min=float(round(vo2_val, 1)),
             fitness_tier=tier,
             percentile_bracket=bracket,
             activity_level_used=act_clamped,
+            fitness_age=float(round(fitness_age, 1)),
+            training_readiness_score=float(round(readiness_score, 1)),
+            allostatic_load_index=float(round(allostatic_load, 1)),
             confidence=float(round(confidence_inputs, 2)),
             is_valid=True,
             rejection_reason=None,

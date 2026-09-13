@@ -17,6 +17,10 @@ class HRResult:
     confidence: float            # 0.0 to 1.0
     method_estimates: dict
     is_valid: bool
+    max_hr_bpm: float = 185.0
+    hr_zone: str = "Resting"      # "Resting (<60%)", "Warmup (60-70%)", "Aerobic (70-80%)", "Threshold (80-90%)", "Peak (>90%)"
+    hr_zone_pct: float = 0.0
+    hr_reserve_pct: float = 0.0
     rejection_reason: Optional[str] = None
 
 
@@ -49,7 +53,9 @@ class HeartRateEngine:
         self,
         bvp_signal: np.ndarray,
         fs: float = 30.0,
-        sqi_score: float = 80.0
+        sqi_score: float = 80.0,
+        age: float = 35.0,
+        resting_hr_hint: float = 65.0
     ) -> HRResult:
         """
         Calculates heart rate from BVP signal using ensemble spectral and temporal analysis.
@@ -121,11 +127,31 @@ class HeartRateEngine:
 
         self.last_smoothed_hr = smoothed_hr
 
+        # Calculate Gellish formula Max HR: 207 - (0.7 * Age)
+        max_hr = float(round(207.0 - (0.7 * max(18.0, min(85.0, age))), 1))
+        zone_pct = float(round((smoothed_hr / max(max_hr, 100.0)) * 100.0, 1))
+        hr_reserve_pct = float(round(max(0.0, (smoothed_hr - resting_hr_hint) / max(1.0, max_hr - resting_hr_hint)) * 100.0, 1))
+
+        if zone_pct < 60.0:
+            zone_label = "Resting / Recovery"
+        elif zone_pct < 70.0:
+            zone_label = "Zone 1: Warmup"
+        elif zone_pct < 80.0:
+            zone_label = "Zone 2: Aerobic Fat Burn"
+        elif zone_pct < 90.0:
+            zone_label = "Zone 3: Cardio / Threshold"
+        else:
+            zone_label = "Zone 4: Peak / Anaerobic"
+
         return HRResult(
             hr_bpm=round(smoothed_hr, 1),
             confidence=round(min(1.0, max(0.0, mean_conf)), 3),
             method_estimates={k: round(v[0], 1) for k, v in estimates.items()},
             is_valid=True,
+            max_hr_bpm=max_hr,
+            hr_zone=zone_label,
+            hr_zone_pct=zone_pct,
+            hr_reserve_pct=hr_reserve_pct,
             rejection_reason=None,
         )
 

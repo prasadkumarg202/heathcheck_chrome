@@ -24,6 +24,11 @@ class PRVResult:
     sd1_ms: float                # Poincaré short-term variability
     sd2_ms: float                # Poincaré long-term variability
     sd1_sd2_ratio: float         # SD1 / SD2 ratio
+    triangular_index: float      # HRV Triangular Index (HRV-TI = total NN / max histogram bin)
+    tinn_ms: float               # Triangular Interpolation of NN intervals (ms)
+    stress_resistance_score: float # 0 to 100 Autonomic resilience capacity
+    cardiac_vagal_index: float   # Toichi CVI = log10(SD1 * SD2)
+    cardiac_sympathetic_index: float # Toichi CSI = 0.5 * SD2 / SD1
     num_peaks_detected: int
     duration_s: float
     confidence: float
@@ -64,6 +69,11 @@ class PRVEngine:
                 sd1_ms=0.0,
                 sd2_ms=0.0,
                 sd1_sd2_ratio=0.0,
+                triangular_index=0.0,
+                tinn_ms=0.0,
+                stress_resistance_score=0.0,
+                cardiac_vagal_index=0.0,
+                cardiac_sympathetic_index=0.0,
                 num_peaks_detected=0,
                 duration_s=duration_s,
                 confidence=0.0,
@@ -96,6 +106,11 @@ class PRVEngine:
                 sd1_ms=0.0,
                 sd2_ms=0.0,
                 sd1_sd2_ratio=0.0,
+                triangular_index=0.0,
+                tinn_ms=0.0,
+                stress_resistance_score=0.0,
+                cardiac_vagal_index=0.0,
+                cardiac_sympathetic_index=0.0,
                 num_peaks_detected=len(peaks),
                 duration_s=duration_s,
                 confidence=0.0,
@@ -139,6 +154,11 @@ class PRVEngine:
                 sd1_ms=0.0,
                 sd2_ms=0.0,
                 sd1_sd2_ratio=0.0,
+                triangular_index=0.0,
+                tinn_ms=0.0,
+                stress_resistance_score=0.0,
+                cardiac_vagal_index=0.0,
+                cardiac_sympathetic_index=0.0,
                 num_peaks_detected=len(peaks),
                 duration_s=duration_s,
                 confidence=0.0,
@@ -160,14 +180,38 @@ class PRVEngine:
         nn50 = np.count_nonzero(np.abs(successive_diffs) > 50.0) if len(successive_diffs) > 0 else 0
         pnn50 = float((nn50 / len(successive_diffs)) * 100.0) if len(successive_diffs) > 0 else 0.0
 
-        # 5. Poincaré Features
+        # 5. Poincaré Features & Autonomic Indices
         if len(successive_diffs) > 0:
             sd1 = float(np.sqrt(0.5 * (rmssd ** 2)))
             sd2_val = 2.0 * (sdnn ** 2) - 0.5 * (rmssd ** 2)
             sd2 = float(np.sqrt(max(0.0, sd2_val)))
             sd1_sd2 = float(sd1 / sd2) if sd2 > 1e-4 else 0.0
+            
+            # Toichi Cardiac Vagal & Sympathetic Indices
+            cvi = float(np.log10(max(1.0, sd1 * sd2)))
+            csi = float(0.5 * (sd2 / max(0.1, sd1)))
         else:
-            sd1, sd2, sd1_sd2 = 0.0, 0.0, 0.0
+            sd1, sd2, sd1_sd2, cvi, csi = 0.0, 0.0, 0.0, 0.0, 0.0
+
+        # 6. HRV Triangular Index (HRV-TI) and TINN
+        # Bin size = 7.8125 ms (standard 1/128s clinical bin width)
+        bin_width = 7.8125
+        min_p = np.min(clean_ppi)
+        max_p = np.max(clean_ppi)
+        if max_p > min_p:
+            num_bins = max(5, int((max_p - min_p) / bin_width) + 1)
+            hist_counts, bin_edges = np.histogram(clean_ppi, bins=num_bins)
+            max_bin_count = max(1, int(np.max(hist_counts)))
+            hrv_triangular_index = float(round(len(clean_ppi) / max_bin_count, 2))
+            tinn_ms = float(round(max_p - min_p, 1))
+        else:
+            hrv_triangular_index = 1.0
+            tinn_ms = 0.0
+
+        # 7. Stress Resistance & Allostatic Resilience Score (0 - 100)
+        # Sigmoid calibration: RMSSD = 35ms -> ~65, RMSSD >= 65ms -> 90+
+        stress_res = 100.0 / (1.0 + np.exp(-(rmssd - 30.0) / 12.0))
+        stress_res_score = float(np.clip(stress_res, 10.0, 99.0))
 
         conf = min(1.0, (sqi_score / 100.0) * (len(clean_ppi) / (duration_s * 0.8)))
 
@@ -179,6 +223,11 @@ class PRVEngine:
             sd1_ms=round(sd1, 1),
             sd2_ms=round(sd2, 1),
             sd1_sd2_ratio=round(sd1_sd2, 3),
+            triangular_index=hrv_triangular_index,
+            tinn_ms=tinn_ms,
+            stress_resistance_score=round(stress_res_score, 1),
+            cardiac_vagal_index=round(cvi, 2),
+            cardiac_sympathetic_index=round(csi, 2),
             num_peaks_detected=len(clean_ppi) + 1,
             duration_s=round(duration_s, 1),
             confidence=round(conf, 3),
